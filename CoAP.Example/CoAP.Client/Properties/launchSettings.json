@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CoAP.Client.NET.Core": {
+      "commandName": "Project",
+      "commandLineArgs": "GET coap://localhost/hello"
+    }
+  }
+}

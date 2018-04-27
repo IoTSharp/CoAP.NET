@@ -300,7 +300,7 @@ namespace CoAP.Channel
             {
                 socket.Socket.IOControl(SIO_UDP_CONNRESET, new Byte[] { 0 }, null);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // ignore
             }
