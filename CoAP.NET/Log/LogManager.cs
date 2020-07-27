@@ -26,17 +26,13 @@ namespace CoAP.Log
             Type test;
             try
             {
-                test = Type.GetType("Common.Logging.LogManager, Common.Logging");
             }
             catch
             {
                 test = null;
             }
 
-            if (test == null)
                 _manager = new ConsoleLogManager();
-            else
-                _manager = new CommonLoggingManager();
         }
 
         /// <summary>
