@@ -11,6 +11,8 @@
     <RepositoryUrl>https://github.com/IoTSharp/CoAP.NET</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <Version>2.0.0</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,6 +25,10 @@
     <None Remove="Util\System.Collections.Concurrent\**" />
     <None Remove="Util\System.Threading\**" />
     <None Remove="Util\System\**" />
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
