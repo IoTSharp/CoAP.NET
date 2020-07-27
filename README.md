@@ -1,7 +1,10 @@
 CoAP.NET - A CoAP framework in C#
 =================================
 
-[![Build Status](https://api.travis-ci.org/smeshlink/CoAP.NET.png)](https://travis-ci.org/smeshlink/CoAP.NET)
+[![Build status](https://ci.appveyor.com/api/projects/status/5ofvjna7kysl1mqq?svg=true)](https://ci.appveyor.com/project/MaiKeBing/coap-net)
+
+' Install-Package IoTSharp.CoAP.NET -Version 2.0.8
+
 
 The Constrained Application Protocol (CoAP) (https://datatracker.ietf.org/doc/draft-ietf-core-coap/)
 is a RESTful web transfer protocol for resource-constrained networks and nodes.
