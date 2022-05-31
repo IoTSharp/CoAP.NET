@@ -230,11 +230,25 @@
             return this.SendAsync(request, ct);
         }
 
-        public Task<Response> PutAsync(Uri uri, byte[] payload, int contentType, CancellationToken ct)
+        public Task<Response> PutAsync(Uri uri, byte[] payload, int contentType, CancellationToken ct, IProgress<double> progress = null)
         {
             this.Uri = uri;
 
             var request = Request.NewPut();
+
+            if (progress != null)
+            {
+                request.Responding += (s, e) =>
+                {
+                    var percent = ((((e?.Response?.Block1?.NUM + 1) * e?.Response?.Block1?.Size) * 1.0) / (payload.Length * 1.0));
+
+                    if (percent.HasValue)
+                    {
+                        progress.Report(percent.Value);
+                    }
+                };
+            }
+
             request.SetPayload(payload, contentType);
             return this.SendAsync(request, ct);
         }
