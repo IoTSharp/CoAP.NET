@@ -31,7 +31,6 @@ namespace CoAP
         [TestInitialize]
         public void SetupServer()
         {
-            Log.LogManager.Level = Log.LogLevel.Fatal;
             _config = new CoapConfig();
             _server = new CoapServer();
             CoAPEndPoint endpoint = new CoAPEndPoint(_serverPort, _config);

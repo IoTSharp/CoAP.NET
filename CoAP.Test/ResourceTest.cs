@@ -17,7 +17,6 @@ namespace CoAP
     {
         public ResourceTest()
         {
-            Log.LogManager.Level = Log.LogLevel.Fatal;
         }
 
         [TestMethod]

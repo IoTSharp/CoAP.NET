@@ -31,7 +31,6 @@ namespace CoAP
         [TestInitialize]
         public void SetupServer()
         {
-            Log.LogManager.Level = Log.LogLevel.Fatal;
 
             using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
             {

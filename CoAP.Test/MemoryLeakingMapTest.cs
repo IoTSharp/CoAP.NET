@@ -51,7 +51,6 @@ namespace CoAP
         [TestInitialize]
         public void SetupServer()
         {
-            Log.LogManager.Level = Log.LogLevel.Fatal;
             CoapConfig config = new CoapConfig();
             config.Deduplicator = "MarkAndSweep";
             config.MarkAndSweepInterval = TEST_SWEEP_DEDUPLICATOR_INTERVAL;

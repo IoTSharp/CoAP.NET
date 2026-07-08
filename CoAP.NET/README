@@ -1,9 +1,9 @@
-IoTSharp.CoAP.NET
-=================
+CoAP.NET
+========
 
-This project is the .NET 10 library project for the IoTSharp-maintained
-CoAP.NET fork. The package keeps both client and server APIs, blockwise
-transfer, observe support, UDP transport, and PSK DTLS transport.
+This project is the .NET 10 library project for the maintained CoAP.NET fork.
+The package keeps both client and server APIs, blockwise transfer, observe
+support, UDP transport, and PSK DTLS transport.
 
 Use the repository-level README.md for current quick-start, logging, DTLS, and
 NuGet packaging instructions.
