@@ -43,10 +43,6 @@ namespace CoAP.Server.Routing
     /// </summary>
     public sealed class CoapRoute
     {
-        private readonly RouteSegment[] _segments;
-        private readonly string[] _parameterNames;
-        private readonly CoapRouteHandler _handler;
-
         /// <summary>
         /// Creates a CoAP route.
         /// </summary>
@@ -55,100 +51,47 @@ namespace CoAP.Server.Routing
         /// <param name="handler">The route handler.</param>
         public CoapRoute(Method method, string template, CoapRouteHandler handler)
         {
-            if (string.IsNullOrWhiteSpace(template))
-            {
-                throw new ArgumentException("Route template is required.", nameof(template));
-            }
-
-            Method = method;
-            Template = template.Trim('/');
-            _segments = ParseTemplate(Template, out _parameterNames);
-            if (_segments.Length == 0)
-            {
-                throw new ArgumentException("Route template must contain at least one segment.", nameof(template));
-            }
-
-            if (_segments[0].IsParameter)
-            {
-                throw new ArgumentException("Route template root segment must be a literal resource name.", nameof(template));
-            }
-
-            _handler = handler ?? throw new ArgumentNullException(nameof(handler));
+            Endpoint = new CoapEndpoint(
+                method,
+                CoapRoutePattern.Parse(template),
+                handler,
+                new object[] { this });
         }
 
         /// <summary>
         /// The CoAP request method.
         /// </summary>
-        public Method Method { get; }
+        public Method Method => Endpoint.Method;
 
         /// <summary>
         /// The route template.
         /// </summary>
-        public string Template { get; }
+        public string Template => Endpoint.RoutePattern.Template;
+
+        /// <summary>
+        /// The endpoint descriptor created for this route.
+        /// </summary>
+        public CoapEndpoint Endpoint { get; }
 
         /// <summary>
         /// The first URI path segment used as the root resource.
         /// </summary>
-        public string RootSegment => _segments[0].Value;
+        public string RootSegment => Endpoint.RootSegment;
 
         internal bool IsPrefix(IReadOnlyList<string> pathSegments)
         {
-            if (pathSegments == null || pathSegments.Count > _segments.Length)
-            {
-                return false;
-            }
-
-            for (var i = 0; i < pathSegments.Count; i++)
-            {
-                if (!_segments[i].Matches(pathSegments[i]))
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return Endpoint.RoutePattern.IsPrefix(pathSegments);
         }
 
         internal bool TryMatch(Method method, IReadOnlyList<string> pathSegments, out IReadOnlyDictionary<string, string> routeValues)
         {
             routeValues = null;
-            if (method != Method || pathSegments == null || pathSegments.Count != _segments.Length)
-            {
-                return false;
-            }
-
-            for (var i = 0; i < pathSegments.Count; i++)
-            {
-                var segment = _segments[i];
-                if (!segment.Matches(pathSegments[i]))
-                {
-                    return false;
-                }
-            }
-
-            if (_parameterNames.Length == 0)
-            {
-                routeValues = CoapRouteValueCollection.Empty;
-                return true;
-            }
-
-            var values = new string[_parameterNames.Length];
-            for (var i = 0; i < pathSegments.Count; i++)
-            {
-                var segment = _segments[i];
-                if (segment.IsParameter)
-                {
-                    values[segment.ParameterIndex] = pathSegments[i];
-                }
-            }
-
-            routeValues = new CoapRouteValueCollection(_parameterNames, values);
-            return true;
+            return method == Method && Endpoint.RoutePattern.TryMatch(pathSegments, out routeValues);
         }
 
         internal ValueTask<CoapRouteResult> InvokeAsync(CoapRouteContext context)
         {
-            return _handler(context);
+            return Endpoint.InvokeAsync(context);
         }
 
         /// <summary>
@@ -291,180 +234,6 @@ namespace CoAP.Server.Routing
                 return await resource.InvokeWithContextAsync(context, () => handler(resource)).ConfigureAwait(false);
             });
         }
-
-        private static RouteSegment[] ParseTemplate(string template, out string[] parameterNames)
-        {
-            var rawSegments = template.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-            var segments = new RouteSegment[rawSegments.Length];
-            var parameters = new List<string>();
-            for (var i = 0; i < rawSegments.Length; i++)
-            {
-                segments[i] = RouteSegment.Parse(rawSegments[i], parameters);
-            }
-
-            parameterNames = parameters.Count == 0 ? Array.Empty<string>() : parameters.ToArray();
-            return segments;
-        }
-
-        private static int GetOrAddParameterIndex(List<string> parameterNames, string parameterName)
-        {
-            for (var i = 0; i < parameterNames.Count; i++)
-            {
-                if (string.Equals(parameterNames[i], parameterName, StringComparison.Ordinal))
-                {
-                    return i;
-                }
-            }
-
-            parameterNames.Add(parameterName);
-            return parameterNames.Count - 1;
-        }
-
-        private readonly struct RouteSegment
-        {
-            private RouteSegment(string value, bool isParameter, int parameterIndex)
-            {
-                Value = value;
-                IsParameter = isParameter;
-                ParameterIndex = parameterIndex;
-            }
-
-            public string Value { get; }
-
-            public bool IsParameter { get; }
-
-            public int ParameterIndex { get; }
-
-            public static RouteSegment Parse(string segment, List<string> parameterNames)
-            {
-                if (segment.Length > 2 && segment[0] == '{' && segment[^1] == '}')
-                {
-                    var parameterName = segment[1..^1];
-                    return new RouteSegment(parameterName, true, GetOrAddParameterIndex(parameterNames, parameterName));
-                }
-
-                return new RouteSegment(segment, false, -1);
-            }
-
-            public bool Matches(string value)
-            {
-                return IsParameter || string.Equals(Value, value, StringComparison.Ordinal);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Read-only route value dictionary backed by small arrays instead of a hash table.
-    /// </summary>
-    internal sealed class CoapRouteValueCollection : IReadOnlyDictionary<string, string>
-    {
-        internal static readonly CoapRouteValueCollection Empty =
-            new CoapRouteValueCollection(Array.Empty<string>(), Array.Empty<string>());
-
-        private readonly string[] _keys;
-        private readonly string[] _values;
-
-        internal CoapRouteValueCollection(string[] keys, string[] values)
-        {
-            _keys = keys ?? throw new ArgumentNullException(nameof(keys));
-            _values = values ?? throw new ArgumentNullException(nameof(values));
-            if (_keys.Length != _values.Length)
-            {
-                throw new ArgumentException("Route value key and value arrays must have the same length.", nameof(values));
-            }
-        }
-
-        /// <inheritdoc />
-        public IEnumerable<string> Keys => EnumerateKeys();
-
-        /// <inheritdoc />
-        public IEnumerable<string> Values => EnumerateValues();
-
-        /// <inheritdoc />
-        public int Count => _keys.Length;
-
-        /// <inheritdoc />
-        public string this[string key]
-        {
-            get
-            {
-                if (TryGetValue(key, out var value))
-                {
-                    return value;
-                }
-
-                throw new KeyNotFoundException("The route value was not found.");
-            }
-        }
-
-        /// <inheritdoc />
-        public bool ContainsKey(string key)
-        {
-            return IndexOfKey(key) >= 0;
-        }
-
-        /// <inheritdoc />
-        public bool TryGetValue(string key, out string value)
-        {
-            var index = IndexOfKey(key);
-            if (index >= 0)
-            {
-                value = _values[index];
-                return true;
-            }
-
-            value = null;
-            return false;
-        }
-
-        /// <inheritdoc />
-        public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
-        {
-            for (var i = 0; i < _keys.Length; i++)
-            {
-                yield return new KeyValuePair<string, string>(_keys[i], _values[i]);
-            }
-        }
-
-        /// <inheritdoc />
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        private IEnumerable<string> EnumerateKeys()
-        {
-            for (var i = 0; i < _keys.Length; i++)
-            {
-                yield return _keys[i];
-            }
-        }
-
-        private IEnumerable<string> EnumerateValues()
-        {
-            for (var i = 0; i < _values.Length; i++)
-            {
-                yield return _values[i];
-            }
-        }
-
-        private int IndexOfKey(string key)
-        {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            for (var i = 0; i < _keys.Length; i++)
-            {
-                if (string.Equals(_keys[i], key, StringComparison.Ordinal))
-                {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
     }
 
     /// <summary>
@@ -492,7 +261,64 @@ namespace CoAP.Server.Routing
             ReadOnlyMemory<byte> payload,
             int contentFormat,
             int accept)
+            : this(
+                  route == null ? null : route.Endpoint,
+                  route,
+                  method,
+                  pathSegments,
+                  routeValues,
+                  queries,
+                  payload,
+                  contentFormat,
+                  accept)
         {
+        }
+
+        /// <summary>
+        /// Creates a matched CoAP endpoint context.
+        /// </summary>
+        /// <param name="endpoint">The selected endpoint.</param>
+        /// <param name="method">The CoAP request method.</param>
+        /// <param name="pathSegments">The URI path segments.</param>
+        /// <param name="routeValues">Values extracted from template parameters.</param>
+        /// <param name="queries">The URI query options.</param>
+        /// <param name="payload">The request payload.</param>
+        /// <param name="contentFormat">The Content-Format option value.</param>
+        /// <param name="accept">The Accept option value.</param>
+        public CoapRouteContext(
+            CoapEndpoint endpoint,
+            Method method,
+            IReadOnlyList<string> pathSegments,
+            IReadOnlyDictionary<string, string> routeValues,
+            IReadOnlyList<string> queries,
+            ReadOnlyMemory<byte> payload,
+            int contentFormat,
+            int accept)
+            : this(
+                  endpoint,
+                  endpoint == null ? null : endpoint.Metadata.GetMetadata<CoapRoute>(),
+                  method,
+                  pathSegments,
+                  routeValues,
+                  queries,
+                  payload,
+                  contentFormat,
+                  accept)
+        {
+        }
+
+        private CoapRouteContext(
+            CoapEndpoint endpoint,
+            CoapRoute route,
+            Method method,
+            IReadOnlyList<string> pathSegments,
+            IReadOnlyDictionary<string, string> routeValues,
+            IReadOnlyList<string> queries,
+            ReadOnlyMemory<byte> payload,
+            int contentFormat,
+            int accept)
+        {
+            Endpoint = endpoint ?? throw new ArgumentNullException(nameof(endpoint));
             Route = route;
             Method = method;
             PathSegments = pathSegments;
@@ -502,6 +328,11 @@ namespace CoAP.Server.Routing
             ContentFormat = contentFormat;
             Accept = accept;
         }
+
+        /// <summary>
+        /// The matched endpoint descriptor.
+        /// </summary>
+        public CoapEndpoint Endpoint { get; }
 
         /// <summary>
         /// The matched route descriptor.
@@ -744,14 +575,24 @@ namespace CoAP.Server.Routing
     public sealed class CoapRouteEndpoint : IResource
     {
         private static readonly ILogger Log = CoapLogging.CreateLogger(typeof(CoapRouteEndpoint));
-        private readonly IReadOnlyList<CoapRoute> _routes;
+        private readonly ICoapEndpointDataSource _dataSource;
+        private readonly ICoapEndpointMatcher _matcher;
+        private readonly IReadOnlyList<CoapEndpoint> _candidateEndpoints;
         private readonly IReadOnlyList<string> _pathSegments;
         private IResource _parent;
 
-        private CoapRouteEndpoint(string name, IReadOnlyList<CoapRoute> routes, IReadOnlyList<string> pathSegments, bool visible)
+        private CoapRouteEndpoint(
+            string name,
+            ICoapEndpointDataSource dataSource,
+            ICoapEndpointMatcher matcher,
+            IReadOnlyList<CoapEndpoint> candidateEndpoints,
+            IReadOnlyList<string> pathSegments,
+            bool visible)
         {
             Name = name;
-            _routes = routes;
+            _dataSource = dataSource;
+            _matcher = matcher;
+            _candidateEndpoints = candidateEndpoints;
             _pathSegments = pathSegments;
             Visible = visible;
         }
@@ -768,9 +609,54 @@ namespace CoAP.Server.Routing
                 throw new ArgumentNullException(nameof(routes));
             }
 
-            return routes
-                .GroupBy(route => route.RootSegment, StringComparer.Ordinal)
-                .Select(group => (IResource)new CoapRouteEndpoint(group.Key, group.ToArray(), new[] { group.Key }, true))
+            return Create(CoapEndpointDataSource.FromRoutes(routes));
+        }
+
+        /// <summary>
+        /// Creates root resources for endpoints supplied by a data source.
+        /// </summary>
+        /// <param name="dataSource">The endpoint data source.</param>
+        /// <returns>Root resources grouped by first URI path segment.</returns>
+        public static IReadOnlyList<IResource> Create(ICoapEndpointDataSource dataSource)
+        {
+            if (dataSource == null)
+            {
+                throw new ArgumentNullException(nameof(dataSource));
+            }
+
+            return Create(dataSource, new CoapEndpointMatcher(dataSource));
+        }
+
+        /// <summary>
+        /// Creates root resources for endpoints supplied by a data source.
+        /// </summary>
+        /// <param name="dataSource">The endpoint data source.</param>
+        /// <param name="matcher">The endpoint matcher.</param>
+        /// <returns>Root resources grouped by first URI path segment.</returns>
+        public static IReadOnlyList<IResource> Create(
+            ICoapEndpointDataSource dataSource,
+            ICoapEndpointMatcher matcher)
+        {
+            if (dataSource == null)
+            {
+                throw new ArgumentNullException(nameof(dataSource));
+            }
+
+            if (matcher == null)
+            {
+                throw new ArgumentNullException(nameof(matcher));
+            }
+
+            return dataSource.Endpoints
+                .Select(endpoint => endpoint ?? throw new ArgumentException("Endpoint data source cannot contain null entries.", nameof(dataSource)))
+                .GroupBy(endpoint => endpoint.RootSegment, StringComparer.Ordinal)
+                .Select(group => (IResource)new CoapRouteEndpoint(
+                    group.Key,
+                    dataSource,
+                    matcher,
+                    group.ToArray(),
+                    new[] { group.Key },
+                    true))
                 .ToArray();
         }
 
@@ -836,10 +722,18 @@ namespace CoAP.Server.Routing
             }
 
             var nextSegments = AppendPathSegment(_pathSegments, name);
-            var matchingRoutes = _routes.Where(route => route.IsPrefix(nextSegments)).ToArray();
-            return matchingRoutes.Length == 0
+            var matchingEndpoints = _candidateEndpoints
+                .Where(endpoint => endpoint.RoutePattern.IsPrefix(nextSegments))
+                .ToArray();
+            return matchingEndpoints.Length == 0
                 ? null
-                : new CoapRouteEndpoint(name, matchingRoutes, nextSegments, false) { Parent = this };
+                : new CoapRouteEndpoint(
+                    name,
+                    _dataSource,
+                    _matcher,
+                    matchingEndpoints,
+                    nextSegments,
+                    false) { Parent = this };
         }
 
         /// <inheritdoc />
@@ -874,23 +768,25 @@ namespace CoAP.Server.Routing
         private async ValueTask HandleRouteRequestAsync(Exchange exchange)
         {
             var request = exchange.Request;
-            foreach (var route in _routes)
-            {
-                if (!route.TryMatch(request.Method, _pathSegments, out var routeValues))
-                {
-                    continue;
-                }
+            var matchContext = new CoapEndpointMatchContext(
+                request.Method,
+                _pathSegments,
+                request.ContentFormat,
+                request.Accept,
+                request.Observe);
 
+            if (_matcher.TryMatch(matchContext, out var match))
+            {
                 var context = new CoapRouteContext(
-                    route,
+                    match.Endpoint,
                     request.Method,
                     _pathSegments,
-                    routeValues,
+                    match.RouteValues,
                     GetUriQueries(request),
                     request.Payload == null ? ReadOnlyMemory<byte>.Empty : new ReadOnlyMemory<byte>(request.Payload),
                     request.ContentFormat,
                     request.Accept);
-                var result = await route.InvokeAsync(context).ConfigureAwait(false);
+                var result = await match.Endpoint.InvokeAsync(context).ConfigureAwait(false);
                 SendResult(exchange, result ?? CoapRouteResult.Status(StatusCode.InternalServerError));
                 return;
             }

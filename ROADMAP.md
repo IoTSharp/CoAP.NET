@@ -84,7 +84,7 @@ public sealed class SensorCoapResource : CoapResourceBase
 | C1 | `✅` | CoAP route adapter | 已新增 `CoAP.Server.Routing.CoapRouteEndpoint`，把 Uri-Path 和 method 转成 route 匹配输入；公开 API 使用 route / endpoint 命名。 |
 | C2 | `✅` | async handler 与结果模型 | handler 返回 `ValueTask`；`CoapRouteResult` 已映射 CoAP status code、payload、Content-Format、ETag、Max-Age、Location-Path 和 Location-Query。 |
 | C3 | `✅` | 低分配 payload 与 option 访问 | `CoapRouteContext.Payload` 已暴露 `ReadOnlyMemory<byte>`；route values 已改为数组化只读集合，无参数路由复用空集合。 |
-| C4 | `⬜` | routing core 抽象 | 提取 `CoapRoutePattern`、`CoapEndpoint`、`CoapEndpointMetadataCollection`、`ICoapEndpointDataSource`、`ICoapEndpointMatcher`；`CoapRouteEndpoint` 改为消费 endpoint 数据源。 |
+| C4 | `✅` | routing core 抽象 | 已提取 `CoapRoutePattern`、`CoapEndpoint`、`CoapEndpointMetadataCollection`、`ICoapEndpointDataSource`、`ICoapEndpointMatcher`；`CoapRouteEndpoint` 已改为消费 endpoint 数据源。 |
 | C5 | `⬜` | CoAP hosting 与 Resource 注册 | 新增 `AddCoapServer()`、`AddCoapResources()` / `AddCoapMvc()`、`CoapMvcOptions`、`app.MapCoapResources()`；server 生命周期由宿主管理，显式 route handler 降为低层扩展。 |
 | C6 | `⬜` | dispatcher pipeline | 新增 `CoapRequestDispatcher`、`CoapActionInvoker`、`ICoapResult`、`ICoapResultExecutor`、统一异常和错误响应映射；支持宿主 service scope。 |
 | C7 | `⬜` | resource attribute routing | 新增 `[CoapController]` 兼容标记、`[CoapRoute]`、method attributes、resource/action descriptor、application part 扫描；生成 endpoint 数据源。 |

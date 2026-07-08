@@ -170,6 +170,93 @@ namespace CoAP
         }
 
         [Test]
+        public void RoutePattern_ParsesSegmentsParametersAndConstraints()
+        {
+            var pattern = CoapRoutePattern.Parse("/diagnostics/{target}/{point:int}");
+
+            Assert.AreEqual("diagnostics/{target}/{point:int}", pattern.Template);
+            Assert.AreEqual("diagnostics", pattern.RootSegment);
+            Assert.AreEqual(3, pattern.Segments.Count);
+            Assert.IsFalse(pattern.Segments[0].IsParameter);
+            Assert.AreEqual("diagnostics", pattern.Segments[0].Literal);
+            Assert.IsTrue(pattern.Segments[1].IsParameter);
+            Assert.AreEqual("target", pattern.Segments[1].ParameterName);
+            Assert.IsTrue(pattern.Segments[2].IsParameter);
+            Assert.AreEqual("point", pattern.Segments[2].ParameterName);
+            Assert.AreEqual("int", pattern.Segments[2].Constraint);
+            CollectionAssert.AreEqual(new[] { "target", "point" }, pattern.ParameterNames);
+            Assert.IsTrue(pattern.IsPrefix(new[] { "diagnostics", "edge-01" }));
+            Assert.IsTrue(pattern.TryMatch(
+                new[] { "diagnostics", "edge-01", "42" },
+                out var routeValues));
+            Assert.AreEqual("edge-01", routeValues["target"]);
+            Assert.AreEqual("42", routeValues["point"]);
+        }
+
+        [Test]
+        public void EndpointMetadataCollection_ReturnsMostSpecificMetadata()
+        {
+            var metadata = new CoapEndpointMetadataCollection("first", 42, "last");
+
+            Assert.AreEqual(3, metadata.Count);
+            Assert.AreEqual("last", metadata.GetMetadata<string>());
+            CollectionAssert.AreEqual(new[] { "first", "last" }, metadata.OfType<string>().ToArray());
+        }
+
+        [Test]
+        public void EndpointMatcher_MatchesEndpointFromDataSource()
+        {
+            var endpoint = new CoapEndpoint(
+                Method.POST,
+                "diagnostics/{target}/ping",
+                _ => new ValueTask<CoapRouteResult>(CoapRouteResult.Changed()));
+            var dataSource = new CoapEndpointDataSource(new[] { endpoint });
+            var matcher = new CoapEndpointMatcher(dataSource);
+
+            var matched = matcher.TryMatch(
+                new CoapEndpointMatchContext(
+                    Method.POST,
+                    new[] { "diagnostics", "edge-01", "ping" },
+                    MediaType.ApplicationJson,
+                    MediaType.TextPlain,
+                    0),
+                out var match);
+
+            Assert.IsTrue(matched);
+            Assert.AreSame(endpoint, match.Endpoint);
+            Assert.AreEqual("edge-01", match.RouteValues["target"]);
+        }
+
+        [Test]
+        public void HandleRequest_CanInvokeEndpointDataSourceWithoutLegacyRoute()
+        {
+            CoapRouteContext capturedContext = null;
+            var endpointDescriptor = new CoapEndpoint(
+                Method.GET,
+                "diagnostics/{target}/status",
+                context =>
+                {
+                    capturedContext = context;
+                    return new ValueTask<CoapRouteResult>(CoapRouteResult.Changed());
+                },
+                new object[] { "diagnostic-metadata" },
+                "diagnostics status");
+            var endpoint = CreateEndpoint(
+                new CoapEndpointDataSource(new[] { endpointDescriptor }),
+                "edge-01",
+                "status");
+            var exchange = CreateExchange(Method.GET);
+
+            endpoint.HandleRequest(exchange);
+
+            Assert.IsNotNull(capturedContext);
+            Assert.AreSame(endpointDescriptor, capturedContext.Endpoint);
+            Assert.IsNull(capturedContext.Route);
+            Assert.AreEqual("edge-01", capturedContext.RouteValues["target"]);
+            Assert.AreEqual(StatusCode.Changed, exchange.SentResponse.StatusCode);
+        }
+
+        [Test]
         public void HandleRequest_SetsRouteContextOnResourceBase_AndClearsItAfterInvocation()
         {
             var resources = new List<DiagnosticsCoapResource>();
@@ -214,6 +301,18 @@ namespace CoAP
         private static IResource CreateEndpoint(CoapRoute route, params string[] childSegments)
         {
             IResource endpoint = CoapRouteEndpoint.Create(new[] { route }).Single();
+            foreach (var segment in childSegments)
+            {
+                endpoint = endpoint.GetChild(segment);
+                Assert.IsNotNull(endpoint);
+            }
+
+            return endpoint;
+        }
+
+        private static IResource CreateEndpoint(ICoapEndpointDataSource dataSource, params string[] childSegments)
+        {
+            IResource endpoint = CoapRouteEndpoint.Create(dataSource).Single();
             foreach (var segment in childSegments)
             {
                 endpoint = endpoint.GetChild(segment);
