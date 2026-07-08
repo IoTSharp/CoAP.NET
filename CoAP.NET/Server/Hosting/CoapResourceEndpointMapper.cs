@@ -25,6 +25,13 @@ namespace CoAP.Server.Hosting
         private readonly object _sync = new object();
         private IReadOnlyList<IResource> _mappedResources;
 
+        /// <summary>
+        /// Creates a mapper for attaching resource endpoints to a CoAP server.
+        /// </summary>
+        /// <param name="server">The CoAP server that owns the resource tree.</param>
+        /// <param name="dataSource">The registered endpoint data source.</param>
+        /// <param name="matcher">The endpoint matcher used by generated route resources.</param>
+        /// <param name="dispatcher">The request dispatcher used by generated route resources.</param>
         public CoapResourceEndpointMapper(
             IServer server,
             ICoapEndpointDataSource dataSource,
@@ -37,6 +44,10 @@ namespace CoAP.Server.Hosting
             _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
         }
 
+        /// <summary>
+        /// Adds registered CoAP route resources to the server resource tree once.
+        /// </summary>
+        /// <returns>The mapped root resources.</returns>
         public IReadOnlyList<IResource> Map()
         {
             lock (_sync)
