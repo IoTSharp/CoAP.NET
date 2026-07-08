@@ -44,6 +44,7 @@ namespace CoAP.Server.Routing
     public sealed class CoapRoute
     {
         private readonly RouteSegment[] _segments;
+        private readonly string[] _parameterNames;
         private readonly CoapRouteHandler _handler;
 
         /// <summary>
@@ -61,7 +62,7 @@ namespace CoAP.Server.Routing
 
             Method = method;
             Template = template.Trim('/');
-            _segments = ParseTemplate(Template);
+            _segments = ParseTemplate(Template, out _parameterNames);
             if (_segments.Length == 0)
             {
                 throw new ArgumentException("Route template must contain at least one segment.", nameof(template));
@@ -116,7 +117,6 @@ namespace CoAP.Server.Routing
                 return false;
             }
 
-            var values = new Dictionary<string, string>(StringComparer.Ordinal);
             for (var i = 0; i < pathSegments.Count; i++)
             {
                 var segment = _segments[i];
@@ -124,14 +124,25 @@ namespace CoAP.Server.Routing
                 {
                     return false;
                 }
+            }
 
+            if (_parameterNames.Length == 0)
+            {
+                routeValues = CoapRouteValueCollection.Empty;
+                return true;
+            }
+
+            var values = new string[_parameterNames.Length];
+            for (var i = 0; i < pathSegments.Count; i++)
+            {
+                var segment = _segments[i];
                 if (segment.IsParameter)
                 {
-                    values[segment.Value] = pathSegments[i];
+                    values[segment.ParameterIndex] = pathSegments[i];
                 }
             }
 
-            routeValues = values;
+            routeValues = new CoapRouteValueCollection(_parameterNames, values);
             return true;
         }
 
@@ -281,40 +292,178 @@ namespace CoAP.Server.Routing
             });
         }
 
-        private static RouteSegment[] ParseTemplate(string template)
+        private static RouteSegment[] ParseTemplate(string template, out string[] parameterNames)
         {
-            return template
-                .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(RouteSegment.Parse)
-                .ToArray();
+            var rawSegments = template.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+            var segments = new RouteSegment[rawSegments.Length];
+            var parameters = new List<string>();
+            for (var i = 0; i < rawSegments.Length; i++)
+            {
+                segments[i] = RouteSegment.Parse(rawSegments[i], parameters);
+            }
+
+            parameterNames = parameters.Count == 0 ? Array.Empty<string>() : parameters.ToArray();
+            return segments;
+        }
+
+        private static int GetOrAddParameterIndex(List<string> parameterNames, string parameterName)
+        {
+            for (var i = 0; i < parameterNames.Count; i++)
+            {
+                if (string.Equals(parameterNames[i], parameterName, StringComparison.Ordinal))
+                {
+                    return i;
+                }
+            }
+
+            parameterNames.Add(parameterName);
+            return parameterNames.Count - 1;
         }
 
         private readonly struct RouteSegment
         {
-            private RouteSegment(string value, bool isParameter)
+            private RouteSegment(string value, bool isParameter, int parameterIndex)
             {
                 Value = value;
                 IsParameter = isParameter;
+                ParameterIndex = parameterIndex;
             }
 
             public string Value { get; }
 
             public bool IsParameter { get; }
 
-            public static RouteSegment Parse(string segment)
+            public int ParameterIndex { get; }
+
+            public static RouteSegment Parse(string segment, List<string> parameterNames)
             {
                 if (segment.Length > 2 && segment[0] == '{' && segment[^1] == '}')
                 {
-                    return new RouteSegment(segment[1..^1], true);
+                    var parameterName = segment[1..^1];
+                    return new RouteSegment(parameterName, true, GetOrAddParameterIndex(parameterNames, parameterName));
                 }
 
-                return new RouteSegment(segment, false);
+                return new RouteSegment(segment, false, -1);
             }
 
             public bool Matches(string value)
             {
                 return IsParameter || string.Equals(Value, value, StringComparison.Ordinal);
             }
+        }
+    }
+
+    /// <summary>
+    /// Read-only route value dictionary backed by small arrays instead of a hash table.
+    /// </summary>
+    internal sealed class CoapRouteValueCollection : IReadOnlyDictionary<string, string>
+    {
+        internal static readonly CoapRouteValueCollection Empty =
+            new CoapRouteValueCollection(Array.Empty<string>(), Array.Empty<string>());
+
+        private readonly string[] _keys;
+        private readonly string[] _values;
+
+        internal CoapRouteValueCollection(string[] keys, string[] values)
+        {
+            _keys = keys ?? throw new ArgumentNullException(nameof(keys));
+            _values = values ?? throw new ArgumentNullException(nameof(values));
+            if (_keys.Length != _values.Length)
+            {
+                throw new ArgumentException("Route value key and value arrays must have the same length.", nameof(values));
+            }
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<string> Keys => EnumerateKeys();
+
+        /// <inheritdoc />
+        public IEnumerable<string> Values => EnumerateValues();
+
+        /// <inheritdoc />
+        public int Count => _keys.Length;
+
+        /// <inheritdoc />
+        public string this[string key]
+        {
+            get
+            {
+                if (TryGetValue(key, out var value))
+                {
+                    return value;
+                }
+
+                throw new KeyNotFoundException("The route value was not found.");
+            }
+        }
+
+        /// <inheritdoc />
+        public bool ContainsKey(string key)
+        {
+            return IndexOfKey(key) >= 0;
+        }
+
+        /// <inheritdoc />
+        public bool TryGetValue(string key, out string value)
+        {
+            var index = IndexOfKey(key);
+            if (index >= 0)
+            {
+                value = _values[index];
+                return true;
+            }
+
+            value = null;
+            return false;
+        }
+
+        /// <inheritdoc />
+        public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
+        {
+            for (var i = 0; i < _keys.Length; i++)
+            {
+                yield return new KeyValuePair<string, string>(_keys[i], _values[i]);
+            }
+        }
+
+        /// <inheritdoc />
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        private IEnumerable<string> EnumerateKeys()
+        {
+            for (var i = 0; i < _keys.Length; i++)
+            {
+                yield return _keys[i];
+            }
+        }
+
+        private IEnumerable<string> EnumerateValues()
+        {
+            for (var i = 0; i < _values.Length; i++)
+            {
+                yield return _values[i];
+            }
+        }
+
+        private int IndexOfKey(string key)
+        {
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            for (var i = 0; i < _keys.Length; i++)
+            {
+                if (string.Equals(_keys[i], key, StringComparison.Ordinal))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
         }
     }
 
@@ -686,7 +835,7 @@ namespace CoAP.Server.Routing
                 return null;
             }
 
-            var nextSegments = _pathSegments.Concat(new[] { name }).ToArray();
+            var nextSegments = AppendPathSegment(_pathSegments, name);
             var matchingRoutes = _routes.Where(route => route.IsPrefix(nextSegments)).ToArray();
             return matchingRoutes.Length == 0
                 ? null
@@ -737,7 +886,7 @@ namespace CoAP.Server.Routing
                     request.Method,
                     _pathSegments,
                     routeValues,
-                    request.UriQueries.ToArray(),
+                    GetUriQueries(request),
                     request.Payload == null ? ReadOnlyMemory<byte>.Empty : new ReadOnlyMemory<byte>(request.Payload),
                     request.ContentFormat,
                     request.Accept);
@@ -747,6 +896,46 @@ namespace CoAP.Server.Routing
             }
 
             SendText(exchange, StatusCode.MethodNotAllowed, "CoAP route method is not allowed.");
+        }
+
+        private static string[] AppendPathSegment(IReadOnlyList<string> pathSegments, string segment)
+        {
+            var nextSegments = new string[pathSegments.Count + 1];
+            for (var i = 0; i < pathSegments.Count; i++)
+            {
+                nextSegments[i] = pathSegments[i];
+            }
+
+            nextSegments[^1] = segment;
+            return nextSegments;
+        }
+
+        private static IReadOnlyList<string> GetUriQueries(Request request)
+        {
+            var queryOptions = request.GetOptions(OptionType.UriQuery);
+            if (queryOptions == null)
+            {
+                return Array.Empty<string>();
+            }
+
+            if (queryOptions is ICollection<Option> collection)
+            {
+                if (collection.Count == 0)
+                {
+                    return Array.Empty<string>();
+                }
+
+                var queries = new string[collection.Count];
+                var index = 0;
+                foreach (var option in collection)
+                {
+                    queries[index++] = option.StringValue;
+                }
+
+                return queries;
+            }
+
+            return queryOptions.Select(option => option.StringValue).ToArray();
         }
 
         private static void SendResult(Exchange exchange, CoapRouteResult result)

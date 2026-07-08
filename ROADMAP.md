@@ -71,6 +71,7 @@ public sealed class SensorCoapResource : CoapResourceBase
 
 - `CoAP.Server.Routing.CoapRouteEndpoint` 已存在，能够把 method + Uri-Path 映射到 `CoapRouteHandler`。
 - `CoapRouteContext` 已暴露 path、route values、queries、payload、Content-Format、Accept；`CoapResourceBase` 已能像 MVC 的 `ControllerBase` 一样在 action 内暴露当前上下文。
+- route values 使用数组化只读集合承载，避免小参数集走 `Dictionary` 分配；重复参数名保持后值覆盖前值的兼容语义。
 - `CoapRouteResult` 已支持 status、text/binary payload、Content-Format、ETag、Max-Age、Location-Path 和 Location-Query。
 - 既有宿主集成可能仍通过手写 route endpoint 注册表和业务上下文拼装接入 CoAP.NET；这只是过渡状态。
 - 下一阶段要把通用的注册、匹配、分发和发现能力迁入 CoAP.NET；宿主应用只保留业务路径声明和业务服务调用。
@@ -82,7 +83,7 @@ public sealed class SensorCoapResource : CoapResourceBase
 | C0 | `✅` | 命名与兼容基线 | 已记录现有 Resource API、server/client 示例、DTLS PSK、blockwise、observe 测试入口；README 明确 Resource 是协议内部概念。 |
 | C1 | `✅` | CoAP route adapter | 已新增 `CoAP.Server.Routing.CoapRouteEndpoint`，把 Uri-Path 和 method 转成 route 匹配输入；公开 API 使用 route / endpoint 命名。 |
 | C2 | `✅` | async handler 与结果模型 | handler 返回 `ValueTask`；`CoapRouteResult` 已映射 CoAP status code、payload、Content-Format、ETag、Max-Age、Location-Path 和 Location-Query。 |
-| C3 | `🚧` | 低分配 payload 与 option 访问 | `CoapRouteContext.Payload` 已暴露 `ReadOnlyMemory<byte>`；route values 小对象池化或数组化待补。 |
+| C3 | `✅` | 低分配 payload 与 option 访问 | `CoapRouteContext.Payload` 已暴露 `ReadOnlyMemory<byte>`；route values 已改为数组化只读集合，无参数路由复用空集合。 |
 | C4 | `⬜` | routing core 抽象 | 提取 `CoapRoutePattern`、`CoapEndpoint`、`CoapEndpointMetadataCollection`、`ICoapEndpointDataSource`、`ICoapEndpointMatcher`；`CoapRouteEndpoint` 改为消费 endpoint 数据源。 |
 | C5 | `⬜` | CoAP hosting 与 Resource 注册 | 新增 `AddCoapServer()`、`AddCoapResources()` / `AddCoapMvc()`、`CoapMvcOptions`、`app.MapCoapResources()`；server 生命周期由宿主管理，显式 route handler 降为低层扩展。 |
 | C6 | `⬜` | dispatcher pipeline | 新增 `CoapRequestDispatcher`、`CoapActionInvoker`、`ICoapResult`、`ICoapResultExecutor`、统一异常和错误响应映射；支持宿主 service scope。 |

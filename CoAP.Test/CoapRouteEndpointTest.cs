@@ -63,6 +63,113 @@ namespace CoAP
         }
 
         [Test]
+        public void HandleRequest_ProvidesPayloadAndRequestOptions()
+        {
+            var payload = Encoding.UTF8.GetBytes("{\"temperature\":21}");
+            var endpoint = CreateEndpoint(CoapRoute.Post("diagnostics/{target}/samples", context =>
+            {
+                Assert.AreEqual("edge-01", context.RouteValues["target"]);
+                Assert.AreEqual(MediaType.ApplicationJson, context.ContentFormat);
+                Assert.AreEqual(MediaType.TextPlain, context.Accept);
+                CollectionAssert.AreEqual(payload, context.Payload.ToArray());
+                CollectionAssert.AreEqual(new[] { "mode=raw", "unit=c" }, context.Queries);
+                return new ValueTask<CoapRouteResult>(CoapRouteResult.Changed());
+            }), "edge-01", "samples");
+            var exchange = CreateExchange(Method.POST);
+            exchange.Request.Payload = payload;
+            exchange.Request.ContentFormat = MediaType.ApplicationJson;
+            exchange.Request.Accept = MediaType.TextPlain;
+            exchange.Request.AddUriQuery("mode=raw");
+            exchange.Request.AddUriQuery("unit=c");
+
+            endpoint.HandleRequest(exchange);
+
+            Assert.IsNotNull(exchange.SentResponse);
+            Assert.AreEqual(StatusCode.Changed, exchange.SentResponse.StatusCode);
+        }
+
+        [Test]
+        public void HandleRequest_RouteValuesUseReadOnlyDictionarySemantics()
+        {
+            var endpoint = CreateEndpoint(CoapRoute.Get("diagnostics/{target}/points/{point}", context =>
+            {
+                Assert.AreEqual(2, context.RouteValues.Count);
+                Assert.IsTrue(context.RouteValues.ContainsKey("target"));
+                Assert.IsTrue(context.RouteValues.TryGetValue("point", out var point));
+                Assert.AreEqual("temp", point);
+                Assert.AreEqual("edge-01", context.RouteValues["target"]);
+                CollectionAssert.AreEqual(new[] { "target", "point" }, context.RouteValues.Keys.ToArray());
+                CollectionAssert.AreEqual(new[] { "edge-01", "temp" }, context.RouteValues.Values.ToArray());
+                CollectionAssert.AreEqual(
+                    new[]
+                    {
+                        new KeyValuePair<string, string>("target", "edge-01"),
+                        new KeyValuePair<string, string>("point", "temp")
+                    },
+                    context.RouteValues.ToArray());
+                Assert.Throws<KeyNotFoundException>(() =>
+                {
+                    var ignored = context.RouteValues["missing"];
+                });
+                return new ValueTask<CoapRouteResult>(CoapRouteResult.Changed());
+            }), "edge-01", "points", "temp");
+            var exchange = CreateExchange(Method.GET);
+
+            endpoint.HandleRequest(exchange);
+
+            Assert.IsNotNull(exchange.SentResponse);
+            Assert.AreEqual(StatusCode.Changed, exchange.SentResponse.StatusCode);
+        }
+
+        [Test]
+        public void HandleRequest_DuplicateRouteParameterUsesLastValue()
+        {
+            var endpoint = CreateEndpoint(CoapRoute.Get("diagnostics/{target}/mirror/{target}", context =>
+            {
+                Assert.AreEqual(1, context.RouteValues.Count);
+                Assert.AreEqual("edge-right", context.RouteValues["target"]);
+                CollectionAssert.AreEqual(new[] { "target" }, context.RouteValues.Keys.ToArray());
+                CollectionAssert.AreEqual(new[] { "edge-right" }, context.RouteValues.Values.ToArray());
+                return new ValueTask<CoapRouteResult>(CoapRouteResult.Changed());
+            }), "edge-left", "mirror", "edge-right");
+            var exchange = CreateExchange(Method.GET);
+
+            endpoint.HandleRequest(exchange);
+
+            Assert.IsNotNull(exchange.SentResponse);
+            Assert.AreEqual(StatusCode.Changed, exchange.SentResponse.StatusCode);
+        }
+
+        [Test]
+        public void HandleRequest_LiteralRouteUsesSharedEmptyRouteValues()
+        {
+            IReadOnlyDictionary<string, string> firstRouteValues = null;
+            IReadOnlyDictionary<string, string> secondRouteValues = null;
+            var endpoint = CreateEndpoint(CoapRoute.Get("diagnostics/ping", context =>
+            {
+                if (firstRouteValues == null)
+                {
+                    firstRouteValues = context.RouteValues;
+                }
+                else
+                {
+                    secondRouteValues = context.RouteValues;
+                }
+
+                Assert.AreEqual(0, context.RouteValues.Count);
+                Assert.IsFalse(context.RouteValues.ContainsKey("target"));
+                return new ValueTask<CoapRouteResult>(CoapRouteResult.Changed());
+            }), "ping");
+
+            endpoint.HandleRequest(CreateExchange(Method.GET));
+            endpoint.HandleRequest(CreateExchange(Method.GET));
+
+            Assert.IsNotNull(firstRouteValues);
+            Assert.IsNotNull(secondRouteValues);
+            Assert.AreSame(firstRouteValues, secondRouteValues);
+        }
+
+        [Test]
         public void HandleRequest_SetsRouteContextOnResourceBase_AndClearsItAfterInvocation()
         {
             var resources = new List<DiagnosticsCoapResource>();
