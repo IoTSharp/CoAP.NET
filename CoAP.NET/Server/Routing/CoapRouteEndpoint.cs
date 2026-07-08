@@ -551,6 +551,29 @@ namespace CoAP.Server.Routing
         }
 
         /// <summary>
+        /// Copies a general CoAP result into the default route result implementation.
+        /// </summary>
+        /// <param name="result">The result to copy.</param>
+        /// <returns>A route result with equivalent response properties.</returns>
+        public static CoapRouteResult FromResult(ICoapResult result)
+        {
+            if (result == null)
+            {
+                throw new ArgumentNullException(nameof(result));
+            }
+
+            return new CoapRouteResult(
+                result.StatusCode,
+                result.Payload,
+                result.ContentFormat,
+                result.ETags,
+                result.MaxAge,
+                result.LocationPath,
+                result.LocationQuery,
+                result.Observe);
+        }
+
+        /// <summary>
         /// Returns a copy of this result with an ETag option appended.
         /// </summary>
         /// <param name="eTag">The ETag opaque value.</param>

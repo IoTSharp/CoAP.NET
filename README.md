@@ -112,6 +112,30 @@ app.MapCoapResources();
 app.Run();
 ```
 
+Resource attribute routing:
+
+```csharp
+using CoAP;
+using CoAP.Server.Routing;
+using System.Threading;
+using System.Threading.Tasks;
+
+[CoapResource]
+[CoapRoute("sensors/{sensor}")]
+public sealed class SensorCoapResource : CoapResourceBase
+{
+    [CoapPost("readings")]
+    [CoapResourceTitle("Sensor reading upload")]
+    public ValueTask<CoapRouteResult> UploadReadingAsync(
+        string sensor,
+        CancellationToken cancellationToken)
+    {
+        var payload = Payload;
+        return new ValueTask<CoapRouteResult>(CoapRouteResult.Changed());
+    }
+}
+```
+
 Legacy Resource tree compatibility:
 
 ```csharp

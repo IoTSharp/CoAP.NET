@@ -37,7 +37,7 @@ app.Run();
 业务项目只声明业务路径和业务动作：
 
 ```csharp
-[CoapController]
+[CoapResource]
 [CoapRoute("sensors/{sensor}")]
 public sealed class SensorCoapResource : CoapResourceBase
 {
@@ -56,9 +56,9 @@ public sealed class SensorCoapResource : CoapResourceBase
 目标不是复制完整 ASP.NET Core MVC，而是提供 CoAP 适配的最小 MVC 子集：
 
 - server hosting：`AddCoapServer()` 注册监听端口、传输、DTLS 和后台生命周期。
-- resource registration：`AddCoapResources()` / `AddCoapMvc()` 注册 endpoint data source、resource/controller discovery、matcher、dispatcher、binder、result executor 和 discovery provider。
+- resource registration：`AddCoapResources()` / `AddCoapMvc()` 注册 endpoint data source、resource discovery、matcher、dispatcher、binder、result executor 和 discovery provider。
 - endpoint mapping：`app.MapCoapResources()` 像 `app.MapControllers()` 一样完成 CoAP resource endpoint 映射，不暴露 `CoapServer` 手工组装。
-- attribute routing：`[CoapRoute]`、`[CoapGet]`、`[CoapPost]`、`[CoapPut]`、`[CoapDelete]`、`[CoapObserve]`。
+- attribute routing：`[CoapResource]` 是推荐资源标记；`[CoapController]` 仅作为兼容标记；action 使用 `[CoapRoute]`、`[CoapGet]`、`[CoapPost]`、`[CoapPut]`、`[CoapDelete]`、`[CoapObserve]`。
 - convention routing：按 resource/action 命名生成默认 route，允许宿主覆盖。
 - endpoint metadata：method、path、content-format、accept、observe、discovery 属性、授权策略名。
 - dispatcher pipeline：匹配 endpoint，创建调用上下文，执行 filter，绑定参数，调用 action，执行 result。
@@ -73,6 +73,7 @@ public sealed class SensorCoapResource : CoapResourceBase
 - `CoapRouteContext` 已暴露 path、route values、queries、payload、Content-Format、Accept；`CoapResourceBase` 已能像 MVC 的 `ControllerBase` 一样在 action 内暴露当前上下文。
 - route values 使用数组化只读集合承载，避免小参数集走 `Dictionary` 分配；重复参数名保持后值覆盖前值的兼容语义。
 - `CoapRouteResult` 已支持 status、text/binary payload、Content-Format、ETag、Max-Age、Location-Path 和 Location-Query。
+- `[CoapResource]`、`[CoapRoute]`、method attributes、resource/action descriptor 和 application part 扫描已能生成 endpoint 数据源；`[CoapController]` 保留为兼容标记。
 - 既有宿主集成可能仍通过手写 route endpoint 注册表和业务上下文拼装接入 CoAP.NET；这只是过渡状态。
 - 下一阶段要把通用的注册、匹配、分发和发现能力迁入 CoAP.NET；宿主应用只保留业务路径声明和业务服务调用。
 
@@ -87,7 +88,7 @@ public sealed class SensorCoapResource : CoapResourceBase
 | C4 | `✅` | routing core 抽象 | 已提取 `CoapRoutePattern`、`CoapEndpoint`、`CoapEndpointMetadataCollection`、`ICoapEndpointDataSource`、`ICoapEndpointMatcher`；`CoapRouteEndpoint` 已改为消费 endpoint 数据源。 |
 | C5 | `✅` | CoAP hosting 与 Resource 注册 | 已新增 `AddCoapServer()`、`AddCoapResources()` / `AddCoapMvc()`、`CoapMvcOptions`、`app.MapCoapResources()`；server 生命周期由宿主管理，显式 route handler 降为低层扩展。 |
 | C6 | `✅` | dispatcher pipeline | 已新增 `CoapRequestDispatcher`、`CoapActionInvoker`、`ICoapResult`、`ICoapResultExecutor`、统一异常和错误响应映射；支持宿主 service scope。 |
-| C7 | `⬜` | resource attribute routing | 新增 `[CoapController]` 兼容标记、`[CoapRoute]`、method attributes、resource/action descriptor、application part 扫描；生成 endpoint 数据源。 |
+| C7 | `✅` | resource attribute routing | 已新增 `[CoapResource]` 推荐标记、`[CoapController]` 兼容标记、`[CoapRoute]`、method attributes、resource/action descriptor、application part 扫描；生成 endpoint 数据源。 |
 | C8 | `⬜` | model binding 与 media negotiation | 支持 route value、query、request option、payload、`CancellationToken`、`CoapRouteContext` 参数绑定；继承 `CoapResourceBase` 时优先通过 `Context` / `Payload` / `RouteValues` 访问上下文；补齐 Content-Format / Accept 匹配和 JSON binder 扩展点。 |
 | C9 | `⬜` | resource discovery | `.well-known/core` 从 endpoint metadata 生成 CoRE Link Format；支持标题、资源类型、接口描述、content-format、observe 可见性和隐藏端点。 |
 | C10 | `⬜` | filters 与安全扩展点 | 支持 endpoint filter、authorization hook、tenant/context hook；CoAP.NET 只定义接口和调用时机，不内置宿主业务策略。 |
@@ -180,11 +181,11 @@ C0 兼容基线
 
 目标是把业务项目从“手写 route 注册表”迁到“声明 resource/action”。
 
-- resource 扫描：按 `[CoapController]` 或 `*CoapResource` 命名约定识别业务 resource；`*CoapController` 仅作为兼容识别，不作为新示例命名。
+- resource 扫描：按 `[CoapResource]`、`*CoapResource` 命名约定识别业务 resource；`[CoapController]` 和 `*CoapController` 仅作为兼容识别，不作为新示例命名。
 - route attributes：`[CoapRoute]` 定义前缀，`[CoapGet]` / `[CoapPost]` / `[CoapPut]` / `[CoapDelete]` / `[CoapObserve]` 定义 action route。
-- action descriptor：记录 method、route template、参数、返回类型、metadata。
+- action descriptor：已记录 method、route template、参数、返回类型、metadata，并挂到 endpoint metadata。
 - application model convention：允许宿主修改 route 前缀、隐藏发现、添加默认 metadata。
-- endpoint 生成：resource action 最终转成 `CoapEndpoint`。
+- endpoint 生成：resource action 已转成 `CoapEndpoint`，并可与低层 handler route 共存。
 
 验收：
 

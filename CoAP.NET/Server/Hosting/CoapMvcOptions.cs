@@ -96,7 +96,8 @@ namespace CoAP.Server.Hosting
 
         internal IReadOnlyList<CoapEndpoint> BuildEndpoints()
         {
-            var endpoints = new List<CoapEndpoint>(Endpoints.Count + Routes.Count);
+            var resourceEndpoints = CoapResourceEndpointBuilder.Build(this);
+            var endpoints = new List<CoapEndpoint>(Endpoints.Count + Routes.Count + resourceEndpoints.Count);
             for (var i = 0; i < Endpoints.Count; i++)
             {
                 var endpoint = Endpoints[i];
@@ -117,6 +118,11 @@ namespace CoAP.Server.Hosting
                 }
 
                 endpoints.Add(route.Endpoint);
+            }
+
+            for (var i = 0; i < resourceEndpoints.Count; i++)
+            {
+                endpoints.Add(resourceEndpoints[i]);
             }
 
             return endpoints.Count == 0 ? Array.Empty<CoapEndpoint>() : endpoints.ToArray();

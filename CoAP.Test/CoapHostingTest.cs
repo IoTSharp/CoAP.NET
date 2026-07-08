@@ -43,7 +43,7 @@ namespace CoAP
             var dataSource = provider.GetRequiredService<ICoapEndpointDataSource>();
             var matcher = provider.GetRequiredService<ICoapEndpointMatcher>();
 
-            Assert.AreEqual(1, dataSource.Endpoints.Count);
+            Assert.GreaterOrEqual(dataSource.Endpoints.Count, 1);
             Assert.IsNotNull(provider.GetRequiredService<CoapRequestDispatcher>());
             Assert.IsNotNull(provider.GetRequiredService<CoapActionInvoker>());
             Assert.IsNotNull(provider.GetRequiredService<ICoapResultExecutor>());
