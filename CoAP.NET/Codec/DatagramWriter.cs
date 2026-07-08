@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
@@ -11,7 +11,7 @@
 
 using System;
 using System.IO;
-using CoAP.Log;
+using Microsoft.Extensions.Logging;
 
 namespace CoAP.Codec
 {
@@ -20,7 +20,7 @@ namespace CoAP.Codec
     /// </summary>
     public class DatagramWriter
     {
-        private static ILogger log = LogManager.GetLogger(typeof(DatagramWriter));
+        private static readonly ILogger Log = CoapLogging.CreateLogger(typeof(DatagramWriter));
 
         private MemoryStream _stream;
         private Byte _currentByte;
@@ -45,8 +45,8 @@ namespace CoAP.Codec
         {
             if (numBits < 32 && data >= (1 << numBits))
             {
-                if (log.IsWarnEnabled)
-                    log.Warn(String.Format("Truncating value {0} to {1}-bit integer", data, numBits));
+                if (Log.IsEnabled(LogLevel.Warning))
+                    Log.LogWarning(String.Format("Truncating value {0} to {1}-bit integer", data, numBits));
             }
 
             for (Int32 i = numBits - 1; i >= 0; i--)

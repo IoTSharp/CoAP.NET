@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2011-2015, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
@@ -11,14 +11,14 @@
 
 using System;
 using System.Timers;
-using CoAP.Log;
+using Microsoft.Extensions.Logging;
 using CoAP.Net;
 
 namespace CoAP.Stack
 {
     public class BlockwiseLayer : AbstractLayer
     {
-        static readonly ILogger log = LogManager.GetLogger(typeof(BlockwiseLayer));
+        static readonly ILogger Log = CoapLogging.CreateLogger(typeof(BlockwiseLayer));
 
         private Int32 _maxMessageSize;
         private Int32 _defaultBlockSize;
@@ -32,8 +32,8 @@ namespace CoAP.Stack
             _maxMessageSize = config.MaxMessageSize;
             _defaultBlockSize = config.DefaultBlockSize;
             _blockTimeout = config.BlockwiseStatusLifetime;
-            if (log.IsDebugEnabled)
-                log.Debug("BlockwiseLayer uses MaxMessageSize: " + _maxMessageSize + " and DefaultBlockSize:" + _defaultBlockSize);
+            if (Log.IsEnabled(LogLevel.Debug))
+                Log.LogDebug("BlockwiseLayer uses MaxMessageSize: " + _maxMessageSize + " and DefaultBlockSize:" + _defaultBlockSize);
 
             config.PropertyChanged += ConfigChanged;
         }
@@ -59,8 +59,8 @@ namespace CoAP.Stack
                 // Note: We do not regard it as random access when the block num is
                 // 0. This is because the user might just want to do early block
                 // size negotiation but actually wants to receive all blocks.
-                if (log.IsDebugEnabled)
-                    log.Debug("Request carries explicit defined block2 option: create random access blockwise status");
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("Request carries explicit defined block2 option: create random access blockwise status");
                 BlockwiseStatus status = new BlockwiseStatus(request.ContentFormat);
                 BlockOption block2 = request.Block2;
                 status.CurrentSZX = block2.SZX;
@@ -72,8 +72,8 @@ namespace CoAP.Stack
             else if (RequiresBlockwise(request))
             {
                 // This must be a large POST or PUT request
-                if (log.IsDebugEnabled)
-                    log.Debug("Request payload " + request.PayloadSize + "/" + _maxMessageSize + " requires Blockwise.");
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("Request payload " + request.PayloadSize + "/" + _maxMessageSize + " requires Blockwise.");
                 BlockwiseStatus status = FindRequestBlockStatus(exchange, request);
                 Request block = GetNextRequestBlock(request, status);
                 exchange.RequestBlockStatus = status;
@@ -94,15 +94,15 @@ namespace CoAP.Stack
             {
                 // This must be a large POST or PUT request
                 BlockOption block1 = request.Block1;
-                if (log.IsDebugEnabled)
-                    log.Debug("Request contains block1 option " + block1);
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("Request contains block1 option " + block1);
 
                 BlockwiseStatus status = FindRequestBlockStatus(exchange, request);
                 if (block1.NUM == 0 && status.CurrentNUM > 0)
                 {
                     // reset the blockwise transfer
-                    if (log.IsDebugEnabled)
-                        log.Debug("Block1 num is 0, the client has restarted the blockwise transfer. Reset status.");
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Block1 num is 0, the client has restarted the blockwise transfer. Reset status.");
                     status = new BlockwiseStatus(request.ContentType);
                     exchange.RequestBlockStatus = status;
                 }
@@ -127,8 +127,8 @@ namespace CoAP.Stack
                     status.CurrentNUM = status.CurrentNUM + 1;
                     if (block1.M)
                     {
-                        if (log.IsDebugEnabled)
-                            log.Debug("There are more blocks to come. Acknowledge this block.");
+                        if (Log.IsEnabled(LogLevel.Debug))
+                            Log.LogDebug("There are more blocks to come. Acknowledge this block.");
 
                         Response piggybacked = Response.CreateResponse(request, StatusCode.Continue);
                         piggybacked.AddOption(new BlockOption(OptionType.Block1, block1.NUM, block1.SZX, true));
@@ -141,8 +141,8 @@ namespace CoAP.Stack
                     }
                     else
                     {
-                        if (log.IsDebugEnabled)
-                            log.Debug("This was the last block. Deliver request");
+                        if (Log.IsEnabled(LogLevel.Debug))
+                            Log.LogDebug("This was the last block. Deliver request");
 
                         // Remember block to acknowledge. TODO: We might make this a boolean flag in status.
                         exchange.Block1ToAck = block1;
@@ -161,8 +161,8 @@ namespace CoAP.Stack
                 else
                 {
                     // ERROR, wrong number, Incomplete
-                    if (log.IsWarnEnabled)
-                        log.Warn("Wrong block number. Expected " + status.CurrentNUM + " but received " + block1.NUM + ". Respond with 4.08 (Request Entity Incomplete).");
+                    if (Log.IsEnabled(LogLevel.Warning))
+                        Log.LogWarning("Wrong block number. Expected " + status.CurrentNUM + " but received " + block1.NUM + ". Respond with 4.08 (Request Entity Incomplete).");
                     Response error = Response.CreateResponse(request, StatusCode.RequestEntityIncomplete);
                     error.AddOption(new BlockOption(OptionType.Block1, block1.NUM, block1.SZX, block1.M));
                     error.SetPayload("Wrong block number");
@@ -187,15 +187,15 @@ namespace CoAP.Stack
                 if (status.Complete)
                 {
                     // clean up blockwise status
-                    if (log.IsDebugEnabled)
-                        log.Debug("Ongoing is complete " + status);
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Ongoing is complete " + status);
                     exchange.ResponseBlockStatus = null;
                     ClearBlockCleanup(exchange);
                 }
                 else
                 {
-                    if (log.IsDebugEnabled)
-                        log.Debug("Ongoing is continuing " + status);
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Ongoing is continuing " + status);
                 }
 
                 exchange.CurrentResponse = block;
@@ -220,8 +220,8 @@ namespace CoAP.Stack
 
             if (RequiresBlockwise(exchange, response))
             {
-                if (log.IsDebugEnabled)
-                    log.Debug("Response payload " + response.PayloadSize + "/" + _maxMessageSize + " requires Blockwise");
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("Response payload " + response.PayloadSize + "/" + _maxMessageSize + " requires Blockwise");
 
                 BlockwiseStatus status = FindResponseBlockStatus(exchange, response);
 
@@ -235,15 +235,15 @@ namespace CoAP.Stack
                 if (status.Complete)
                 {
                     // clean up blockwise status
-                    if (log.IsDebugEnabled)
-                        log.Debug("Ongoing finished on first block " + status);
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Ongoing finished on first block " + status);
                     exchange.ResponseBlockStatus = null;
                     ClearBlockCleanup(exchange);
                 }
                 else
                 {
-                    if (log.IsDebugEnabled)
-                        log.Debug("Ongoing started " + status);
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Ongoing started " + status);
                 }
 
                 exchange.CurrentResponse = block;
@@ -269,8 +269,8 @@ namespace CoAP.Stack
                 // reject (in particular for Block+Observe)
                 if (response.Type != MessageType.ACK)
                 {
-                    if (log.IsDebugEnabled)
-                        log.Debug("Rejecting blockwise transfer for canceled Exchange");
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Rejecting blockwise transfer for canceled Exchange");
                     EmptyMessage rst = EmptyMessage.NewRST(response);
                     SendEmptyMessage(nextLayer, exchange, rst);
                     // Matcher sets exchange as complete when RST is sent
@@ -290,8 +290,8 @@ namespace CoAP.Stack
             if (block1 != null)
             {
                 // TODO: What if request has not been sent blockwise (server error)
-                if (log.IsDebugEnabled)
-                    log.Debug("Response acknowledges block " + block1);
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("Response acknowledges block " + block1);
 
                 BlockwiseStatus status = exchange.RequestBlockStatus;
                 if (!status.Complete)
@@ -300,8 +300,8 @@ namespace CoAP.Stack
                     // Send next block
                     Int32 currentSize = 1 << (4 + status.CurrentSZX);
                     Int32 nextNum = status.CurrentNUM + currentSize / block1.Size;
-                    if (log.IsDebugEnabled)
-                        log.Debug("Send next block num = " + nextNum);
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Send next block num = " + nextNum);
                     status.CurrentNUM = nextNum;
                     status.CurrentSZX = block1.SZX;
                     Request nextBlock = GetNextRequestBlock(exchange.Request, status);
@@ -319,8 +319,8 @@ namespace CoAP.Stack
                 }
                 else
                 {
-                    if (log.IsDebugEnabled)
-                        log.Debug("Response has Block2 option and is therefore sent blockwise");
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Response has Block2 option and is therefore sent blockwise");
                 }
             }
 
@@ -348,8 +348,8 @@ namespace CoAP.Stack
                     }
                     else if (block2.M)
                     {
-                        if (log.IsDebugEnabled)
-                            log.Debug("Request the next response block");
+                        if (Log.IsEnabled(LogLevel.Debug))
+                            Log.LogDebug("Request the next response block");
 
                         Request request = exchange.Request;
                         Int32 num = block2.NUM + 1;
@@ -374,8 +374,8 @@ namespace CoAP.Stack
                     }
                     else
                     {
-                        if (log.IsDebugEnabled)
-                            log.Debug("We have received all " + status.BlockCount + " blocks of the response. Assemble and deliver.");
+                        if (Log.IsEnabled(LogLevel.Debug))
+                            Log.LogDebug("We have received all " + status.BlockCount + " blocks of the response. Assemble and deliver.");
                         Response assembled = new Response(response.StatusCode);
                         AssembleMessage(status, assembled, response);
                         assembled.Type = response.Type;
@@ -393,8 +393,8 @@ namespace CoAP.Stack
                             exchange.ResponseBlockStatus = null;
                         }
 
-                        if (log.IsDebugEnabled)
-                            log.Debug("Assembled response: " + assembled);
+                        if (Log.IsEnabled(LogLevel.Debug))
+                            Log.LogDebug("Assembled response: " + assembled);
                         exchange.Response = assembled;
                         base.ReceiveResponse(nextLayer, exchange, assembled);
                     }
@@ -405,8 +405,8 @@ namespace CoAP.Stack
                     // ERROR, wrong block number (server error)
                     // TODO: This scenario is not specified in the draft.
                     // Currently, we reject it and cancel the request.
-                    if (log.IsWarnEnabled)
-                        log.Warn("Wrong block number. Expected " + status.CurrentNUM + " but received " + block2.NUM + ". Reject response; exchange has failed.");
+                    if (Log.IsEnabled(LogLevel.Warning))
+                        Log.LogWarning("Wrong block number. Expected " + status.CurrentNUM + " but received " + block2.NUM + ". Reject response; exchange has failed.");
                     if (response.Type == MessageType.CON)
                     {
                         EmptyMessage rst = EmptyMessage.NewRST(response);
@@ -425,8 +425,8 @@ namespace CoAP.Stack
             {
                 BlockOption block2 = request.Block2;
                 BlockwiseStatus status2 = new BlockwiseStatus(request.ContentType, block2.NUM, block2.SZX);
-                if (log.IsDebugEnabled)
-                    log.Debug("Request with early block negotiation " + block2 + ". Create and set new Block2 status: " + status2);
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("Request with early block negotiation " + block2 + ". Create and set new Block2 status: " + status2);
                 exchange.ResponseBlockStatus = status2;
             }
         }
@@ -444,13 +444,13 @@ namespace CoAP.Stack
                 status = new BlockwiseStatus(request.ContentType);
                 status.CurrentSZX = BlockOption.EncodeSZX(_defaultBlockSize);
                 exchange.RequestBlockStatus = status;
-                if (log.IsDebugEnabled)
-                    log.Debug("There is no assembler status yet. Create and set new Block1 status: " + status);
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("There is no assembler status yet. Create and set new Block1 status: " + status);
             }
             else
             {
-                if (log.IsDebugEnabled)
-                    log.Debug("Current Block1 status: " + status);
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("Current Block1 status: " + status);
             }
             // sets a timeout to complete exchange
             PrepareBlockCleanup(exchange);
@@ -470,13 +470,13 @@ namespace CoAP.Stack
                 status = new BlockwiseStatus(response.ContentType);
                 status.CurrentSZX = BlockOption.EncodeSZX(_defaultBlockSize);
                 exchange.ResponseBlockStatus = status;
-                if (log.IsDebugEnabled)
-                    log.Debug("There is no blockwise status yet. Create and set new Block2 status: " + status);
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("There is no blockwise status yet. Create and set new Block2 status: " + status);
             }
             else
             {
-                if (log.IsDebugEnabled)
-                    log.Debug("Current Block2 status: " + status);
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("Current Block2 status: " + status);
             }
             // sets a timeout to complete exchange
             PrepareBlockCleanup(exchange);
@@ -602,12 +602,12 @@ namespace CoAP.Stack
         /// </summary>
         protected void PrepareBlockCleanup(Exchange exchange)
         {
-            Timer timer = new Timer();
+            System.Timers.Timer timer = new System.Timers.Timer();
             timer.AutoReset = false;
             timer.Interval = _blockTimeout;
             timer.Elapsed += (o, e) => BlockwiseTimeout(exchange);
 
-            Timer old = exchange.Set("BlockCleanupTimer", timer) as Timer;
+            System.Timers.Timer old = exchange.Set("BlockCleanupTimer", timer) as System.Timers.Timer;
             if (old != null)
             {
                 try
@@ -629,7 +629,7 @@ namespace CoAP.Stack
         /// </summary>
         protected void ClearBlockCleanup(Exchange exchange)
         {
-            Timer timer = exchange.Remove("BlockCleanupTimer") as Timer;
+            System.Timers.Timer timer = exchange.Remove("BlockCleanupTimer") as System.Timers.Timer;
             if (timer != null)
             {
                 try
@@ -648,13 +648,13 @@ namespace CoAP.Stack
         {
             if (exchange.Request == null)
             {
-                if (log.IsInfoEnabled)
-                    log.Info("Block1 transfer timed out: " + exchange.CurrentRequest);
+                if (Log.IsEnabled(LogLevel.Information))
+                    Log.LogInformation("Block1 transfer timed out: " + exchange.CurrentRequest);
             }
             else
             {
-                if (log.IsInfoEnabled)
-                    log.Info("Block2 transfer timed out: " + exchange.Request);
+                if (Log.IsEnabled(LogLevel.Information))
+                    Log.LogInformation("Block2 transfer timed out: " + exchange.Request);
             }
             exchange.Complete = true;
         }

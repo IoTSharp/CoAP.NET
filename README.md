@@ -1,187 +1,128 @@
-CoAP.NET - A CoAP framework in C#
-=================================
+# IoTSharp.CoAP.NET
 
-[![Build status](https://ci.appveyor.com/api/projects/status/5ofvjna7kysl1mqq?svg=true)](https://ci.appveyor.com/project/MaiKeBing/coap-net)
+IoTSharp.CoAP.NET is a modernized CoAP framework for .NET 10. It keeps the
+original CoAP.NET client and server model, blockwise transfer, observe support,
+and resource tree, while adding Microsoft.Extensions.Logging integration,
+Native AOT analyzer compatibility, and optional DTLS PSK transport.
 
-' Install-Package IoTSharp.CoAP.NET -Version 2.0.8
-
-
-The Constrained Application Protocol (CoAP) (https://datatracker.ietf.org/doc/draft-ietf-core-coap/)
-is a RESTful web transfer protocol for resource-constrained networks and nodes.
-CoAP.NET is an implementation in C# providing CoAP-based services to .NET applications. 
-Reviews and suggestions would be appreciated.
-
-Content
--------
-- [Quick Start] (#quick-start)
-- [Build] (#build)
-- [License] (#license)
-- [Acknowledgements] (#acknowledgements)
-
-Quick Start
------------
-
-CoAP sessions are considered as request-response pair.
-
-### CoAP Client
-
-Access remote CoAP resources by issuing a **[Request] (CoAP.NET/Request.cs)**
-and receive its **[Response] (CoAP.NET/Request.cs)**(s).
-
-```csharp
-  // new a GET request
-  Request request = new Request(Method.GET);
-  request.URI = new Uri("coap://[::1]/hello-world");
-  request.Send();
-  
-  // wait for one response
-  Response response = request.WaitForResponse();
+```powershell
+dotnet add package IoTSharp.CoAP.NET --version 3.0.0
 ```
 
-There are 4 types of request: GET, POST, PUT, DELETE, defined as
-<code>Method.GET</code>, <code>Method.POST</code>, <code>Method.PUT</code>,
-<code>Method.DELETE</code>.
+## Features
 
-Responses can be received in two ways. By calling <code>request.WaitForResponse()</code>
-a response will be received synchronously, which means it will 
-block until timeout or a response is arrived. If more responses
-are expected, call <code>WaitForResponse()</code> again.
+- CoAP client APIs for GET, POST, PUT, DELETE, discovery, and observe.
+- CoAP server APIs with resource routing and blockwise support.
+- UDP transport for `coap://` and DTLS PSK transport for `coaps://`.
+- Logging through `Microsoft.Extensions.Logging`.
+- Packable as an independent NuGet package.
 
-To receive responses asynchronously, register a event handler to
-the event <code>request.Respond</code> before executing.
+## Logging
 
-> #### Parsing Link Format
-> Use <code>LinkFormat.Parse(String)</code> to parse a link-format
-  response. The returned enumeration of <code>WebLink</code>
-  contains all resources stated in the given link-format string.
-> ```csharp
-  Request request = new Request(Method.GET);
-  request.URI = new Uri("coap://[::1]/.well-known/core");
-  request.Send();
-  Response response = request.WaitForResponse();
-  IEnumerable<WebLink> links = LinkFormat.Parse(response.PayloadString);
-  ```
-
-See [CoAP Example Client] (CoAP.Example/CoAP.Client) for more.
-
-### CoAP Server
-
-A new CoAP server can be easily built with help of the class
-[**CoapServer**] (CoAP.NET/Server/CoapServer.cs)
+CoAP.NET no longer ships a custom `CoAP.Log` abstraction. Configure the shared
+logger factory once during application startup:
 
 ```csharp
-  static void Main(String[] args)
-  {
-    CoapServer server = new CoapServer();
-    
-    server.Add(new HelloWorldResource("hello"));
-    
-    server.Start();
-    
-    Console.ReadKey();
-  }
+using CoAP;
+
+CoapLogging.LoggerFactory = loggerFactory;
 ```
 
-See [CoAP Example Server] (CoAP.Example/CoAP.Server) for more.
+The default logger factory is `NullLoggerFactory.Instance`, so libraries can use
+CoAP.NET without configuring logging.
 
-### CoAP Resource
-
-CoAP resources are classes that can be accessed by a URI via CoAP.
-In CoAP.NET, a resource is defined as a subclass of [**Resource**] (CoAP.NET/Server/Resources/Resource.cs).
-By overriding methods <code>DoGet</code>, <code>DoPost</code>,
-<code>DoPut</code> or <code>DoDelete</code>, one resource accepts
-GET, POST, PUT or DELETE requests.
-
-The following code gives an example of HelloWorldResource, which
-can be visited by sending a GET request to "/hello-world", and
-respones a plain string in code "2.05 Content".
+## Client
 
 ```csharp
-  class HelloWorldResource : Resource
-  {
-      public HelloWorldResource()
-          : base("hello-world")
-      {
-          Attributes.Title = "GET a friendly greeting!";
-      }
+using CoAP;
 
-      protected override void DoGet(CoapExchange exchange)
-      {
-          exchange.Respond("Hello World from CoAP.NET!");
-      }
-  }
-  
-  class Server
-  {
-      static void Main(String[] args)
-      {
-          CoapServer server = new CoapServer();
-          server.Add(new HelloWorldResource());
-          server.Start();
-      }
-  }
+var client = new CoapClient(new Uri("coap://127.0.0.1:5683/db/demo/m/cpu?token=secret"))
+{
+    Timeout = 5000,
+};
+
+Response response = client.Post("cpu,host=a value=1 1", MediaType.TextPlain);
 ```
 
-See [CoAP Example Server] (CoAP.Server) for more.
-
-Build
------
-
-A few compile symbols are introduced to build for different drafts of
-CoAP:
-
-- COAP03  -- [draft-ietf-core-coap-03] (http://tools.ietf.org/html/draft-ietf-core-coap-03)
-- COAP08  -- [draft-ietf-core-coap-08] (http://tools.ietf.org/html/draft-ietf-core-coap-08)
-- COAP12  -- [draft-ietf-core-coap-12] (http://tools.ietf.org/html/draft-ietf-core-coap-12)
-- COAP13  -- [draft-ietf-core-coap-13] (http://tools.ietf.org/html/draft-ietf-core-coap-13)
-- COAP18  -- [draft-ietf-core-coap-18] (http://tools.ietf.org/html/draft-ietf-core-coap-18)
-- COAPALL -- all supported drafts above
-
-By default (with no symbol defined), CoAP.NET will be compiled with
-the latest version of CoAP protocol. To enable drafts, define one or
-more of those compile symbols.
-
-With drafts enabled, an interface <code>ISpec</code> will be introduced,
-representing draft specification. Define COAPXX to enable draft XX,
-or COAPALL to enable all supported drafts. All enabled drafts will be
-available in class [**Spec**] (CoAP.NET/Spec.cs):
+For DTLS PSK, create an explicit endpoint and assign it to the client:
 
 ```csharp
-  public static class Spec
-  {
-    public static readonly ISpec Draft03;
-    public static readonly ISpec Draft08;
-    public static readonly ISpec Draft12;
-    public static readonly ISpec Draft13;
-    public static readonly ISpec Draft18;
-  }
+using CoAP;
+using CoAP.Channel;
+using CoAP.Net;
+
+var config = new CoapConfig();
+using var endpoint = new CoAPEndPoint(
+    new DtlsPskClientChannel("device-1", "shared-secret"),
+    config);
+endpoint.Start();
+
+var client = new CoapClient(new Uri("coaps://127.0.0.1:5684/db/demo/m/cpu?token=secret"), config)
+{
+    EndPoint = endpoint,
+    Timeout = 10000,
+};
+
+Response response = client.Post("cpu,host=a value=1 1", MediaType.TextPlain);
 ```
 
-With none of the symbols defined, only the latest version of draft
-will be compiled as the class [**Spec**] (CoAP.NET/Spec.cs),
-with static members instead of various drafts:
+## Server
 
 ```csharp
-  public static class Spec
-  {
-    public static readonly String Name = "draft-ietf-core-coap-18";
-    public static readonly Int32 DefaultPort = 5683;
-    public static IMessageEncoder NewMessageEncoder();
-    public static IMessageDecoder NewMessageDecoder(Byte[] data);
-    public static Byte[] Encode(Message msg);
-    public static Message Decode(Byte[] bytes);
-  }
+using CoAP.Server;
+using CoAP.Server.Resources;
+
+var server = new CoapServer();
+server.Add(new HelloResource());
+server.Start();
+
+sealed class HelloResource : Resource
+{
+    public HelloResource()
+        : base("hello")
+    {
+    }
+
+    protected override void DoGet(CoapExchange exchange)
+    {
+        exchange.Respond("Hello from CoAP.NET");
+    }
+}
 ```
 
-License
--------
+DTLS PSK server endpoint:
 
-See [LICENSE] (LICENSE) for more info.
+```csharp
+using CoAP;
+using CoAP.Channel;
+using CoAP.Net;
+using CoAP.Server;
 
-Acknowledgements
-----------------
+var config = new CoapConfig();
+var server = new CoapServer(config);
+var keys = new Dictionary<string, string>
+{
+    ["device-1"] = "shared-secret",
+};
 
-CoAP.NET is based on [**Californium**] (https://github.com/mkovatsc/Californium),
-a CoAP framework in Java by Matthias Kovatsch, Dominique Im Obersteg,
-and Daniel Pauli, ETH Zurich. See <http://people.inf.ethz.ch/mkovatsc/californium.php>.
-Thanks to the authors and their great job.
+server.AddEndPoint(new CoAPEndPoint(new DtlsPskChannel(5684, keys), config));
+server.Start();
+```
+
+## Pack
+
+```powershell
+dotnet pack CoAP.NET/CoAP.NET.csproj -c Release
+```
+
+The package is written to `CoAP.NET/artifacts` by default.
+
+## License
+
+This project preserves the original CoAP.NET BSD-style license. See
+[LICENSE](LICENSE) for details.
+
+## Acknowledgements
+
+CoAP.NET is based on Californium, a CoAP framework in Java by Matthias Kovatsch,
+Dominique Im Obersteg, and Daniel Pauli at ETH Zurich.

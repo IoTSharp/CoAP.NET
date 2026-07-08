@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2011-2015, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
@@ -12,7 +12,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using CoAP.Log;
+using Microsoft.Extensions.Logging;
 using CoAP.Net;
 using CoAP.Observe;
 using CoAP.Threading;
@@ -26,7 +26,7 @@ namespace CoAP.Server.Resources
     public class Resource : IResource
     {
         static readonly IEnumerable<IEndPoint> EmptyEndPoints = new IEndPoint[0];
-        static readonly ILogger log = LogManager.GetLogger(typeof(Resource));
+        static readonly ILogger Log = CoapLogging.CreateLogger(typeof(Resource));
         readonly ResourceAttributes _attributes = new ResourceAttributes();
         private String _name;
         private String _path = String.Empty;
@@ -277,13 +277,13 @@ namespace CoAP.Server.Resources
             if (old != null)
             {
                 old.Cancel();
-                if (log.IsDebugEnabled)
-                    log.Debug("Replacing observe relation between " + relation.Key + " and resource " + Uri);
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("Replacing observe relation between " + relation.Key + " and resource " + Uri);
             }
             else
             {
-                if (log.IsDebugEnabled)
-                    log.Debug("Successfully established observe relation between " + relation.Key + " and resource " + Uri);
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("Successfully established observe relation between " + relation.Key + " and resource " + Uri);
             }
         }
 

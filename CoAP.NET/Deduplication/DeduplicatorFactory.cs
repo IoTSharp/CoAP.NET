@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
@@ -10,13 +10,13 @@
  */
 
 using System;
-using CoAP.Log;
+using Microsoft.Extensions.Logging;
 
 namespace CoAP.Deduplication
 {
     static class DeduplicatorFactory
     {
-        static readonly ILogger log = LogManager.GetLogger(typeof(DeduplicatorFactory));
+        static readonly ILogger Log = CoapLogging.CreateLogger(typeof(DeduplicatorFactory));
         public const String MarkAndSweepDeduplicator = "MarkAndSweep";
         public const String CropRotationDeduplicator = "CropRotation";
         public const String NoopDeduplicator = "Noop";
@@ -33,8 +33,8 @@ namespace CoAP.Deduplication
             else if (!String.Equals(NoopDeduplicator, type, StringComparison.OrdinalIgnoreCase)
                 && !String.Equals("NO_DEDUPLICATOR", type, StringComparison.OrdinalIgnoreCase))
             {
-                if (log.IsWarnEnabled)
-                    log.Warn("Unknown deduplicator type: " + type);
+                if (Log.IsEnabled(LogLevel.Warning))
+                    Log.LogWarning("Unknown deduplicator type: " + type);
             }
             return new NoopDeduplicator();
         }

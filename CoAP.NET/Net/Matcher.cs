@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2011-2015, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
@@ -13,7 +13,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using CoAP.Deduplication;
-using CoAP.Log;
+using Microsoft.Extensions.Logging;
 using CoAP.Observe;
 using CoAP.Util;
 
@@ -21,7 +21,7 @@ namespace CoAP.Net
 {
     class Matcher : IMatcher, IDisposable
     {
-        static readonly ILogger log = LogManager.GetLogger(typeof(Matcher));
+        static readonly ILogger Log = CoapLogging.CreateLogger(typeof(Matcher));
 
         /// <summary>
         /// for all
@@ -94,8 +94,8 @@ namespace CoAP.Net
 
             exchange.Completed += OnExchangeCompleted;
 
-            if (log.IsDebugEnabled)
-                log.Debug("Stored open request by " + keyID + ", " + keyToken);
+            if (Log.IsEnabled(LogLevel.Debug))
+                Log.LogDebug("Stored open request by " + keyID + ", " + keyToken);
 
             _exchangesByID[keyID] = exchange;
             _exchangesByToken[keyToken] = exchange;
@@ -138,19 +138,19 @@ namespace CoAP.Net
                     // Remember ongoing blockwise GET requests
                     if (Utils.Put(_ongoingExchanges, keyUri, exchange) == null)
                     {
-                        if (log.IsDebugEnabled)
-                            log.Debug("Ongoing Block2 started late, storing " + keyUri + " for " + request);
+                        if (Log.IsEnabled(LogLevel.Debug))
+                            Log.LogDebug("Ongoing Block2 started late, storing " + keyUri + " for " + request);
                     }
                     else
                     {
-                        if (log.IsDebugEnabled)
-                            log.Debug("Ongoing Block2 continued, storing " + keyUri + " for " + request);
+                        if (Log.IsEnabled(LogLevel.Debug))
+                            Log.LogDebug("Ongoing Block2 continued, storing " + keyUri + " for " + request);
                     }
                 }
                 else
                 {
-                    if (log.IsDebugEnabled)
-                        log.Debug("Ongoing Block2 completed, cleaning up " + keyUri + " for " + request);
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Ongoing Block2 completed, cleaning up " + keyUri + " for " + request);
                     Exchange exc;
                     _ongoingExchanges.TryRemove(keyUri, out exc);
                 }
@@ -215,8 +215,8 @@ namespace CoAP.Net
                 }
                 else
                 {
-                    if (log.IsInfoEnabled)
-                        log.Info("Duplicate request: " + request);
+                    if (Log.IsEnabled(LogLevel.Information))
+                        Log.LogInformation("Duplicate request: " + request);
                     request.Duplicate = true;
                     return previous;
                 }
@@ -225,8 +225,8 @@ namespace CoAP.Net
             {
                 Exchange.KeyUri keyUri = new Exchange.KeyUri(request.URI, request.Source);
 
-                if (log.IsDebugEnabled)
-                    log.Debug("Looking up ongoing exchange for " + keyUri);
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("Looking up ongoing exchange for " + keyUri);
 
                 Exchange ongoing;
                 if (_ongoingExchanges.TryGetValue(keyUri, out ongoing))
@@ -234,8 +234,8 @@ namespace CoAP.Net
                     Exchange prev = _deduplicator.FindPrevious(keyId, ongoing);
                     if (prev != null)
                     {
-                        if (log.IsInfoEnabled)
-                            log.Info("Duplicate ongoing request: " + request);
+                        if (Log.IsEnabled(LogLevel.Information))
+                            Log.LogInformation("Duplicate ongoing request: " + request);
                         request.Duplicate = true;
                     }
                     else
@@ -244,8 +244,8 @@ namespace CoAP.Net
                         if (ongoing.CurrentResponse.Type != MessageType.ACK && !ongoing.CurrentResponse.HasOption(OptionType.Observe))
                         {
                             keyId = new Exchange.KeyID(ongoing.CurrentResponse.ID, null);
-                            if (log.IsDebugEnabled)
-                                log.Debug("Ongoing exchange got new request, cleaning up " + keyId);
+                            if (Log.IsEnabled(LogLevel.Debug))
+                                Log.LogDebug("Ongoing exchange got new request, cleaning up " + keyId);
                             _exchangesByID.Remove(keyId);
                         }
                     }
@@ -266,16 +266,16 @@ namespace CoAP.Net
                     Exchange previous = _deduplicator.FindPrevious(keyId, exchange);
                     if (previous == null)
                     {
-                        if (log.IsDebugEnabled)
-                            log.Debug("New ongoing request, storing " + keyUri + " for " + request);
+                        if (Log.IsEnabled(LogLevel.Debug))
+                            Log.LogDebug("New ongoing request, storing " + keyUri + " for " + request);
                         exchange.Completed += OnExchangeCompleted;
                         _ongoingExchanges[keyUri] = exchange;
                         return exchange;
                     }
                     else
                     {
-                        if (log.IsInfoEnabled)
-                            log.Info("Duplicate initial request: " + request);
+                        if (Log.IsEnabled(LogLevel.Information))
+                            Log.LogInformation("Duplicate initial request: " + request);
                         request.Duplicate = true;
                         return previous;
                     }
@@ -311,23 +311,23 @@ namespace CoAP.Net
                 if (prev != null)
                 {
                     // (and thus it holds: prev == exchange)
-                    if (log.IsInfoEnabled)
-                        log.Info("Duplicate response for open exchange: " + response);
+                    if (Log.IsEnabled(LogLevel.Information))
+                        Log.LogInformation("Duplicate response for open exchange: " + response);
                     response.Duplicate = true;
                 }
                 else
                 {
                     keyId = new Exchange.KeyID(exchange.CurrentRequest.ID, null);
-                    if (log.IsDebugEnabled)
-                        log.Debug("Exchange got response: Cleaning up " + keyId);
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Exchange got response: Cleaning up " + keyId);
                     _exchangesByID.Remove(keyId);
                 }
 
                 if (response.Type == MessageType.ACK && exchange.CurrentRequest.ID != response.ID)
                 {
                     // The token matches but not the MID. This is a response for an older exchange
-                    if (log.IsWarnEnabled)
-                        log.Warn("Possible MID reuse before lifetime end: " + response.TokenString + " expected MID " + exchange.CurrentRequest.ID + " but received " + response.ID);
+                    if (Log.IsEnabled(LogLevel.Warning))
+                        Log.LogWarning("Possible MID reuse before lifetime end: " + response.TokenString + " expected MID " + exchange.CurrentRequest.ID + " but received " + response.ID);
                 }
 
                 return exchange;
@@ -341,16 +341,16 @@ namespace CoAP.Net
                     Exchange prev = _deduplicator.Find(keyId);
                     if (prev != null)
                     {
-                        if (log.IsInfoEnabled)
-                            log.Info("Duplicate response for completed exchange: " + response);
+                        if (Log.IsEnabled(LogLevel.Information))
+                            Log.LogInformation("Duplicate response for completed exchange: " + response);
                         response.Duplicate = true;
                         return prev;
                     }
                 }
                 else
                 {
-                    if (log.IsInfoEnabled)
-                        log.Info("Ignoring unmatchable piggy-backed response from " + response.Source + ": " + response);
+                    if (Log.IsEnabled(LogLevel.Information))
+                        Log.LogInformation("Ignoring unmatchable piggy-backed response from " + response.Source + ": " + response);
                 }
                 // ignore response
                 return null;
@@ -365,15 +365,15 @@ namespace CoAP.Net
             Exchange exchange;
             if (_exchangesByID.TryGetValue(keyID, out exchange))
             {
-                if (log.IsDebugEnabled)
-                    log.Debug("Exchange got reply: Cleaning up " + keyID);
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("Exchange got reply: Cleaning up " + keyID);
                 _exchangesByID.Remove(keyID);
                 return exchange;
             }
             else
             {
-                if (log.IsInfoEnabled)
-                    log.Info("Ignoring unmatchable empty message from " + message.Source + ": " + message);
+                if (Log.IsEnabled(LogLevel.Information))
+                    Log.LogInformation("Ignoring unmatchable empty message from " + message.Source + ": " + message);
                 return null;
             }
         }
@@ -388,8 +388,8 @@ namespace CoAP.Net
 
         private void RemoveNotificatoinsOf(ObserveRelation relation)
         {
-            if (log.IsDebugEnabled)
-                log.Debug("Remove all remaining NON-notifications of observe relation");
+            if (Log.IsEnabled(LogLevel.Debug))
+                Log.LogDebug("Remove all remaining NON-notifications of observe relation");
 
             foreach (Response previous in relation.ClearNotifications())
             {
@@ -414,8 +414,8 @@ namespace CoAP.Net
                 Exchange.KeyID keyID = new Exchange.KeyID(exchange.CurrentRequest.ID, null);
                 Exchange.KeyToken keyToken = new Exchange.KeyToken(exchange.CurrentRequest.Token);
 
-                if (log.IsDebugEnabled)
-                    log.Debug("Exchange completed: Cleaning up " + keyToken);
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("Exchange completed: Cleaning up " + keyToken);
 
                 _exchangesByToken.Remove(keyToken);
                 // in case an empty ACK was lost
@@ -430,8 +430,8 @@ namespace CoAP.Net
                 {
                     // only response MIDs are stored for ACK and RST, no reponse Tokens
                     Exchange.KeyID midKey = new Exchange.KeyID(response.ID, null);
-                    //if (log.IsDebugEnabled)
-                    //    log.Debug("Remote ongoing completed, cleaning up " + midKey);
+                    //if (Log.IsEnabled(LogLevel.Debug))
+                    //    Log.LogDebug("Remote ongoing completed, cleaning up " + midKey);
                     _exchangesByID.Remove(midKey);
                 }
 
@@ -439,8 +439,8 @@ namespace CoAP.Net
                 if (request != null && (request.HasOption(OptionType.Block1) || response.HasOption(OptionType.Block2)))
                 {
                     Exchange.KeyUri uriKey = new Exchange.KeyUri(request.URI, request.Source);
-                    if (log.IsDebugEnabled)
-                        log.Debug("Remote ongoing completed, cleaning up " + uriKey);
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Remote ongoing completed, cleaning up " + uriKey);
                     Exchange exc;
                     _ongoingExchanges.TryRemove(uriKey, out exc);
                 }

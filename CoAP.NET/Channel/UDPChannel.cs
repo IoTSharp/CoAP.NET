@@ -119,7 +119,7 @@ namespace CoAP.Channel
                     if (e.SocketErrorCode == SocketError.AddressFamilyNotSupported)
                         _socket = null;
                     else
-                        throw e;
+                        throw;
                 }
 
                 if (_socket == null)

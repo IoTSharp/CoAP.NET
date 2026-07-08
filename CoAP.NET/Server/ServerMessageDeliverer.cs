@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
@@ -11,7 +11,7 @@
 
 using System;
 using System.Collections.Generic;
-using CoAP.Log;
+using Microsoft.Extensions.Logging;
 using CoAP.Net;
 using CoAP.Observe;
 using CoAP.Server.Resources;
@@ -26,7 +26,7 @@ namespace CoAP.Server
     /// </summary>
     public class ServerMessageDeliverer : IMessageDeliverer
     {
-        static readonly ILogger log = LogManager.GetLogger(typeof(ServerMessageDeliverer));
+        static readonly ILogger Log = CoapLogging.CreateLogger(typeof(ServerMessageDeliverer));
         readonly ICoapConfig _config;
         readonly IResource _root;
         readonly ObserveManager _observeManager = new ObserveManager();
@@ -101,8 +101,8 @@ namespace CoAP.Server
                 if (obs == 0)
                 {
                     // Requests wants to observe and resource allows it :-)
-                    if (log.IsDebugEnabled)
-                        log.Debug("Initiate an observe relation between " + source + " and resource " + resource.Uri);
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Initiate an observe relation between " + source + " and resource " + resource.Uri);
                     ObservingEndpoint remote = _observeManager.FindObservingEndpoint(source);
                     ObserveRelation relation = new ObserveRelation(_config, remote, resource, exchange);
                     remote.AddObserveRelation(relation);

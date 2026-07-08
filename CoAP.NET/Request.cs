@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2011-2015, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
@@ -12,7 +12,7 @@
 using System;
 using System.Net;
 using System.Text.RegularExpressions;
-using CoAP.Log;
+using Microsoft.Extensions.Logging;
 using CoAP.Net;
 using CoAP.Observe;
 

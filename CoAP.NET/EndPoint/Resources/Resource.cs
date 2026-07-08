@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
@@ -12,7 +12,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using CoAP.Log;
+using Microsoft.Extensions.Logging;
 using CoAP.Util;
 
 namespace CoAP.EndPoint.Resources
@@ -22,7 +22,7 @@ namespace CoAP.EndPoint.Resources
     /// </summary>
     public abstract class Resource : IComparable<Resource>
     {
-        private static ILogger log = LogManager.GetLogger(typeof(Resource));
+        private static readonly ILogger Log = CoapLogging.CreateLogger(typeof(Resource));
 
         private Int32 _totalSubResourceCount;
         private String _resourceIdentifier;
@@ -346,8 +346,8 @@ namespace CoAP.EndPoint.Resources
             {
                 if (_parent != null)
                 {
-                    if (log.IsWarnEnabled)
-                        log.Warn("Adding absolute path only allowed for root: made relative " + resource.Name);
+                    if (Log.IsEnabled(LogLevel.Warning))
+                        Log.LogWarning("Adding absolute path only allowed for root: made relative " + resource.Name);
                 }
                 resource.Name = resource.Name.Substring(1);
             }
@@ -367,8 +367,8 @@ namespace CoAP.EndPoint.Resources
             if (path.Length == 0)
             {
                 // resource replaces base
-                if (log.IsInfoEnabled)
-                    log.Info("Replacing resource " + baseRes.Path);
+                if (Log.IsEnabled(LogLevel.Information))
+                    Log.LogInformation("Replacing resource " + baseRes.Path);
                 foreach (Resource sub in baseRes.GetSubResources())
                 {
                     sub._parent = resource;
@@ -384,8 +384,8 @@ namespace CoAP.EndPoint.Resources
                 String[] segments = path.Split('/');
                 if (segments.Length > 1)
                 {
-                    if (log.IsDebugEnabled)
-                        log.Debug("Splitting up compound resource " + resource.Name);
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Splitting up compound resource " + resource.Name);
                     resource.Name = segments[segments.Length - 1];
 
                     // insert middle segments
@@ -404,8 +404,8 @@ namespace CoAP.EndPoint.Resources
                 resource._parent = baseRes;
                 baseRes.SubResources[resource.Name] = resource;
 
-                if (log.IsDebugEnabled)
-                    log.Debug("Add resource " + resource.Name);
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("Add resource " + resource.Name);
             }
 
             // update number of sub-resources in the tree
@@ -455,6 +455,8 @@ namespace CoAP.EndPoint.Resources
 
         public Int32 CompareTo(Resource other)
         {
+            if (other == null)
+                throw ThrowHelper.ArgumentNull("other");
             return Path.CompareTo(other.Path);
         }
 

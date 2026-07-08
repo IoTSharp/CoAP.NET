@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2011-2015, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
@@ -11,7 +11,7 @@
 
 using System;
 using System.Timers;
-using CoAP.Log;
+using Microsoft.Extensions.Logging;
 using CoAP.Net;
 using CoAP.Observe;
 
@@ -19,7 +19,7 @@ namespace CoAP.Stack
 {
     public class ObserveLayer : AbstractLayer
     {
-        static readonly ILogger log = LogManager.GetLogger(typeof(ObserveLayer));
+        static readonly ILogger Log = CoapLogging.CreateLogger(typeof(ObserveLayer));
         static readonly Object ReregistrationContextKey = "ReregistrationContext";
 
         /// <summary>
@@ -46,8 +46,8 @@ namespace CoAP.Stack
                     // Transmit errors as CON
                     if (!Code.IsSuccess(response.Code))
                     {
-                        if (log.IsDebugEnabled)
-                            log.Debug("Response has error code " + response.Code + " and must be sent as CON");
+                        if (Log.IsEnabled(LogLevel.Debug))
+                            Log.LogDebug("Response has error code " + response.Code + " and must be sent as CON");
                         response.Type = MessageType.CON;
                         relation.Cancel();
                     }
@@ -56,8 +56,8 @@ namespace CoAP.Stack
                         // Make sure that every now and than a CON is mixed within
                         if (relation.Check())
                         {
-                            if (log.IsDebugEnabled)
-                                log.Debug("The observe relation check requires the notification to be sent as CON");
+                            if (Log.IsEnabled(LogLevel.Debug))
+                                Log.LogDebug("The observe relation check requires the notification to be sent as CON");
                             response.Type = MessageType.CON;
                         }
                         else
@@ -103,8 +103,8 @@ namespace CoAP.Stack
                     Response current = relation.CurrentControlNotification;
                     if (current != null && IsInTransit(current))
                     {
-                        if (log.IsDebugEnabled)
-                            log.Debug("A former notification is still in transit. Postpone " + response);
+                        if (Log.IsEnabled(LogLevel.Debug))
+                            Log.LogDebug("A former notification is still in transit. Postpone " + response);
                         // use the same ID
                         response.ID = current.ID;
                         relation.NextControlNotification = response;
@@ -129,8 +129,8 @@ namespace CoAP.Stack
                 if (exchange.Request.IsCancelled)
                 {
                     // The request was canceled and we no longer want notifications
-                    if (log.IsDebugEnabled)
-                        log.Debug("ObserveLayer rejecting notification for canceled Exchange");
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("ObserveLayer rejecting notification for canceled Exchange");
                     EmptyMessage rst = EmptyMessage.NewRST(response);
                     SendEmptyMessage(nextLayer, exchange, rst);
                     // Matcher sets exchange as complete when RST is sent
@@ -186,8 +186,8 @@ namespace CoAP.Stack
                     relation.NextControlNotification = null;
                     if (next != null)
                     {
-                        if (log.IsDebugEnabled)
-                            log.Debug("Notification has been acknowledged, send the next one");
+                        if (Log.IsEnabled(LogLevel.Debug))
+                            Log.LogDebug("Notification has been acknowledged, send the next one");
                         // this is not a self replacement, hence a new ID
                         next.ID = Message.None;
                         // Create a new task for sending next response so that we can leave the sync-block
@@ -204,8 +204,8 @@ namespace CoAP.Stack
                     Response next = relation.NextControlNotification;
                     if (next != null)
                     {
-                        if (log.IsDebugEnabled)
-                            log.Debug("The notification has timed out and there is a fresher notification for the retransmission.");
+                        if (Log.IsEnabled(LogLevel.Debug))
+                            Log.LogDebug("The notification has timed out and there is a fresher notification for the retransmission.");
                         // Cancel the original retransmission and send the fresh notification here
                         response.IsCancelled = true;
                         // use the same ID
@@ -227,8 +227,8 @@ namespace CoAP.Stack
             response.TimedOut += (o, e) =>
             {
                 ObserveRelation relation = exchange.Relation;
-                if (log.IsDebugEnabled)
-                    log.Debug("Notification" + relation.Exchange.Request.TokenString
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("Notification" + relation.Exchange.Request.TokenString
                         + " timed out. Cancel all relations with source " + relation.Source);
                 relation.CancelAll();
             };
@@ -240,8 +240,8 @@ namespace CoAP.Stack
             ReregistrationContext ctx = exchange.GetOrAdd<ReregistrationContext>(
                 ReregistrationContextKey, _ => new ReregistrationContext(exchange, timeout, reregister));
 
-            if (log.IsDebugEnabled)
-                log.Debug("Scheduling re-registration in " + timeout + "ms for " + exchange.Request);
+            if (Log.IsEnabled(LogLevel.Debug))
+                Log.LogDebug("Scheduling re-registration in " + timeout + "ms for " + exchange.Request);
 
             ctx.Restart();
         }
@@ -250,13 +250,13 @@ namespace CoAP.Stack
         {
             private Exchange _exchange;
             private Action<Request> _reregister;
-            private Timer _timer;
+            private System.Timers.Timer _timer;
 
             public ReregistrationContext(Exchange exchange, Int64 timeout, Action<Request> reregister)
             {
                 _exchange = exchange;
                 _reregister = reregister;
-                _timer = new Timer(timeout);
+                _timer = new System.Timers.Timer(timeout);
                 _timer.AutoReset = false;
                 _timer.Elapsed += timer_Elapsed;
             }
@@ -296,15 +296,15 @@ namespace CoAP.Stack
                     refresh.Token = request.Token;
                     refresh.Destination = request.Destination;
                     refresh.CopyEventHandler(request);
-                    if (log.IsDebugEnabled)
-                        log.Debug("Re-registering for " + request);
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Re-registering for " + request);
                     request.FireReregister(refresh);
                     _reregister(refresh);
                 }
                 else
                 {
-                    if (log.IsDebugEnabled)
-                        log.Debug("Dropping re-registration for canceled " + request);
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Dropping re-registration for canceled " + request);
                 }
             }
         }

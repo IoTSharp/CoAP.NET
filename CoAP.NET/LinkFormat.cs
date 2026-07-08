@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
@@ -14,7 +14,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using CoAP.EndPoint.Resources;
-using CoAP.Log;
+using Microsoft.Extensions.Logging;
 using CoAP.Server.Resources;
 using CoAP.Util;
 using Resource = CoAP.EndPoint.Resources.Resource;
@@ -75,7 +75,7 @@ namespace CoAP
         static readonly Regex EqualRegex = new Regex("=");
         static readonly Regex BlankRegex = new Regex("\\s");
 
-        private static ILogger log = LogManager.GetLogger(typeof(LinkFormat));
+        private static readonly ILogger Log = CoapLogging.CreateLogger(typeof(LinkFormat));
 
         public static String Serialize(IResource root)
         {
@@ -469,8 +469,8 @@ namespace CoAP
                 {
                     if (attr.Name.Equals(attrToAdd.Name))
                     {
-                        if (log.IsDebugEnabled)
-                            log.Debug("Found existing singleton attribute: " + attr.Name);
+                        if (Log.IsEnabled(LogLevel.Debug))
+                            Log.LogDebug("Found existing singleton attribute: " + attr.Name);
                         return false;
                     }
                 }

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
@@ -11,7 +11,7 @@
 
 using System;
 using System.Text;
-using CoAP.Log;
+using Microsoft.Extensions.Logging;
 
 namespace CoAP
 {
@@ -20,7 +20,7 @@ namespace CoAP
     /// </summary>
     public class LinkAttribute : IComparable<LinkAttribute>
     {
-        private static readonly ILogger log = LogManager.GetLogger(typeof(LinkAttribute));
+        private static readonly ILogger Log = CoapLogging.CreateLogger(typeof(LinkAttribute));
 
         private String _name;
         private Object _value;
@@ -98,8 +98,8 @@ namespace CoAP
                     }
                     else
                     {
-                        if (log.IsErrorEnabled)
-                            log.Error(String.Format("Serializing attribute of unexpected type: {0} ({1})", _name, _value.GetType().Name));
+                        if (Log.IsEnabled(LogLevel.Error))
+                            Log.LogError(String.Format("Serializing attribute of unexpected type: {0} ({1})", _name, _value.GetType().Name));
                     }
                 }
             }
@@ -114,6 +114,8 @@ namespace CoAP
         /// <inheritdoc/>
         public Int32 CompareTo(LinkAttribute other)
         {
+            if (other == null)
+                throw new ArgumentNullException(nameof(other));
             Int32 ret = _name.CompareTo(other.Name);
             if (ret == 0)
             {

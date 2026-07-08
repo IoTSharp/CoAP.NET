@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
@@ -12,7 +12,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
-using CoAP.Log;
+using Microsoft.Extensions.Logging;
 using CoAP.Net;
 using CoAP.Server.Resources;
 
@@ -23,7 +23,7 @@ namespace CoAP.Server
     /// </summary>
     public class CoapServer : IServer
     {
-        static readonly ILogger log = LogManager.GetLogger(typeof(CoapServer));
+        static readonly ILogger Log = CoapLogging.CreateLogger(typeof(CoapServer));
         readonly IResource _root;
         readonly List<IEndPoint> _endpoints = new List<IEndPoint>();
         readonly ICoapConfig _config;
@@ -162,8 +162,8 @@ namespace CoAP.Server
         /// <inheritdoc/>
         public void Start()
         {
-            if (log.IsDebugEnabled)
-                log.Debug("Starting CoAP server");
+            if (Log.IsEnabled(LogLevel.Debug))
+                Log.LogDebug("Starting CoAP server");
             
             if (_endpoints.Count == 0)
             {
@@ -180,8 +180,8 @@ namespace CoAP.Server
                 }
                 catch (Exception e)
                 {
-                    if (log.IsWarnEnabled)
-                        log.Warn("Could not start endpoint " + endpoint.LocalEndPoint, e);
+                    if (Log.IsEnabled(LogLevel.Warning))
+                        Log.LogWarning(e, "Could not start endpoint {LocalEndPoint}.", endpoint.LocalEndPoint);
                 }
             }
 
@@ -192,8 +192,8 @@ namespace CoAP.Server
         /// <inheritdoc/>
         public void Stop()
         {
-            if (log.IsDebugEnabled)
-                log.Debug("Starting CoAP server");
+            if (Log.IsEnabled(LogLevel.Debug))
+                Log.LogDebug("Starting CoAP server");
             _endpoints.ForEach(ep => ep.Stop());
         }
 

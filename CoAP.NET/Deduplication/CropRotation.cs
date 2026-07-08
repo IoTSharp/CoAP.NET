@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
@@ -12,7 +12,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Timers;
-using CoAP.Log;
+using Microsoft.Extensions.Logging;
 using CoAP.Net;
 
 namespace CoAP.Deduplication
@@ -22,7 +22,7 @@ namespace CoAP.Deduplication
         private ConcurrentDictionary<Exchange.KeyID, Exchange>[] _maps;
         private Int32 _first;
         private Int32 _second;
-        private Timer _timer;
+        private System.Timers.Timer _timer;
 
         public CropRotation(ICoapConfig config)
         {
@@ -32,7 +32,7 @@ namespace CoAP.Deduplication
             _maps[2] = new ConcurrentDictionary<Exchange.KeyID, Exchange>();
             _first = 0;
             _second = 1;
-            _timer = new Timer(config.CropRotationPeriod);
+            _timer = new System.Timers.Timer(config.CropRotationPeriod);
             _timer.Elapsed += Rotation;
         }
 

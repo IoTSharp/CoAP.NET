@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
@@ -13,31 +13,31 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Timers;
-using CoAP.Log;
+using Microsoft.Extensions.Logging;
 using CoAP.Net;
 
 namespace CoAP.Deduplication
 {
     class SweepDeduplicator : IDeduplicator
     {
-        static readonly ILogger log = LogManager.GetLogger(typeof(SweepDeduplicator));
+        static readonly ILogger Log = CoapLogging.CreateLogger(typeof(SweepDeduplicator));
 
         private ConcurrentDictionary<Exchange.KeyID, Exchange> _incommingMessages
             = new ConcurrentDictionary<Exchange.KeyID, Exchange>();
-        private Timer _timer;
+        private System.Timers.Timer _timer;
         private ICoapConfig _config;
 
         public SweepDeduplicator(ICoapConfig config)
         {
             _config = config;
-            _timer = new Timer(config.MarkAndSweepInterval);
+            _timer = new System.Timers.Timer(config.MarkAndSweepInterval);
             _timer.Elapsed += Sweep;
         }
 
         private void Sweep(Object sender, ElapsedEventArgs e)
         {
-            if (log.IsDebugEnabled)
-                log.Debug("Start Mark-And-Sweep with " + _incommingMessages.Count + " entries");
+            if (Log.IsEnabled(LogLevel.Debug))
+                Log.LogDebug("Start Mark-And-Sweep with " + _incommingMessages.Count + " entries");
 
             DateTime oldestAllowed = DateTime.Now.AddMilliseconds(-_config.ExchangeLifetime);
             List<Exchange.KeyID> keysToRemove = new List<Exchange.KeyID>();
@@ -45,8 +45,8 @@ namespace CoAP.Deduplication
             {
                 if (pair.Value.Timestamp < oldestAllowed)
                 {
-                    if (log.IsDebugEnabled)
-                        log.Debug("Mark-And-Sweep removes " + pair.Key);
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Mark-And-Sweep removes " + pair.Key);
                     keysToRemove.Add(pair.Key);
                 }
             }

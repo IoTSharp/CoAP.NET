@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2011-2015, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
@@ -11,7 +11,7 @@
 
 using System;
 using System.Collections.Generic;
-using CoAP.Log;
+using Microsoft.Extensions.Logging;
 using CoAP.Net;
 using CoAP.Observe;
 
@@ -22,7 +22,7 @@ namespace CoAP
     /// </summary>
     public class CoapClient
     {
-        private static ILogger log = LogManager.GetLogger(typeof(CoapClient));
+        private static readonly ILogger Log = CoapLogging.CreateLogger(typeof(CoapClient));
         private static readonly IEnumerable<WebLink> EmptyLinks = new WebLink[0];
         private Uri _uri;
         private ICoapConfig _config;
@@ -457,8 +457,8 @@ namespace CoAP
                     }
                     else
                     {
-                        if (log.IsDebugEnabled)
-                            log.Debug("Dropping old notification: " + resp);
+                        if (Log.IsEnabled(LogLevel.Debug))
+                            Log.LogDebug("Dropping old notification: " + resp);
                     }
                 }
             };

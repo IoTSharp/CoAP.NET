@@ -203,29 +203,29 @@ namespace System.Collections.Generic
 		int IList.Add (object value)
 		{
 			lock (root) {
-				Add ((T) value);
+				Add ((T) value!);
 				return list.Count - 1;
 			}
 		}
 
 		bool IList.Contains (object value)
 		{
-			return Contains ((T) value);
+			return Contains ((T) value!);
 		}
 
 		int IList.IndexOf (object value)
 		{
-			return IndexOf ((T) value);
+			return IndexOf ((T) value!);
 		}
 
 		void IList.Insert (int index, object value)
 		{
-			Insert (index, (T) value);
+			Insert (index, (T) value!);
 		}
 
 		void IList.Remove (object value)
 		{
-			Remove ((T) value);
+			Remove ((T) value!);
 		}
 
 		bool ICollection<T>.IsReadOnly {
@@ -250,7 +250,7 @@ namespace System.Collections.Generic
 
 		object IList.this [int index] {
 			get { return this [index]; }
-			set { this [index] = (T) value; }
+			set { this [index] = (T) value!; }
 		}
 
 		#endregion

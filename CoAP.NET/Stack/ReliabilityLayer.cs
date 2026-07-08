@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
@@ -11,7 +11,7 @@
 
 using System;
 using System.Timers;
-using CoAP.Log;
+using Microsoft.Extensions.Logging;
 using CoAP.Net;
 
 namespace CoAP.Stack
@@ -21,7 +21,7 @@ namespace CoAP.Stack
     /// </summary>
     public class ReliabilityLayer : AbstractLayer
     {
-        static readonly ILogger log = LogManager.GetLogger(typeof(ReliabilityLayer));
+        static readonly ILogger Log = CoapLogging.CreateLogger(typeof(ReliabilityLayer));
         static readonly Object TransmissionContextKey = "TransmissionContext";
 
         private readonly Random _rand = new Random();
@@ -45,8 +45,8 @@ namespace CoAP.Stack
 
             if (request.Type == MessageType.CON)
             {
-                if (log.IsDebugEnabled)
-                    log.Debug("Scheduling retransmission for " + request);
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("Scheduling retransmission for " + request);
                 PrepareRetransmission(exchange, request, ctx => SendRequest(nextLayer, exchange, request));
             }
 
@@ -93,8 +93,8 @@ namespace CoAP.Stack
 
             if (response.Type == MessageType.CON)
             {
-                if (log.IsDebugEnabled)
-                    log.Debug("Scheduling retransmission for " + response);
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("Scheduling retransmission for " + response);
                 PrepareRetransmission(exchange, response, ctx => SendResponse(nextLayer, exchange, response));
             }
 
@@ -117,30 +117,30 @@ namespace CoAP.Stack
                 // Request is a duplicate, so resend ACK, RST or response
                 if (exchange.CurrentResponse != null)
                 {
-                    if (log.IsDebugEnabled)
-                        log.Debug("Respond with the current response to the duplicate request");
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Respond with the current response to the duplicate request");
                     base.SendResponse(nextLayer, exchange, exchange.CurrentResponse);
                 }
                 else if (exchange.CurrentRequest != null)
                 {
                     if (exchange.CurrentRequest.IsAcknowledged)
                     {
-                        if (log.IsDebugEnabled)
-                            log.Debug("The duplicate request was acknowledged but no response computed yet. Retransmit ACK.");
+                        if (Log.IsEnabled(LogLevel.Debug))
+                            Log.LogDebug("The duplicate request was acknowledged but no response computed yet. Retransmit ACK.");
                         EmptyMessage ack = EmptyMessage.NewACK(request);
                         SendEmptyMessage(nextLayer, exchange, ack);
                     }
                     else if (exchange.CurrentRequest.IsRejected)
                     {
-                        if (log.IsDebugEnabled)
-                            log.Debug("The duplicate request was rejected. Reject again.");
+                        if (Log.IsEnabled(LogLevel.Debug))
+                            Log.LogDebug("The duplicate request was rejected. Reject again.");
                         EmptyMessage rst = EmptyMessage.NewRST(request);
                         SendEmptyMessage(nextLayer, exchange, rst);
                     }
                     else
                     {
-                        if (log.IsDebugEnabled)
-                            log.Debug("The server has not yet decided what to do with the request. We ignore the duplicate.");
+                        if (Log.IsEnabled(LogLevel.Debug))
+                            Log.LogDebug("The server has not yet decided what to do with the request. We ignore the duplicate.");
                         // The server has not yet decided, whether to acknowledge or
                         // reject the request. We know for sure that the server has
                         // received the request though and can drop this duplicate here.
@@ -175,16 +175,16 @@ namespace CoAP.Stack
 
             if (response.Type == MessageType.CON && !exchange.Request.IsCancelled)
             {
-                if (log.IsDebugEnabled)
-                    log.Debug("Response is confirmable, send ACK.");
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("Response is confirmable, send ACK.");
                 EmptyMessage ack = EmptyMessage.NewACK(response);
                 SendEmptyMessage(nextLayer, exchange, ack);
             }
 
             if (response.Duplicate)
             {
-                if (log.IsDebugEnabled)
-                    log.Debug("Response is duplicate, ignore it.");
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("Response is duplicate, ignore it.");
             }
             else
             {
@@ -213,8 +213,8 @@ namespace CoAP.Stack
                         exchange.CurrentResponse.IsRejected = true;
                     break;
                 default:
-                    if (log.IsWarnEnabled)
-                        log.Warn("Empty messgae was not ACK nor RST: " + message);
+                    if (Log.IsEnabled(LogLevel.Warning))
+                        Log.LogWarning("Empty messgae was not ACK nor RST: " + message);
                     break;
             }
 
@@ -239,8 +239,8 @@ namespace CoAP.Stack
                 ctx.CurrentTimeout = InitialTimeout(_config.AckTimeout, _config.AckRandomFactor);
             }
 
-            if (log.IsDebugEnabled)
-                log.Debug("Send request, failed transmissions: " + ctx.FailedTransmissionCount);
+            if (Log.IsEnabled(LogLevel.Debug))
+                Log.LogDebug("Send request, failed transmissions: " + ctx.FailedTransmissionCount);
 
             ctx.Start();
         }
@@ -257,7 +257,7 @@ namespace CoAP.Stack
             readonly Message _message;
             private Int32 _currentTimeout;
             private Int32 _failedTransmissionCount;
-            private Timer _timer;
+            private System.Timers.Timer _timer;
             private Action<TransmissionContext> _retransmit;
 
             public TransmissionContext(ICoapConfig config, Exchange exchange, Message message, Action<TransmissionContext> retransmit)
@@ -267,7 +267,7 @@ namespace CoAP.Stack
                 _message = message;
                 _retransmit = retransmit;
                 _currentTimeout = message.AckTimeout;
-                _timer = new Timer();
+                _timer = new System.Timers.Timer();
                 _timer.AutoReset = false;
                 _timer.Elapsed += timer_Elapsed;
             }
@@ -297,7 +297,7 @@ namespace CoAP.Stack
 
             public void Cancel()
             {
-                Timer t = System.Threading.Interlocked.Exchange(ref _timer, null);
+                System.Timers.Timer t = System.Threading.Interlocked.Exchange(ref _timer, null);
 
                 // avoid race condition of multiple responses (e.g., notifications)
                 if (t == null)
@@ -313,13 +313,13 @@ namespace CoAP.Stack
                     // ignore
                 }
 
-                if (log.IsDebugEnabled)
+                if (Log.IsEnabled(LogLevel.Debug))
                 {
-                    log.Debug("Cancel retransmission for -->");
+                    Log.LogDebug("Cancel retransmission for -->");
                     if (_exchange.Origin == Origin.Local)
-                        log.Debug(_exchange.CurrentRequest);
+                        Log.LogDebug("{Request}", _exchange.CurrentRequest);
                     else
-                        log.Debug(_exchange.CurrentResponse);
+                        Log.LogDebug("{Response}", _exchange.CurrentResponse);
                 }
             }
 
@@ -339,26 +339,26 @@ namespace CoAP.Stack
 
                 if (_message.IsAcknowledged)
                 {
-                    if (log.IsDebugEnabled)
-                        log.Debug("Timeout: message already acknowledged, cancel retransmission of " + _message);
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Timeout: message already acknowledged, cancel retransmission of " + _message);
                     return;
                 }
                 else if (_message.IsRejected)
                 {
-                    if (log.IsDebugEnabled)
-                        log.Debug("Timeout: message already rejected, cancel retransmission of " + _message);
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Timeout: message already rejected, cancel retransmission of " + _message);
                     return;
                 }
                 else if (_message.IsCancelled)
                 {
-                    if (log.IsDebugEnabled)
-                        log.Debug("Timeout: canceled (ID=" + _message.ID + "), do not retransmit");
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Timeout: canceled (ID=" + _message.ID + "), do not retransmit");
                     return;
                 }
                 else if (failedCount <= (_message.MaxRetransmit != 0 ? _message.MaxRetransmit : _config.MaxRetransmit))
                 {
-                    if (log.IsDebugEnabled)
-                        log.Debug("Timeout: retransmit message, failed: " + failedCount + ", message: " + _message);
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Timeout: retransmit message, failed: " + failedCount + ", message: " + _message);
 
                     _message.FireRetransmitting();
 
@@ -368,8 +368,8 @@ namespace CoAP.Stack
                 }
                 else
                 {
-                    if (log.IsDebugEnabled)
-                        log.Debug("Timeout: retransmission limit reached, exchange failed, message: " + _message);
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Timeout: retransmission limit reached, exchange failed, message: " + _message);
                     _exchange.TimedOut = true;
                     _message.IsTimedOut = true;
                     _exchange.Remove(TransmissionContextKey);

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2011-2015, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
@@ -10,7 +10,7 @@
  */
 
 using System;
-using CoAP.Log;
+using Microsoft.Extensions.Logging;
 using CoAP.Net;
 using CoAP.Server.Resources;
 using CoAP.Util;
@@ -24,7 +24,7 @@ namespace CoAP.Observe
     /// </summary>
     public class ObserveRelation
     {
-        static readonly ILogger log = LogManager.GetLogger(typeof(ObserveRelation));
+        static readonly ILogger Log = CoapLogging.CreateLogger(typeof(ObserveRelation));
         readonly ICoapConfig _config;
         readonly ObservingEndpoint _endpoint;
         readonly IResource _resource;
@@ -120,8 +120,8 @@ namespace CoAP.Observe
         /// </summary>
         public void Cancel()
         {
-            if (log.IsDebugEnabled)
-                log.Debug("Cancel observe relation from " + _key + " with " + _resource.Path);
+            if (Log.IsEnabled(LogLevel.Debug))
+                Log.LogDebug("Cancel observe relation from " + _key + " with " + _resource.Path);
             // stop ongoing retransmissions
             if (_exchange.Response != null)
                 _exchange.Response.Cancel();

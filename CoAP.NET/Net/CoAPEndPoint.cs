@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2011-2015, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
@@ -12,7 +12,7 @@
 using System;
 using CoAP.Channel;
 using CoAP.Codec;
-using CoAP.Log;
+using Microsoft.Extensions.Logging;
 using CoAP.Stack;
 using CoAP.Threading;
 
@@ -23,7 +23,7 @@ namespace CoAP.Net
     /// </summary>
     public partial class CoAPEndPoint : IEndPoint, IOutbox
     {
-        static readonly ILogger log = LogManager.GetLogger(typeof(CoAPEndPoint));
+        static readonly ILogger Log = CoapLogging.CreateLogger(typeof(CoAPEndPoint));
 
         readonly ICoapConfig _config;
         readonly IChannel _channel;
@@ -169,13 +169,13 @@ namespace CoAP.Net
             }
             catch
             {
-                if (log.IsWarnEnabled)
-                    log.Warn("Cannot start endpoint at " + _localEP);
+                if (Log.IsEnabled(LogLevel.Warning))
+                    Log.LogWarning("Cannot start endpoint at " + _localEP);
                 Stop();
                 throw;
             }
-            if (log.IsDebugEnabled)
-                log.Debug("Starting endpoint bound to " + _localEP);
+            if (Log.IsEnabled(LogLevel.Debug))
+                Log.LogDebug("Starting endpoint bound to " + _localEP);
         }
 
         /// <inheritdoc/>
@@ -183,8 +183,8 @@ namespace CoAP.Net
         {
             if (System.Threading.Interlocked.Exchange(ref _running, 0) == 0)
                 return;
-            if (log.IsDebugEnabled)
-                log.Debug("Stopping endpoint bound to " + _localEP);
+            if (Log.IsEnabled(LogLevel.Debug))
+                Log.LogDebug("Stopping endpoint bound to " + _localEP);
             _channel.Stop();
             _matcher.Stop();
             _matcher.Clear();
@@ -244,8 +244,8 @@ namespace CoAP.Net
                 {
                     if (decoder.IsReply)
                     {
-                        if (log.IsWarnEnabled)
-                            log.Warn("Message format error caused by " + e.EndPoint);
+                        if (Log.IsEnabled(LogLevel.Warning))
+                            Log.LogWarning("Message format error caused by " + e.EndPoint);
                     }
                     else
                     {
@@ -258,8 +258,8 @@ namespace CoAP.Net
 
                         _channel.Send(Serialize(rst), rst.Destination);
 
-                        if (log.IsWarnEnabled)
-                            log.Warn("Message format error caused by " + e.EndPoint + " and reseted.");
+                        if (Log.IsEnabled(LogLevel.Warning))
+                            Log.LogWarning("Message format error caused by " + e.EndPoint + " and reseted.");
                     }
                     return;
                 }
@@ -296,8 +296,8 @@ namespace CoAP.Net
                     }
                     else if (response.Type != MessageType.ACK)
                     {
-                        if (log.IsDebugEnabled)
-                            log.Debug("Rejecting unmatchable response from " + e.EndPoint);
+                        if (Log.IsEnabled(LogLevel.Debug))
+                            Log.LogDebug("Rejecting unmatchable response from " + e.EndPoint);
                         Reject(response);
                     }
                 }
@@ -314,8 +314,8 @@ namespace CoAP.Net
                     // CoAP Ping
                     if (message.Type == MessageType.CON || message.Type == MessageType.NON)
                     {
-                        if (log.IsDebugEnabled)
-                            log.Debug("Responding to ping by " + e.EndPoint);
+                        if (Log.IsEnabled(LogLevel.Debug))
+                            Log.LogDebug("Responding to ping by " + e.EndPoint);
                         Reject(message);
                     }
                     else
@@ -329,9 +329,9 @@ namespace CoAP.Net
                     }
                 }
             }
-            else if (log.IsDebugEnabled)
+            else if (Log.IsEnabled(LogLevel.Debug))
             {
-                log.Debug("Silently ignoring non-CoAP message from " + e.EndPoint);
+                Log.LogDebug("Silently ignoring non-CoAP message from " + e.EndPoint);
             }
         }
 

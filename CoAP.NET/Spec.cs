@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
@@ -16,7 +16,7 @@
 using System;
 using System.Collections.Generic;
 using CoAP.Codec;
-using CoAP.Log;
+using Microsoft.Extensions.Logging;
 using CoAP.Util;
 
 namespace CoAP
@@ -73,7 +73,7 @@ namespace CoAP
         const Int32 MaxOptionLengthBase = (1 << OptionLengthBaseBits) - 2;
         const Int32 FencepostDivisor = 14;
 
-        static readonly ILogger log = LogManager.GetLogger(typeof(Spec));
+        static readonly ILogger Log = CoapLogging.CreateLogger(typeof(Spec));
 
         public String Name { get { return "draft-ietf-core-coap-03"; } }
         public Int32 DefaultPort { get { return 61616; } }
@@ -282,13 +282,13 @@ namespace CoAP
                         Int32 fencepostDelta = fencepostNumber - lastOptionNumber;
                         if (fencepostDelta <= 0)
                         {
-                            if (log.IsWarnEnabled)
-                                log.Warn("Fencepost liveness violated: delta = " + fencepostDelta);
+                            if (Log.IsEnabled(LogLevel.Warning))
+                                Log.LogWarning("Fencepost liveness violated: delta = " + fencepostDelta);
                         }
                         if (fencepostDelta > MaxOptionDelta)
                         {
-                            if (log.IsWarnEnabled)
-                                log.Warn("Fencepost safety violated: delta = " + fencepostDelta);
+                            if (Log.IsEnabled(LogLevel.Warning))
+                                Log.LogWarning("Fencepost safety violated: delta = " + fencepostDelta);
                         }
 
                         // write fencepost option delta
@@ -482,7 +482,7 @@ namespace CoAP
         const Int32 MaxOptionLengthBase = (1 << OptionLengthBaseBits) - 2;
         const Int32 FencepostDivisor = 14;
 
-        static readonly ILogger log = LogManager.GetLogger(typeof(Spec));
+        static readonly ILogger Log = CoapLogging.CreateLogger(typeof(Spec));
 
         public String Name { get { return "draft-ietf-core-coap-08"; } }
         public Int32 DefaultPort { get { return 5683; } }
@@ -663,13 +663,13 @@ namespace CoAP
                         Int32 fencepostDelta = fencepostNumber - lastOptionNumber;
                         if (fencepostDelta <= 0)
                         {
-                            if (log.IsWarnEnabled)
-                                log.Warn("Fencepost liveness violated: delta = " + fencepostDelta);
+                            if (Log.IsEnabled(LogLevel.Warning))
+                                Log.LogWarning("Fencepost liveness violated: delta = " + fencepostDelta);
                         }
                         if (fencepostDelta > MaxOptionDelta)
                         {
-                            if (log.IsWarnEnabled)
-                                log.Warn("Fencepost safety violated: delta = " + fencepostDelta);
+                            if (Log.IsEnabled(LogLevel.Warning))
+                                Log.LogWarning("Fencepost safety violated: delta = " + fencepostDelta);
                         }
 
                         // write fencepost option delta
@@ -1169,7 +1169,7 @@ namespace CoAP
         const Int32 OptionLengthBits = 4;
         const Byte PayloadMarker = 0xFF;
 
-        static readonly ILogger log = LogManager.GetLogger(typeof(Spec));
+        static readonly ILogger Log = CoapLogging.CreateLogger(typeof(Spec));
 
         public String Name { get { return "draft-ietf-core-coap-13"; } }
         public Int32 DefaultPort { get { return 5683; } }
@@ -1218,8 +1218,8 @@ namespace CoAP
             else
             {
                 // TODO error
-                if (log.IsWarnEnabled)
-                    log.Warn("15 is reserved for payload marker, message format error");
+                if (Log.IsEnabled(LogLevel.Warning))
+                    Log.LogWarning("15 is reserved for payload marker, message format error");
                 return 0;
             }
         }
@@ -1246,8 +1246,8 @@ namespace CoAP
             else
             {
                 // TODO format error
-                if (log.IsWarnEnabled)
-                    log.Warn("The option value (" + optionValue + ") is too large to be encoded; Max allowed is 65804.");
+                if (Log.IsEnabled(LogLevel.Warning))
+                    Log.LogWarning("The option value (" + optionValue + ") is too large to be encoded; Max allowed is 65804.");
                 return 0;
             }
         }

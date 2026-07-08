@@ -253,6 +253,7 @@ namespace CoAP.Util
         /// and returns the old value, or null if not exists.
         /// </summary>
         internal static TValue Put<TKey, TValue>(ConcurrentDictionary<TKey, TValue> dic, TKey key, TValue value)
+            where TKey : notnull
         {
             TValue old = default(TValue);
             dic.AddOrUpdate(key, value, (k, v) =>
