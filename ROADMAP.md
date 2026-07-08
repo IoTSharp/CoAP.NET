@@ -92,7 +92,7 @@ public sealed class SensorCoapResource : CoapResourceBase
 | C8 | `✅` | model binding 与 media negotiation | 已支持 route value、query、request option、payload、`CancellationToken`、`CoapRouteContext`、远端 endpoint 参数绑定；继承 `CoapResourceBase` 时可通过 `Context` / `Payload` / `RouteValues` / `Options` 访问上下文；已补齐 Content-Format / Accept 匹配和 JSON binder 扩展点。 |
 | C9 | `✅` | resource discovery | `.well-known/core` 已从 endpoint metadata 生成 CoRE Link Format；支持标题、资源类型、接口描述、content-format、observe 可见性和隐藏端点。 |
 | C10 | `✅` | filters 与安全扩展点 | 已支持 endpoint filter、authorization hook、request context hook 与请求级 `Items`；CoAP.NET 只定义接口和调用时机，不内置宿主业务策略。 |
-| C11 | `⬜` | Resource/MVC 示例与迁移文档 | 提供 `AddCoapServer()`、`AddCoapResources()`、`app.MapCoapResources()`、resource class、JSON、binary payload、query option、Content-Format、Accept、Observe、发现输出和错误响应示例；说明 Resource 风格与 MVC 风格如何共存。 |
+| C11 | `✅` | Resource/MVC 示例与迁移文档 | 已新增 `CoAP.Example/CoAP.ResourceMvc` 和 `docs/resource-mvc-migration.md`，覆盖 `AddCoapServer()`、`AddCoapResources()`、`app.MapCoapResources()`、resource class、JSON、binary payload、query option、Content-Format、Accept、Observe、发现输出和错误响应示例，并说明 Resource 风格与 MVC 风格如何共存。 |
 | C12 | `⬜` | 性能、AOT 与文档收口 | CoAP route benchmark、blockwise 大 payload 测试、DTLS PSK smoke、Observe smoke、trim/AOT warning 清单和发布检查清单。 |
 | C13 | `⬜` | 宿主应用迁移落地 | 宿主应用移除手写 route endpoint 注册，改用 `AddCoapServer()`、`AddCoapResources()` 和 `app.MapCoapResources()`；保留自己的业务 resource、业务 DTO、授权、审计和领域服务调用。 |
 
@@ -255,6 +255,23 @@ C0 兼容基线
 - 宿主应用可以把 access token、身份、领域对象校验挂到 filter 或 resource service，而不是写在 CoAP.NET。
 - CoAP.NET 不引用任何宿主应用的 contracts、data 或数据库包。
 - `CoapSecurityHooksTest` 覆盖 filter 短路、授权拒绝、hook 缺失默认拒绝，以及 context hook 在授权和 action 前注入上下文。
+
+### C11 Resource/MVC 示例与迁移文档
+
+目标是把 C5-C10 的宿主入口、resource class、绑定、协商、发现和错误响应能力整理成可运行示例和迁移说明。
+
+当前完成：
+
+- 已新增 `CoAP.Example/CoAP.ResourceMvc`，使用 `Host.CreateApplicationBuilder`、`AddCoapServer()`、`AddCoapResources()` 和 `app.MapCoapResources()` 启动 host-managed CoAP server。
+- 示例 resource 使用 `[CoapResource]`、`[CoapRoute]`、`[CoapGet]`、`[CoapPost]`、`[CoapObserve]`、`[CoapConsumes]`、`[CoapProduces]`、`[CoapFromQuery]`、`[CoapFromOption]` 和 `[CoapFromPayload]`。
+- 示例覆盖 JSON DTO payload、binary payload、query option、Content-Format / Accept 参数绑定、Observe 响应、`CoapRouteResult` JSON/text/error 响应、`Location-Path`、`Max-Age` 和 `.well-known/core` 发现 metadata。
+- 已新增 `docs/resource-mvc-migration.md`，说明旧 Resource tree 风格与新 Resource/MVC 风格如何共存，以及宿主应用如何分层迁移而不把业务模型放入 CoAP.NET。
+
+验收：
+
+- 示例项目可单独 `dotnet build CoAP.Example/CoAP.ResourceMvc/CoAP.ResourceMvc.csproj`。
+- README 指向示例和迁移文档。
+- 文档中的推荐宿主 API 只使用 `AddCoapServer()`、`AddCoapResources()` 和 `app.MapCoapResources()`。
 
 ## 宿主应用迁移计划
 

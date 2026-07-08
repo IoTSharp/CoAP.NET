@@ -6,6 +6,9 @@ resource tree, while adding Microsoft.Extensions.Logging integration, Native
 AOT analyzer compatibility, and optional DTLS PSK transport.
 
 See [ROADMAP.md](ROADMAP.md) for the CoAP route adapter and low-allocation plan.
+The Resource/MVC sample and migration guide are available in
+[CoAP.Example/CoAP.ResourceMvc](CoAP.Example/CoAP.ResourceMvc) and
+[docs/resource-mvc-migration.md](docs/resource-mvc-migration.md).
 
 ```powershell
 dotnet add package <coap-package-id> --version 3.0.0
@@ -191,6 +194,12 @@ sealed class HelloResource : Resource
 The full Resource-style server sample is in
 `CoAP.Example/CoAP.Server`. It registers resources such as `hello`, `storage`,
 `large`, `separate`, and `time` by calling `server.Add(new ...Resource(...))`.
+
+The full host-managed Resource/MVC sample is in
+`CoAP.Example/CoAP.ResourceMvc`. It demonstrates `AddCoapServer()`,
+`AddCoapResources()`, `MapCoapResources()`, JSON DTO binding, binary payloads,
+query and option binding, Content-Format / Accept negotiation, Observe
+metadata, generated `.well-known/core` output, and stable error responses.
 
 Low-level route endpoint compatibility:
 
