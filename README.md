@@ -16,6 +16,8 @@ dotnet add package <coap-package-id> --version 3.0.0
 - CoAP client APIs for GET, POST, PUT, DELETE, discovery, and observe.
 - CoAP server APIs with resource routing and blockwise support.
 - UDP transport for `coap://` and DTLS PSK transport for `coaps://`.
+- Host-integrated startup through `AddCoapServer()`, `AddCoapResources()`,
+  `AddCoapMvc()`, and `MapCoapResources()`.
 - Logging through `Microsoft.Extensions.Logging`.
 - Packable as an independent NuGet package.
 
@@ -25,11 +27,14 @@ dotnet add package <coap-package-id> --version 3.0.0
 tree, and `.well-known/core` remain CoAP/CoRE protocol concepts inside
 CoAP.NET. They are not host application domain objects. Existing Resource-style
 applications can continue to add resources to `CoapServer`, while newer host
-integration work will add Resource-oriented hosting APIs such as
+integration should use Resource-oriented hosting APIs such as
 `AddCoapServer()`, `AddCoapResources()`, and `MapCoapResources()`.
 
 The current compatibility entry points are:
 
+- `AddCoapServer()`, `AddCoapResources()` / `AddCoapMvc()`, and
+  `MapCoapResources()` for host-managed server lifetime and resource endpoint
+  mapping.
 - `CoAP.Server.CoapServer` for server lifetime, endpoint registration, and the
   root resource tree.
 - `CoAP.Server.Resources.Resource` / `IResource` for protocol resources,
@@ -93,6 +98,22 @@ Response response = client.Post("cpu,host=a value=1 1", MediaType.TextPlain);
 
 ## Server
 
+Recommended host-managed startup:
+
+```csharp
+builder.Services.AddCoapServer(options =>
+{
+    options.ListenAnyIP(5683);
+});
+builder.Services.AddCoapResources();
+
+var app = builder.Build();
+app.MapCoapResources();
+app.Run();
+```
+
+Legacy Resource tree compatibility:
+
 ```csharp
 using CoAP.Server;
 using CoAP.Server.Resources;
@@ -119,7 +140,7 @@ The full Resource-style server sample is in
 `CoAP.Example/CoAP.Server`. It registers resources such as `hello`, `storage`,
 `large`, `separate`, and `time` by calling `server.Add(new ...Resource(...))`.
 
-Resource-class route endpoint:
+Low-level route endpoint compatibility:
 
 ```csharp
 using CoAP;

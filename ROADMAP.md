@@ -85,7 +85,7 @@ public sealed class SensorCoapResource : CoapResourceBase
 | C2 | `✅` | async handler 与结果模型 | handler 返回 `ValueTask`；`CoapRouteResult` 已映射 CoAP status code、payload、Content-Format、ETag、Max-Age、Location-Path 和 Location-Query。 |
 | C3 | `✅` | 低分配 payload 与 option 访问 | `CoapRouteContext.Payload` 已暴露 `ReadOnlyMemory<byte>`；route values 已改为数组化只读集合，无参数路由复用空集合。 |
 | C4 | `✅` | routing core 抽象 | 已提取 `CoapRoutePattern`、`CoapEndpoint`、`CoapEndpointMetadataCollection`、`ICoapEndpointDataSource`、`ICoapEndpointMatcher`；`CoapRouteEndpoint` 已改为消费 endpoint 数据源。 |
-| C5 | `⬜` | CoAP hosting 与 Resource 注册 | 新增 `AddCoapServer()`、`AddCoapResources()` / `AddCoapMvc()`、`CoapMvcOptions`、`app.MapCoapResources()`；server 生命周期由宿主管理，显式 route handler 降为低层扩展。 |
+| C5 | `✅` | CoAP hosting 与 Resource 注册 | 已新增 `AddCoapServer()`、`AddCoapResources()` / `AddCoapMvc()`、`CoapMvcOptions`、`app.MapCoapResources()`；server 生命周期由宿主管理，显式 route handler 降为低层扩展。 |
 | C6 | `⬜` | dispatcher pipeline | 新增 `CoapRequestDispatcher`、`CoapActionInvoker`、`ICoapResult`、`ICoapResultExecutor`、统一异常和错误响应映射；支持宿主 service scope。 |
 | C7 | `⬜` | resource attribute routing | 新增 `[CoapController]` 兼容标记、`[CoapRoute]`、method attributes、resource/action descriptor、application part 扫描；生成 endpoint 数据源。 |
 | C8 | `⬜` | model binding 与 media negotiation | 支持 route value、query、request option、payload、`CancellationToken`、`CoapRouteContext` 参数绑定；继承 `CoapResourceBase` 时优先通过 `Context` / `Payload` / `RouteValues` 访问上下文；补齐 Content-Format / Accept 匹配和 JSON binder 扩展点。 |
@@ -137,19 +137,20 @@ C0 兼容基线
 
 目标是把宿主入口固定为常规 MVC 风格：服务注册发生在 `builder.Services`，resource 映射发生在 `app`，CoAP server 生命周期由 host 管理，让宿主应用不再显式创建 `CoapServer` 或 `CoapRouteEndpoint`。
 
-- `AddCoapServer()`：注册 CoAP server 配置、监听端点、传输、DTLS、后台服务和生命周期。
-- `AddCoapResources()`：按宿主应用程序集自动发现 CoAP resource/controller endpoint，注册 endpoint data source、matcher、dispatcher、binder、result executor、discovery provider。
-- `AddCoapMvc()`：作为完整 MVC 能力入口或 `AddCoapResources()` 的兼容别名，包含 resource/controller、filter、model binding、result executor。
-- `CoapMvcOptions`：配置 route conventions、filter、默认 discovery metadata、media type 策略；`ApplicationPart` 只用于插件程序集、外部模块和测试。
-- `app.MapCoapResources()`：像 `app.MapControllers()` 一样映射 CoAP resource endpoint，不接受裸 `IServiceProvider` 参数。
-- `MapCoapRoutes(...)`：只保留给低层 handler、单文件样例和轻量测试，不作为宿主应用推荐入口。
+- `AddCoapServer()`：已注册 CoAP server 配置、监听端点、可扩展 endpoint factory、后台服务和 host 生命周期。
+- `AddCoapResources()`：已注册 `CoapMvcOptions`、endpoint data source、matcher 和 resource mapper；resource/controller discovery、dispatcher、binder、result executor 和 discovery provider 分别在 C6-C9 继续补齐。
+- `AddCoapMvc()`：已作为 `AddCoapResources()` 的兼容别名，为后续完整 MVC 能力保留入口。
+- `CoapMvcOptions`：当前承载 `ApplicationPart`、显式 endpoint 和低层 route 兼容注册；route conventions、filter、默认 discovery metadata 和 media type 策略在后续阶段扩展。
+- `app.MapCoapResources()`：已像 `app.MapControllers()` 一样映射 CoAP resource endpoint，不接受裸 `IServiceProvider` 参数。
+- 显式 route handler 当前通过 `CoapMvcOptions.AddRoute(...)` 或 `CoapRouteEndpoint.Create(...)` 保留给低层 handler、单文件样例和轻量测试，不作为宿主应用推荐入口。
 
 验收：
 
 - README 和示例中的推荐启动代码使用 `AddCoapServer()`、`AddCoapResources()` 和 `app.MapCoapResources()`。
-- 普通业务 resource 不需要 `AddApplicationPart(...)`。
+- 普通业务 resource 的推荐路径保持为不需要 `AddApplicationPart(...)`；该扩展点仅面向插件程序集、外部模块或测试场景。
 - 宿主应用可删除 `new CoapServer()`、手写 resource endpoint 注册表这类 server/resource 注册入口。
 - 显式 route handler 的示例被标注为低层兼容入口。
+- `CoapHostingTest` 覆盖 server DI 注册、endpoint data source/matcher 注册，以及 `MapCoapResources()` 到 resource tree 的映射。
 
 ### C6 dispatcher pipeline
 
