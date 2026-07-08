@@ -1,12 +1,14 @@
-# IoTSharp.CoAP.NET
+# CoAP.NET
 
-IoTSharp.CoAP.NET is a modernized CoAP framework for .NET 10. It keeps the
-original CoAP.NET client and server model, blockwise transfer, observe support,
-and resource tree, while adding Microsoft.Extensions.Logging integration,
-Native AOT analyzer compatibility, and optional DTLS PSK transport.
+CoAP.NET is a modernized CoAP framework for .NET 10. It keeps the original
+CoAP.NET client and server model, blockwise transfer, observe support, and
+resource tree, while adding Microsoft.Extensions.Logging integration, Native
+AOT analyzer compatibility, and optional DTLS PSK transport.
+
+See [ROADMAP.md](ROADMAP.md) for the CoAP route adapter and low-allocation plan.
 
 ```powershell
-dotnet add package IoTSharp.CoAP.NET --version 3.0.0
+dotnet add package <coap-package-id> --version 3.0.0
 ```
 
 ## Features
@@ -16,6 +18,29 @@ dotnet add package IoTSharp.CoAP.NET --version 3.0.0
 - UDP transport for `coap://` and DTLS PSK transport for `coaps://`.
 - Logging through `Microsoft.Extensions.Logging`.
 - Packable as an independent NuGet package.
+
+## Resource compatibility baseline
+
+`Resource`, `IResource`, `ResourceAttributes`, `DiscoveryResource`, resource
+tree, and `.well-known/core` remain CoAP/CoRE protocol concepts inside
+CoAP.NET. They are not host application domain objects. Existing Resource-style
+applications can continue to add resources to `CoapServer`, while newer host
+integration work will add Resource-oriented hosting APIs such as
+`AddCoapServer()`, `AddCoapResources()`, and `MapCoapResources()`.
+
+The current compatibility entry points are:
+
+- `CoAP.Server.CoapServer` for server lifetime, endpoint registration, and the
+  root resource tree.
+- `CoAP.Server.Resources.Resource` / `IResource` for protocol resources,
+  method handlers, attributes, observe, and discovery.
+- `CoAP.CoapClient` and `CoAP.Request` for synchronous and asynchronous client
+  requests, observe, and discovery.
+- `CoAP.Channel.DtlsPskChannel` and `DtlsPskClientChannel` for optional DTLS PSK
+  transport.
+- `CoAP.Server.Routing.CoapRouteEndpoint` for low-level route handler
+  compatibility. It is useful for tests and adapters, but it is not the
+  recommended future host application API.
 
 ## Logging
 
@@ -90,6 +115,39 @@ sealed class HelloResource : Resource
 }
 ```
 
+The full Resource-style server sample is in
+`CoAP.Example/CoAP.Server`. It registers resources such as `hello`, `storage`,
+`large`, `separate`, and `time` by calling `server.Add(new ...Resource(...))`.
+
+Route-style server endpoint:
+
+```csharp
+using CoAP;
+using CoAP.Server;
+using CoAP.Server.Routing;
+using System.Linq;
+using System.Threading.Tasks;
+
+var server = new CoapServer();
+var routes = CoapRouteEndpoint.Create(new[]
+{
+    CoapRoute.Post("diagnostics/{target}/ping", context =>
+    {
+        var target = context.RouteValues["target"];
+        var bytes = context.Payload;
+        var payload = System.Text.Encoding.UTF8.GetBytes("{\"ok\":true}");
+        return new ValueTask<CoapRouteResult>(
+            CoapRouteResult.Content(payload, MediaType.ApplicationJson)
+                .WithMaxAge(30)
+                .WithETag(new byte[] { 0x01, 0x02 })
+                .WithLocationPath($"diagnostics/{target}/ping"));
+    })
+});
+
+server.Add(routes.ToArray());
+server.Start();
+```
+
 DTLS PSK server endpoint:
 
 ```csharp
@@ -116,6 +174,33 @@ dotnet pack CoAP.NET/CoAP.NET.csproj -c Release
 ```
 
 The package is written to `CoAP.NET/artifacts` by default.
+
+## C0 verification
+
+Run these commands from the `SonnetDB/extensions/IoTSharp.CoAP.NET` directory:
+
+```powershell
+dotnet build CoAP.NET/CoAP.NET.csproj
+dotnet build CoAP.Example/CoAP.Server/CoAP.Server.csproj
+dotnet build CoAP.Example/CoAP.Client/CoAP.Client.csproj
+dotnet test CoAP.Test/CoAP.Test.csproj
+```
+
+The baseline tests cover:
+
+- Resource tree and discovery: `ResourceTreeTest`, `ResourceAttributesTest`,
+  `ResourceTest`.
+- Server start/stop and client request flow: `StartStopTest`,
+  `CoapClientTest`.
+- Blockwise transfer: `BlockwiseTransferTest`, `RandomAccessBlockTest`.
+- Observe behavior: `CoapClientTest`, `MemoryLeakingMapTest`.
+- Message and option compatibility: `MessageTypeTest`, `OptionTest`,
+  `BlockOptionTest`.
+
+DTLS PSK transport is exposed through `DtlsPskChannel` and
+`DtlsPskClientChannel`; the README examples above are the current smoke entry
+until the later performance and transport smoke phase expands automated DTLS
+coverage.
 
 ## License
 
