@@ -820,6 +820,9 @@ namespace CoAP.Server.Routing
         private readonly CoapRequestDispatcher _dispatcher;
         private readonly IReadOnlyList<CoapEndpoint> _candidateEndpoints;
         private readonly IReadOnlyList<string> _pathSegments;
+        private readonly ResourceAttributes _attributes;
+        private readonly bool _observable;
+        private IReadOnlyList<IResource> _discoveryChildren;
         private IResource _parent;
 
         private CoapRouteEndpoint(
@@ -827,15 +830,18 @@ namespace CoAP.Server.Routing
             ICoapEndpointDataSource dataSource,
             CoapRequestDispatcher dispatcher,
             IReadOnlyList<CoapEndpoint> candidateEndpoints,
-            IReadOnlyList<string> pathSegments,
-            bool visible)
+            IReadOnlyList<string> pathSegments)
         {
             Name = name;
             _dataSource = dataSource;
             _dispatcher = dispatcher;
-            _candidateEndpoints = candidateEndpoints;
-            _pathSegments = pathSegments;
-            Visible = visible;
+            _candidateEndpoints = candidateEndpoints ?? Array.Empty<CoapEndpoint>();
+            _pathSegments = pathSegments ?? Array.Empty<string>();
+
+            var discoverableEndpoints = GetDiscoverableCompleteEndpoints(_candidateEndpoints, _pathSegments);
+            _observable = HasObservableEndpoint(discoverableEndpoints);
+            _attributes = CreateAttributes(discoverableEndpoints, _observable);
+            Visible = discoverableEndpoints.Count > 0;
         }
 
         /// <summary>
@@ -912,8 +918,7 @@ namespace CoAP.Server.Routing
                     dataSource,
                     dispatcher,
                     group.ToArray(),
-                    new[] { group.Key },
-                    true))
+                    new[] { group.Key }))
                 .ToArray();
         }
 
@@ -933,7 +938,7 @@ namespace CoAP.Server.Routing
         public bool Cachable => false;
 
         /// <inheritdoc />
-        public bool Observable => false;
+        public bool Observable => _observable;
 
         /// <inheritdoc />
         public IExecutor Executor => Parent?.Executor;
@@ -953,10 +958,10 @@ namespace CoAP.Server.Routing
         }
 
         /// <inheritdoc />
-        public ResourceAttributes Attributes { get; } = new ResourceAttributes();
+        public ResourceAttributes Attributes => _attributes;
 
         /// <inheritdoc />
-        public IEnumerable<IResource> Children => Array.Empty<IResource>();
+        public IEnumerable<IResource> Children => GetDiscoveryChildren();
 
         /// <inheritdoc />
         public void Add(IResource child)
@@ -989,8 +994,7 @@ namespace CoAP.Server.Routing
                     _dataSource,
                     _dispatcher,
                     matchingEndpoints,
-                    nextSegments,
-                    false) { Parent = this };
+                    nextSegments) { Parent = this };
         }
 
         /// <inheritdoc />
@@ -1032,6 +1036,198 @@ namespace CoAP.Server.Routing
 
             nextSegments[^1] = segment;
             return nextSegments;
+        }
+
+        private IReadOnlyList<IResource> GetDiscoveryChildren()
+        {
+            var children = _discoveryChildren;
+            if (children != null)
+            {
+                return children;
+            }
+
+            var nextIndex = _pathSegments.Count;
+            children = _candidateEndpoints
+                .Where(endpoint => endpoint.RoutePattern.Segments.Count > nextIndex)
+                .GroupBy(endpoint => endpoint.RoutePattern.Segments[nextIndex].RawText, StringComparer.Ordinal)
+                .OrderBy(group => group.Key, StringComparer.Ordinal)
+                .Select(group => (IResource)new CoapRouteEndpoint(
+                    group.Key,
+                    _dataSource,
+                    _dispatcher,
+                    group.ToArray(),
+                    AppendPathSegment(_pathSegments, group.Key)) { Parent = this })
+                .ToArray();
+
+            _discoveryChildren = children;
+            return children;
+        }
+
+        private static IReadOnlyList<CoapEndpoint> GetDiscoverableCompleteEndpoints(
+            IReadOnlyList<CoapEndpoint> candidateEndpoints,
+            IReadOnlyList<string> pathSegments)
+        {
+            if (candidateEndpoints == null || candidateEndpoints.Count == 0)
+            {
+                return Array.Empty<CoapEndpoint>();
+            }
+
+            var endpoints = new List<CoapEndpoint>();
+            for (var i = 0; i < candidateEndpoints.Count; i++)
+            {
+                var endpoint = candidateEndpoints[i];
+                if (endpoint == null ||
+                    IsHiddenEndpoint(endpoint) ||
+                    endpoint.RoutePattern.Segments.Count != pathSegments.Count)
+                {
+                    continue;
+                }
+
+                if (endpoint.RoutePattern.TryMatch(pathSegments, out _))
+                {
+                    endpoints.Add(endpoint);
+                }
+            }
+
+            return endpoints.Count == 0 ? Array.Empty<CoapEndpoint>() : endpoints.ToArray();
+        }
+
+        private static ResourceAttributes CreateAttributes(
+            IReadOnlyList<CoapEndpoint> endpoints,
+            bool observable)
+        {
+            var attributes = new ResourceAttributes();
+            if (endpoints == null || endpoints.Count == 0)
+            {
+                return attributes;
+            }
+
+            var title = GetDiscoveryTitle(endpoints);
+            if (!string.IsNullOrWhiteSpace(title))
+            {
+                attributes.Title = title;
+            }
+
+            var resourceTypes = new HashSet<string>(StringComparer.Ordinal);
+            var interfaceDescriptions = new HashSet<string>(StringComparer.Ordinal);
+            var contentFormats = new HashSet<int>();
+            for (var i = 0; i < endpoints.Count; i++)
+            {
+                var endpoint = endpoints[i];
+                AddResourceTypes(attributes, resourceTypes, endpoint);
+                AddInterfaceDescriptions(attributes, interfaceDescriptions, endpoint);
+                AddContentFormats(attributes, contentFormats, endpoint);
+            }
+
+            if (observable)
+            {
+                attributes.Observable = true;
+            }
+
+            return attributes;
+        }
+
+        private static string GetDiscoveryTitle(IReadOnlyList<CoapEndpoint> endpoints)
+        {
+            for (var i = 0; i < endpoints.Count; i++)
+            {
+                var title = endpoints[i].Metadata.GetMetadata<CoapResourceTitleAttribute>()?.Title;
+                if (!string.IsNullOrWhiteSpace(title))
+                {
+                    return title;
+                }
+            }
+
+            return null;
+        }
+
+        private static void AddResourceTypes(
+            ResourceAttributes attributes,
+            HashSet<string> seen,
+            CoapEndpoint endpoint)
+        {
+            foreach (var metadata in endpoint.Metadata.OfType<CoapResourceTypeAttribute>())
+            {
+                for (var i = 0; i < metadata.ResourceTypes.Length; i++)
+                {
+                    var value = metadata.ResourceTypes[i];
+                    if (seen.Add(value))
+                    {
+                        attributes.AddResourceType(value);
+                    }
+                }
+            }
+        }
+
+        private static void AddInterfaceDescriptions(
+            ResourceAttributes attributes,
+            HashSet<string> seen,
+            CoapEndpoint endpoint)
+        {
+            foreach (var metadata in endpoint.Metadata.OfType<CoapInterfaceDescriptionAttribute>())
+            {
+                for (var i = 0; i < metadata.InterfaceDescriptions.Length; i++)
+                {
+                    var value = metadata.InterfaceDescriptions[i];
+                    if (seen.Add(value))
+                    {
+                        attributes.AddInterfaceDescription(value);
+                    }
+                }
+            }
+        }
+
+        private static void AddContentFormats(
+            ResourceAttributes attributes,
+            HashSet<int> seen,
+            CoapEndpoint endpoint)
+        {
+            var produces = endpoint.Metadata.GetMetadata<CoapProducesAttribute>();
+            if (produces == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < produces.ContentFormats.Length; i++)
+            {
+                var contentFormat = produces.ContentFormats[i];
+                if (contentFormat == MediaType.Undefined ||
+                    contentFormat == MediaType.Any ||
+                    !seen.Add(contentFormat))
+                {
+                    continue;
+                }
+
+                attributes.AddContentType(contentFormat);
+            }
+        }
+
+        private static bool HasObservableEndpoint(IReadOnlyList<CoapEndpoint> endpoints)
+        {
+            if (endpoints == null || endpoints.Count == 0)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < endpoints.Count; i++)
+            {
+                if (IsObservableEndpoint(endpoints[i]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsObservableEndpoint(CoapEndpoint endpoint)
+        {
+            return endpoint.Metadata.GetMetadata<CoapMethodAttribute>()?.IsObserve == true;
+        }
+
+        private static bool IsHiddenEndpoint(CoapEndpoint endpoint)
+        {
+            return endpoint.Metadata.GetMetadata<CoapResourceHiddenAttribute>() != null;
         }
 
         private static void SendText(Exchange exchange, StatusCode statusCode, string message)

@@ -293,6 +293,82 @@ namespace CoAP.Server.Routing
     }
 
     /// <summary>
+    /// Adds one or more CoRE Link Format <c>rt</c> values for resource discovery.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
+    public sealed class CoapResourceTypeAttribute : Attribute
+    {
+        /// <summary>
+        /// Creates resource type metadata.
+        /// </summary>
+        /// <param name="resourceTypes">The resource type values to expose in discovery.</param>
+        public CoapResourceTypeAttribute(params string[] resourceTypes)
+        {
+            if (resourceTypes == null || resourceTypes.Length == 0)
+            {
+                throw new ArgumentException("At least one CoAP resource type is required.", nameof(resourceTypes));
+            }
+
+            for (var i = 0; i < resourceTypes.Length; i++)
+            {
+                if (string.IsNullOrWhiteSpace(resourceTypes[i]))
+                {
+                    throw new ArgumentException("CoAP resource type values cannot be empty.", nameof(resourceTypes));
+                }
+            }
+
+            ResourceTypes = (string[])resourceTypes.Clone();
+        }
+
+        /// <summary>
+        /// Gets the CoRE Link Format <c>rt</c> values.
+        /// </summary>
+        public string[] ResourceTypes { get; }
+    }
+
+    /// <summary>
+    /// Adds one or more CoRE Link Format <c>if</c> values for resource discovery.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
+    public sealed class CoapInterfaceDescriptionAttribute : Attribute
+    {
+        /// <summary>
+        /// Creates interface description metadata.
+        /// </summary>
+        /// <param name="interfaceDescriptions">The interface description values to expose in discovery.</param>
+        public CoapInterfaceDescriptionAttribute(params string[] interfaceDescriptions)
+        {
+            if (interfaceDescriptions == null || interfaceDescriptions.Length == 0)
+            {
+                throw new ArgumentException("At least one CoAP interface description is required.", nameof(interfaceDescriptions));
+            }
+
+            for (var i = 0; i < interfaceDescriptions.Length; i++)
+            {
+                if (string.IsNullOrWhiteSpace(interfaceDescriptions[i]))
+                {
+                    throw new ArgumentException("CoAP interface description values cannot be empty.", nameof(interfaceDescriptions));
+                }
+            }
+
+            InterfaceDescriptions = (string[])interfaceDescriptions.Clone();
+        }
+
+        /// <summary>
+        /// Gets the CoRE Link Format <c>if</c> values.
+        /// </summary>
+        public string[] InterfaceDescriptions { get; }
+    }
+
+    /// <summary>
+    /// Hides a resource or action endpoint from <c>.well-known/core</c> output.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+    public sealed class CoapResourceHiddenAttribute : Attribute
+    {
+    }
+
+    /// <summary>
     /// Adds a human-readable title metadata item for future resource discovery output.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]

@@ -90,7 +90,7 @@ public sealed class SensorCoapResource : CoapResourceBase
 | C6 | `✅` | dispatcher pipeline | 已新增 `CoapRequestDispatcher`、`CoapActionInvoker`、`ICoapResult`、`ICoapResultExecutor`、统一异常和错误响应映射；支持宿主 service scope。 |
 | C7 | `✅` | resource attribute routing | 已新增 `[CoapResource]` 推荐标记、`[CoapController]` 兼容标记、`[CoapRoute]`、method attributes、resource/action descriptor、application part 扫描；生成 endpoint 数据源。 |
 | C8 | `✅` | model binding 与 media negotiation | 已支持 route value、query、request option、payload、`CancellationToken`、`CoapRouteContext`、远端 endpoint 参数绑定；继承 `CoapResourceBase` 时可通过 `Context` / `Payload` / `RouteValues` / `Options` 访问上下文；已补齐 Content-Format / Accept 匹配和 JSON binder 扩展点。 |
-| C9 | `⬜` | resource discovery | `.well-known/core` 从 endpoint metadata 生成 CoRE Link Format；支持标题、资源类型、接口描述、content-format、observe 可见性和隐藏端点。 |
+| C9 | `✅` | resource discovery | `.well-known/core` 已从 endpoint metadata 生成 CoRE Link Format；支持标题、资源类型、接口描述、content-format、observe 可见性和隐藏端点。 |
 | C10 | `⬜` | filters 与安全扩展点 | 支持 endpoint filter、authorization hook、tenant/context hook；CoAP.NET 只定义接口和调用时机，不内置宿主业务策略。 |
 | C11 | `⬜` | Resource/MVC 示例与迁移文档 | 提供 `AddCoapServer()`、`AddCoapResources()`、`app.MapCoapResources()`、resource class、JSON、binary payload、query option、Content-Format、Accept、Observe、发现输出和错误响应示例；说明 Resource 风格与 MVC 风格如何共存。 |
 | C12 | `⬜` | 性能、AOT 与文档收口 | CoAP route benchmark、blockwise 大 payload 测试、DTLS PSK smoke、Observe smoke、trim/AOT warning 清单和发布检查清单。 |

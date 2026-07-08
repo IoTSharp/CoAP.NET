@@ -175,6 +175,64 @@ namespace CoAP
             Assert.AreEqual("CoAP route response media type is not acceptable.", unacceptable.SentResponse.PayloadString);
         }
 
+        [Test]
+        public void WellKnownCore_ListsRouteEndpointsFromDiscoveryMetadata()
+        {
+            var services = new ServiceCollection();
+            services.AddCoapServer();
+            services.AddSingleton<InvocationProbe>();
+            services.AddCoapResources(options => options.AddApplicationPart<CoapResourceAttributeRoutingTest>());
+
+            using var provider = services.BuildServiceProvider();
+            var host = new TestHost(provider);
+            host.MapCoapResources();
+            var core = GetRootResource(provider.GetRequiredService<CoapServer>())
+                .GetChild(".well-known")
+                .GetChild("core");
+            var exchange = CreateExchange(Method.GET);
+
+            core.HandleRequest(exchange);
+
+            Assert.AreEqual(StatusCode.Content, exchange.SentResponse.StatusCode);
+            Assert.AreEqual(MediaType.ApplicationLinkFormat, exchange.SentResponse.ContentFormat);
+            var links = LinkFormat.Parse(exchange.SentResponse.PayloadString).ToArray();
+            var status = links.SingleOrDefault(link => link.Uri == "/discover/{device}/status");
+
+            Assert.IsNotNull(status, exchange.SentResponse.PayloadString);
+            Assert.AreEqual("Device status", status.Attributes.Title);
+            CollectionAssert.Contains(status.Attributes.GetResourceTypes().ToArray(), "core.s");
+            CollectionAssert.Contains(status.Attributes.GetResourceTypes().ToArray(), "sensor.status");
+            CollectionAssert.Contains(status.Attributes.GetInterfaceDescriptions().ToArray(), "sensor");
+            CollectionAssert.Contains(status.Attributes.GetInterfaceDescriptions().ToArray(), "if.s");
+            CollectionAssert.Contains(status.Attributes.GetContentTypes().ToArray(), MediaType.ApplicationJson.ToString());
+            Assert.IsTrue(status.Attributes.Observable);
+            Assert.IsFalse(links.Any(link => link.Uri == "/discover/{device}/internal"), exchange.SentResponse.PayloadString);
+        }
+
+        [Test]
+        public void WellKnownCore_FiltersRouteEndpointsByDiscoveryMetadata()
+        {
+            var services = new ServiceCollection();
+            services.AddCoapServer();
+            services.AddSingleton<InvocationProbe>();
+            services.AddCoapResources(options => options.AddApplicationPart<CoapResourceAttributeRoutingTest>());
+
+            using var provider = services.BuildServiceProvider();
+            var host = new TestHost(provider);
+            host.MapCoapResources();
+            var core = GetRootResource(provider.GetRequiredService<CoapServer>())
+                .GetChild(".well-known")
+                .GetChild("core");
+            var exchange = CreateExchange(Method.GET);
+            exchange.Request.AddUriQuery("rt=sensor.status");
+
+            core.HandleRequest(exchange);
+
+            var links = LinkFormat.Parse(exchange.SentResponse.PayloadString).ToArray();
+            Assert.AreEqual(1, links.Length, exchange.SentResponse.PayloadString);
+            Assert.AreEqual("/discover/{device}/status", links[0].Uri);
+        }
+
         private static IResource GetRootResource(CoapServer server)
         {
             var field = typeof(CoapServer).GetField("_root", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -266,6 +324,31 @@ namespace CoAP
                 _probe.LastRemoteEndPoint = remoteEndPoint;
                 _probe.ContextWasAvailable = context.Method == Method.POST;
                 return CoapRouteResult.Json("{\"ok\":true}");
+            }
+        }
+
+        [CoapResource]
+        [CoapRoute("discover/{device}")]
+        [CoapResourceType("core.s")]
+        [CoapInterfaceDescription("sensor")]
+        public sealed class DiscoverableCoapResource
+        {
+            [CoapObserve("status")]
+            [CoapResourceTitle("Device status")]
+            [CoapResourceType("sensor.status")]
+            [CoapInterfaceDescription("if.s")]
+            [CoapProduces(MediaType.ApplicationJson)]
+            public CoapRouteResult Status(string device)
+            {
+                return CoapRouteResult.Json("{\"device\":\"" + device + "\"}");
+            }
+
+            [CoapGet("internal")]
+            [CoapResourceTitle("Internal diagnostics")]
+            [CoapResourceHidden]
+            public CoapRouteResult Internal(string device)
+            {
+                return CoapRouteResult.Text(StatusCode.Content, device);
             }
         }
 
