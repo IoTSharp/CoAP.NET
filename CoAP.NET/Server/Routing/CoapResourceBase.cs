@@ -104,6 +104,11 @@ namespace CoAP.Server.Routing
         /// </summary>
         public IServiceProvider RequestServices => Context.RequestServices;
 
+        /// <summary>
+        /// Gets request-scoped context items populated by hooks or filters.
+        /// </summary>
+        public IDictionary<object, object> Items => Context.Items;
+
         internal async ValueTask<CoapRouteResult> InvokeWithContextAsync(
             CoapRouteContext context,
             Func<ValueTask<CoapRouteResult>> action)

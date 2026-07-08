@@ -9,7 +9,10 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoAP.Server.Routing
 {
@@ -30,9 +33,52 @@ namespace CoAP.Server.Routing
                 throw new ArgumentNullException(nameof(context));
             }
 
+            var filters = GetFilters(context);
+            if (filters.Count == 0)
+            {
+                return await InvokeEndpointAsync(context).ConfigureAwait(false);
+            }
+
+            CoapEndpointFilterDelegate next = InvokeEndpointAsync;
+            for (var i = filters.Count - 1; i >= 0; i--)
+            {
+                var filter = filters[i];
+                var currentNext = next;
+                next = invocationContext => filter.InvokeAsync(invocationContext, currentNext);
+            }
+
+            return await next(context).ConfigureAwait(false);
+        }
+
+        private static async ValueTask<ICoapResult> InvokeEndpointAsync(CoapActionInvocationContext context)
+        {
             return await context.Endpoint
                 .InvokeAsync(context.RouteContext)
                 .ConfigureAwait(false);
+        }
+
+        private IReadOnlyList<ICoapEndpointFilter> GetFilters(CoapActionInvocationContext context)
+        {
+            var serviceFilters = context.RequestServices == null
+                ? Array.Empty<ICoapEndpointFilter>()
+                : context.RequestServices.GetServices<ICoapEndpointFilter>()
+                    .Where(filter => filter != null)
+                    .ToArray();
+            var metadataFilters = context.Endpoint.Metadata.OfType<ICoapEndpointFilter>().ToArray();
+            if (serviceFilters.Length == 0)
+            {
+                return metadataFilters;
+            }
+
+            if (metadataFilters.Length == 0)
+            {
+                return serviceFilters;
+            }
+
+            var filters = new ICoapEndpointFilter[serviceFilters.Length + metadataFilters.Length];
+            Array.Copy(serviceFilters, filters, serviceFilters.Length);
+            Array.Copy(metadataFilters, 0, filters, serviceFilters.Length, metadataFilters.Length);
+            return filters;
         }
     }
 }

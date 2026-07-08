@@ -18,6 +18,8 @@ dotnet add package <coap-package-id> --version 3.0.0
 - UDP transport for `coap://` and DTLS PSK transport for `coaps://`.
 - Host-integrated startup through `AddCoapServer()`, `AddCoapResources()`,
   `AddCoapMvc()`, and `MapCoapResources()`.
+- Endpoint filters, authorization hooks, and request context hooks for
+  host-owned policy integration.
 - Logging through `Microsoft.Extensions.Logging`.
 - Packable as an independent NuGet package.
 
@@ -135,6 +137,32 @@ public sealed class SensorCoapResource : CoapResourceBase
     }
 }
 ```
+
+Filters and host-owned security hooks:
+
+```csharp
+using CoAP;
+using CoAP.Server.Routing;
+
+[CoapResource]
+[CoapRoute("diagnostics/{target}")]
+public sealed class DiagnosticsCoapResource
+{
+    [CoapGet("status")]
+    [CoapAuthorize("diagnostics.read")]
+    public CoapRouteResult Status(CoapRouteContext context)
+    {
+        var tenant = (string)context.Items["tenant"];
+        return CoapRouteResult.Text(StatusCode.Content, tenant);
+    }
+}
+```
+
+Hosts register `ICoapRequestContextHook`, `ICoapAuthorizationHook`, and
+`ICoapEndpointFilter` implementations in DI; they are resolved from the request
+scope when available. CoAP.NET only defines metadata, ordering, and invocation
+contracts; tenant isolation, identity checks, audit, and human confirmation
+remain host application responsibilities.
 
 Legacy Resource tree compatibility:
 

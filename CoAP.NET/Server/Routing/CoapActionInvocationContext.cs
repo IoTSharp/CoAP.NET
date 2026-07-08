@@ -9,6 +9,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 
 namespace CoAP.Server.Routing
 {
@@ -44,5 +45,10 @@ namespace CoAP.Server.Routing
         /// Gets the scoped request services, if available.
         /// </summary>
         public IServiceProvider RequestServices { get; }
+
+        /// <summary>
+        /// Gets request-scoped context items shared by hooks, filters, and the endpoint action.
+        /// </summary>
+        public IDictionary<object, object> Items => RouteContext.Items;
     }
 }

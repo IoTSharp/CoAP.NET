@@ -186,10 +186,89 @@ namespace CoAP.Server.Routing
             IServiceProvider requestServices)
         {
             var invocationContext = new CoapActionInvocationContext(routeContext, requestServices);
+            await EnrichContextAsync(invocationContext).ConfigureAwait(false);
+
+            var authorizationResult = await AuthorizeAsync(invocationContext).ConfigureAwait(false);
+            if (!authorizationResult.Succeeded)
+            {
+                await ExecuteAsync(
+                    exchange,
+                    routeContext,
+                    authorizationResult.FailureResult,
+                    requestServices)
+                    .ConfigureAwait(false);
+                return;
+            }
+
             var result = await _actionInvoker
                 .InvokeAsync(invocationContext)
                 .ConfigureAwait(false);
             await ExecuteAsync(exchange, routeContext, result, requestServices).ConfigureAwait(false);
+        }
+
+        private async ValueTask EnrichContextAsync(CoapActionInvocationContext invocationContext)
+        {
+            var hooks = GetRequestServices<ICoapRequestContextHook>(invocationContext);
+            if (hooks.Length == 0)
+            {
+                return;
+            }
+
+            var context = new CoapRequestContextHookContext(invocationContext);
+            for (var i = 0; i < hooks.Length; i++)
+            {
+                await hooks[i].EnrichAsync(context).ConfigureAwait(false);
+            }
+        }
+
+        private async ValueTask<CoapAuthorizationResult> AuthorizeAsync(CoapActionInvocationContext invocationContext)
+        {
+            if (invocationContext.Endpoint.Metadata.GetMetadata<CoapAllowAnonymousAttribute>() != null)
+            {
+                return CoapAuthorizationResult.Success();
+            }
+
+            var requirements = invocationContext.Endpoint.Metadata
+                .OfType<CoapAuthorizeAttribute>()
+                .ToArray();
+            if (requirements.Length == 0)
+            {
+                return CoapAuthorizationResult.Success();
+            }
+
+            var hooks = GetRequestServices<ICoapAuthorizationHook>(invocationContext);
+            if (hooks.Length == 0)
+            {
+                return CoapAuthorizationResult.Fail(
+                    StatusCode.Forbidden,
+                    "CoAP route authorization hook is not configured.");
+            }
+
+            var authorizationContext = new CoapAuthorizationContext(invocationContext, requirements);
+            for (var i = 0; i < hooks.Length; i++)
+            {
+                var result = await hooks[i].AuthorizeAsync(authorizationContext).ConfigureAwait(false);
+                if (result == null)
+                {
+                    throw new InvalidOperationException("The CoAP authorization hook returned null.");
+                }
+
+                if (!result.Succeeded)
+                {
+                    return result;
+                }
+            }
+
+            return CoapAuthorizationResult.Success();
+        }
+
+        private static TService[] GetRequestServices<TService>(CoapActionInvocationContext invocationContext)
+        {
+            return invocationContext.RequestServices == null
+                ? Array.Empty<TService>()
+                : invocationContext.RequestServices.GetServices<TService>()
+                    .Where(service => service != null)
+                    .ToArray();
         }
 
         private ValueTask ExecuteAsync(

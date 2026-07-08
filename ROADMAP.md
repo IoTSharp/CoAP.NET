@@ -91,7 +91,7 @@ public sealed class SensorCoapResource : CoapResourceBase
 | C7 | `✅` | resource attribute routing | 已新增 `[CoapResource]` 推荐标记、`[CoapController]` 兼容标记、`[CoapRoute]`、method attributes、resource/action descriptor、application part 扫描；生成 endpoint 数据源。 |
 | C8 | `✅` | model binding 与 media negotiation | 已支持 route value、query、request option、payload、`CancellationToken`、`CoapRouteContext`、远端 endpoint 参数绑定；继承 `CoapResourceBase` 时可通过 `Context` / `Payload` / `RouteValues` / `Options` 访问上下文；已补齐 Content-Format / Accept 匹配和 JSON binder 扩展点。 |
 | C9 | `✅` | resource discovery | `.well-known/core` 已从 endpoint metadata 生成 CoRE Link Format；支持标题、资源类型、接口描述、content-format、observe 可见性和隐藏端点。 |
-| C10 | `⬜` | filters 与安全扩展点 | 支持 endpoint filter、authorization hook、tenant/context hook；CoAP.NET 只定义接口和调用时机，不内置宿主业务策略。 |
+| C10 | `✅` | filters 与安全扩展点 | 已支持 endpoint filter、authorization hook、request context hook 与请求级 `Items`；CoAP.NET 只定义接口和调用时机，不内置宿主业务策略。 |
 | C11 | `⬜` | Resource/MVC 示例与迁移文档 | 提供 `AddCoapServer()`、`AddCoapResources()`、`app.MapCoapResources()`、resource class、JSON、binary payload、query option、Content-Format、Accept、Observe、发现输出和错误响应示例；说明 Resource 风格与 MVC 风格如何共存。 |
 | C12 | `⬜` | 性能、AOT 与文档收口 | CoAP route benchmark、blockwise 大 payload 测试、DTLS PSK smoke、Observe smoke、trim/AOT warning 清单和发布检查清单。 |
 | C13 | `⬜` | 宿主应用迁移落地 | 宿主应用移除手写 route endpoint 注册，改用 `AddCoapServer()`、`AddCoapResources()` 和 `app.MapCoapResources()`；保留自己的业务 resource、业务 DTO、授权、审计和领域服务调用。 |
@@ -243,10 +243,18 @@ C0 兼容基线
 - context hook：宿主可注入 tenant、device、gateway、edge runtime 等上下文。
 - 高风险业务动作仍由宿主做人类确认、租户隔离和审计。
 
+当前完成：
+
+- 已新增 `ICoapEndpointFilter`、`CoapEndpointFilterAttribute` 和 `CoapEndpointFilterDelegate`，支持全局 DI filter 与 endpoint metadata filter 共同组成调用链。
+- 已新增 `[CoapAuthorize]`、`[CoapAllowAnonymous]`、`ICoapAuthorizationHook`、`CoapAuthorizationContext` 和 `CoapAuthorizationResult`；声明授权但未注册 hook 时默认返回 4.03，避免误放行。
+- 已新增 `ICoapRequestContextHook` 和 `CoapRequestContextHookContext`，并在 `CoapRouteContext` / `CoapResourceBase` 暴露 `Items`，供 hook、filter 和 action 共享请求级上下文。
+- dispatcher 调用顺序为 context hook -> authorization hook -> endpoint filters -> action -> result executor。
+
 验收：
 
 - 宿主应用可以把 access token、身份、领域对象校验挂到 filter 或 resource service，而不是写在 CoAP.NET。
 - CoAP.NET 不引用任何宿主应用的 contracts、data 或数据库包。
+- `CoapSecurityHooksTest` 覆盖 filter 短路、授权拒绝、hook 缺失默认拒绝，以及 context hook 在授权和 action 前注入上下文。
 
 ## 宿主应用迁移计划
 

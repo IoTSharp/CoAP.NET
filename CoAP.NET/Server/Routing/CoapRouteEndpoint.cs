@@ -357,6 +357,7 @@ namespace CoAP.Server.Routing
             Observe = observe;
             RemoteEndPoint = remoteEndPoint;
             Token = token == null ? null : token.ToArray();
+            Items = new Dictionary<object, object>();
             ETags = CreateOpaqueOptionValues(Options, OptionType.ETag);
             Block1 = GetBlockOption(Options, OptionType.Block1);
             Block2 = GetBlockOption(Options, OptionType.Block2);
@@ -446,6 +447,11 @@ namespace CoAP.Server.Routing
         /// The scoped service provider for this request, if the route was invoked by a host-integrated server.
         /// </summary>
         public IServiceProvider RequestServices { get; }
+
+        /// <summary>
+        /// Request-scoped context items shared by context hooks, filters, and endpoint actions.
+        /// </summary>
+        public IDictionary<object, object> Items { get; }
 
         /// <summary>
         /// Enumerates request options with the specified type.
