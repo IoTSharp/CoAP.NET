@@ -1,4 +1,5 @@
 using CoAP.Net;
+using CoAP.Observe;
 using CoAP.Server.Resources;
 using CoAP.Server.Routing;
 using NUnit.Framework;
@@ -256,6 +257,47 @@ namespace CoAP
         }
 
         [Test]
+        public void NotifyObservers_RerunsRouteObserveHandler()
+        {
+            var calls = 0;
+            var endpointDescriptor = new CoapEndpoint(
+                Method.GET,
+                "diagnostics/{target}/status",
+                context =>
+                {
+                    calls++;
+                    return new ValueTask<CoapRouteResult>(
+                        CoapRouteResult.Text(StatusCode.Content, "value-" + calls)
+                            .WithObserve(calls));
+                },
+                new object[] { new CoapObserveAttribute(), new CoapProducesAttribute(MediaType.TextPlain) },
+                "diagnostics status observe");
+            var dataSource = new CoapEndpointDataSource(new[] { endpointDescriptor });
+            var matcher = new CoapEndpointMatcher(dataSource);
+            var registry = new CoapRouteObserveRegistry();
+            var endpoint = CreateEndpoint(dataSource, matcher, registry, "edge-01", "status");
+            var exchange = CreateExchange(Method.GET);
+            exchange.Request.MarkObserve();
+            exchange.Request.Token = new byte[] { 0x01 };
+            var remote = new ObservingEndpoint(exchange.Request.Source);
+            var relation = new ObserveRelation(new CoapConfig(), remote, endpoint, exchange);
+            remote.AddObserveRelation(relation);
+            exchange.Relation = relation;
+
+            endpoint.HandleRequest(exchange);
+
+            Assert.IsTrue(relation.Established);
+            Assert.AreEqual(1, calls);
+            Assert.AreEqual("value-1", exchange.SentResponse.PayloadString);
+
+            Assert.AreEqual(1, registry.NotifyObservers("diagnostics/edge-01/status"));
+
+            Assert.AreEqual(2, calls);
+            Assert.AreEqual("value-2", exchange.SentResponse.PayloadString);
+            Assert.AreEqual(2, exchange.SentResponse.Observe);
+        }
+
+        [Test]
         public void HandleRequest_SetsRouteContextOnResourceBase_AndClearsItAfterInvocation()
         {
             var resources = new List<DiagnosticsCoapResource>();
@@ -342,6 +384,22 @@ namespace CoAP
         private static IResource CreateEndpoint(ICoapEndpointDataSource dataSource, params string[] childSegments)
         {
             IResource endpoint = CoapRouteEndpoint.Create(dataSource).Single();
+            foreach (var segment in childSegments)
+            {
+                endpoint = endpoint.GetChild(segment);
+                Assert.IsNotNull(endpoint);
+            }
+
+            return endpoint;
+        }
+
+        private static IResource CreateEndpoint(
+            ICoapEndpointDataSource dataSource,
+            ICoapEndpointMatcher matcher,
+            CoapRouteObserveRegistry registry,
+            params string[] childSegments)
+        {
+            IResource endpoint = CoapRouteEndpoint.Create(dataSource, matcher, null, registry).Single();
             foreach (var segment in childSegments)
             {
                 endpoint = endpoint.GetChild(segment);

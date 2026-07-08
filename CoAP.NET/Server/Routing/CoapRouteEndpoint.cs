@@ -824,6 +824,7 @@ namespace CoAP.Server.Routing
         private static readonly ILogger Log = CoapLogging.CreateLogger(typeof(CoapRouteEndpoint));
         private readonly ICoapEndpointDataSource _dataSource;
         private readonly CoapRequestDispatcher _dispatcher;
+        private readonly CoapRouteObserveRegistry _observeRegistry;
         private readonly IReadOnlyList<CoapEndpoint> _candidateEndpoints;
         private readonly IReadOnlyList<string> _pathSegments;
         private readonly ResourceAttributes _attributes;
@@ -836,11 +837,13 @@ namespace CoAP.Server.Routing
             ICoapEndpointDataSource dataSource,
             CoapRequestDispatcher dispatcher,
             IReadOnlyList<CoapEndpoint> candidateEndpoints,
-            IReadOnlyList<string> pathSegments)
+            IReadOnlyList<string> pathSegments,
+            CoapRouteObserveRegistry observeRegistry)
         {
             Name = name;
             _dataSource = dataSource;
             _dispatcher = dispatcher;
+            _observeRegistry = observeRegistry ?? new CoapRouteObserveRegistry();
             _candidateEndpoints = candidateEndpoints ?? Array.Empty<CoapEndpoint>();
             _pathSegments = pathSegments ?? Array.Empty<string>();
 
@@ -905,6 +908,23 @@ namespace CoAP.Server.Routing
             ICoapEndpointMatcher matcher,
             CoapRequestDispatcher dispatcher)
         {
+            return Create(dataSource, matcher, dispatcher, null);
+        }
+
+        /// <summary>
+        /// Creates root resources for endpoints supplied by a data source.
+        /// </summary>
+        /// <param name="dataSource">The endpoint data source.</param>
+        /// <param name="matcher">The endpoint matcher.</param>
+        /// <param name="dispatcher">The request dispatcher.</param>
+        /// <param name="observeRegistry">The registry used to track route Observe relations.</param>
+        /// <returns>Root resources grouped by first URI path segment.</returns>
+        public static IReadOnlyList<IResource> Create(
+            ICoapEndpointDataSource dataSource,
+            ICoapEndpointMatcher matcher,
+            CoapRequestDispatcher dispatcher,
+            CoapRouteObserveRegistry observeRegistry)
+        {
             if (dataSource == null)
             {
                 throw new ArgumentNullException(nameof(dataSource));
@@ -916,6 +936,7 @@ namespace CoAP.Server.Routing
             }
 
             dispatcher ??= CoapRequestDispatcher.CreateDefault(dataSource, matcher);
+            observeRegistry ??= new CoapRouteObserveRegistry();
             return dataSource.Endpoints
                 .Select(endpoint => endpoint ?? throw new ArgumentException("Endpoint data source cannot contain null entries.", nameof(dataSource)))
                 .GroupBy(endpoint => endpoint.RootSegment, StringComparer.Ordinal)
@@ -924,7 +945,8 @@ namespace CoAP.Server.Routing
                     dataSource,
                     dispatcher,
                     group.ToArray(),
-                    new[] { group.Key }))
+                    new[] { group.Key },
+                    observeRegistry))
                 .ToArray();
         }
 
@@ -1000,17 +1022,26 @@ namespace CoAP.Server.Routing
                     _dataSource,
                     _dispatcher,
                     matchingEndpoints,
-                    nextSegments) { Parent = this };
+                    nextSegments,
+                    _observeRegistry) { Parent = this };
         }
 
         /// <inheritdoc />
         public void AddObserveRelation(ObserveRelation relation)
         {
+            if (relation != null && Observable)
+            {
+                _observeRegistry.AddObserveRelation(Uri, relation);
+            }
         }
 
         /// <inheritdoc />
         public void RemoveObserveRelation(ObserveRelation relation)
         {
+            if (relation != null)
+            {
+                _observeRegistry.RemoveObserveRelation(Uri, relation);
+            }
         }
 
         /// <inheritdoc />
@@ -1062,7 +1093,8 @@ namespace CoAP.Server.Routing
                     _dataSource,
                     _dispatcher,
                     group.ToArray(),
-                    AppendPathSegment(_pathSegments, group.Key)) { Parent = this })
+                    AppendPathSegment(_pathSegments, group.Key),
+                    _observeRegistry) { Parent = this })
                 .ToArray();
 
             _discoveryChildren = children;

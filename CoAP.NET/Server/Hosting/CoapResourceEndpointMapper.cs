@@ -22,6 +22,7 @@ namespace CoAP.Server.Hosting
         private readonly ICoapEndpointDataSource _dataSource;
         private readonly ICoapEndpointMatcher _matcher;
         private readonly CoapRequestDispatcher _dispatcher;
+        private readonly CoapRouteObserveRegistry _observeRegistry;
         private readonly object _sync = new object();
         private IReadOnlyList<IResource> _mappedResources;
 
@@ -32,16 +33,19 @@ namespace CoAP.Server.Hosting
         /// <param name="dataSource">The registered endpoint data source.</param>
         /// <param name="matcher">The endpoint matcher used by generated route resources.</param>
         /// <param name="dispatcher">The request dispatcher used by generated route resources.</param>
+        /// <param name="observeRegistry">The registry used to track route Observe relations.</param>
         public CoapResourceEndpointMapper(
             IServer server,
             ICoapEndpointDataSource dataSource,
             ICoapEndpointMatcher matcher,
-            CoapRequestDispatcher dispatcher)
+            CoapRequestDispatcher dispatcher,
+            CoapRouteObserveRegistry observeRegistry)
         {
             _server = server ?? throw new ArgumentNullException(nameof(server));
             _dataSource = dataSource ?? throw new ArgumentNullException(nameof(dataSource));
             _matcher = matcher ?? throw new ArgumentNullException(nameof(matcher));
             _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+            _observeRegistry = observeRegistry ?? throw new ArgumentNullException(nameof(observeRegistry));
         }
 
         /// <summary>
@@ -57,7 +61,7 @@ namespace CoAP.Server.Hosting
                     return _mappedResources;
                 }
 
-                var resources = CoapRouteEndpoint.Create(_dataSource, _matcher, _dispatcher);
+                var resources = CoapRouteEndpoint.Create(_dataSource, _matcher, _dispatcher, _observeRegistry);
                 foreach (var resource in resources)
                 {
                     _server.Add(resource);

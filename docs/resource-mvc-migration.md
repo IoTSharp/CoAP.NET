@@ -23,6 +23,8 @@ app.Run();
 
 Native AOT 宿主应由 source generator 生成 endpoint factory，并通过 `AddEndpointFactory(...)` 注册。非 AOT 宿主若暂时使用运行时 attribute scanning，可显式启用 `AddReflectionResourceDiscovery()`；`AddApplicationPart(...)` 仍只用于插件程序集、外部模块或测试场景。
 
+宿主项目引用 `IoTSharp.CoAP.NET.SourceGeneration` analyzer 包后，编译期会根据 `[CoapResource]`、`[CoapGet]`、`[CoapPost]`、`[CoapPut]`、`[CoapDelete]` 和 `[CoapObserve]` 生成 `MyGeneratedCoapEndpoints.Create(...)`，运行时不需要扫描程序集发现业务 resource。
+
 ## Resource class 示例
 
 完整可编译示例位于 `CoAP.Example/CoAP.ResourceMvc`：

@@ -10,13 +10,17 @@ builder.Services.AddCoapServer(options =>
 builder.Services.AddCoapJsonPayloadBinder(ResourceMvcJsonContext.Default);
 builder.Services.AddCoapResources(options =>
 {
-    options.AddReflectionResourceDiscovery();
+    options.AddEndpointFactory(MyGeneratedCoapEndpoints.Create);
 });
 
 var app = builder.Build();
 app.MapCoapResources();
 app.Run();
 ```
+
+`MyGeneratedCoapEndpoints.Create(...)` is emitted by the
+`CoAP.NET.SourceGeneration` analyzer from the `[CoapResource]` and method route
+attributes in `Program.cs`.
 
 Run it from the repository root:
 

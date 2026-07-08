@@ -22,6 +22,8 @@ dotnet add package <coap-package-id> --version 3.0.0
 - UDP transport for `coap://` and DTLS PSK transport for `coaps://`.
 - Host-integrated startup through `AddCoapServer()`, `AddCoapResources()`,
   `AddCoapMvc()`, and `MapCoapResources()`.
+- Source-generated Resource/MVC endpoint factories for AOT-friendly hosts that
+  do not want runtime reflection discovery.
 - Endpoint filters, authorization hooks, and request context hooks for
   host-owned policy integration.
 - Logging through `Microsoft.Extensions.Logging`.
@@ -127,6 +129,13 @@ builder.Services.AddCoapResources(options =>
 {
     options.AddEndpointFactory(MyGeneratedCoapEndpoints.Create);
 });
+```
+
+Add the source generator analyzer package to the host project so
+`MyGeneratedCoapEndpoints.Create(...)` is emitted during compilation:
+
+```powershell
+dotnet add package IoTSharp.CoAP.NET.SourceGeneration --version 3.0.0
 ```
 
 Reflection-based resource discovery remains available for non-AOT hosts or

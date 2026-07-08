@@ -27,7 +27,7 @@ namespace CoAP.Examples.ResourceMvc
                 options.ListenAnyIP(Port);
             });
             builder.Services.AddCoapJsonPayloadBinder(ResourceMvcJsonContext.Default);
-            builder.Services.AddCoapResources(options => options.AddReflectionResourceDiscovery());
+            builder.Services.AddCoapResources(options => options.AddEndpointFactory(global::MyGeneratedCoapEndpoints.Create));
 
             var app = builder.Build();
             app.MapCoapResources();
