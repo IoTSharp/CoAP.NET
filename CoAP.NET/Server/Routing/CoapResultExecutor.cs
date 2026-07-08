@@ -68,8 +68,26 @@ namespace CoAP.Server.Routing
                 }
             }
 
+            EstablishObserveRelation(context.Exchange, response);
             context.Exchange.SendResponse(response);
             return default;
+        }
+
+        private static void EstablishObserveRelation(Net.Exchange exchange, Response response)
+        {
+            var relation = exchange.Relation;
+            if (relation == null ||
+                relation.Established ||
+                response == null ||
+                !response.HasOption(OptionType.Observe) ||
+                !Code.IsSuccess(response.Code))
+            {
+                return;
+            }
+
+            // Route/MVC 响应不经过 CoapExchange，这里补齐标准 Resource 的 Observe 握手收口。
+            relation.Established = true;
+            relation.Resource.AddObserveRelation(relation);
         }
     }
 }

@@ -8,7 +8,8 @@ AOT analyzer compatibility, and optional DTLS PSK transport.
 See [ROADMAP.md](ROADMAP.md) for the CoAP route adapter and low-allocation plan.
 The Resource/MVC sample and migration guide are available in
 [CoAP.Example/CoAP.ResourceMvc](CoAP.Example/CoAP.ResourceMvc) and
-[docs/resource-mvc-migration.md](docs/resource-mvc-migration.md).
+[docs/resource-mvc-migration.md](docs/resource-mvc-migration.md). C12 release
+validation is tracked in [docs/c12-release-checklist.md](docs/c12-release-checklist.md).
 
 ```powershell
 dotnet add package <coap-package-id> --version 3.0.0
@@ -288,9 +289,20 @@ The baseline tests cover:
   `BlockOptionTest`.
 
 DTLS PSK transport is exposed through `DtlsPskChannel` and
-`DtlsPskClientChannel`; the README examples above are the current smoke entry
-until the later performance and transport smoke phase expands automated DTLS
-coverage.
+`DtlsPskClientChannel`; C12 adds automated route + DTLS PSK smoke coverage in
+`CoapC12SmokeTest`.
+
+## C12 verification
+
+Run the C12 smoke tests and route benchmark from this directory:
+
+```powershell
+dotnet test CoAP.Test/CoAP.Test.csproj -c Release --filter FullyQualifiedName~CoapC12SmokeTest
+dotnet run -c Release --project CoAP.Benchmarks/CoAP.Benchmarks.csproj -- --filter *CoapRouteMatcherBenchmark*
+```
+
+The release checklist, trim/AOT warning inventory, and pack verification steps
+are maintained in [docs/c12-release-checklist.md](docs/c12-release-checklist.md).
 
 ## License
 

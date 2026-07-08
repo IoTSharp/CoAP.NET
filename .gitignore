@@ -30,3 +30,4 @@ project.lock.json
 # NuGet Packages Directory
 packages/
 *.nupkg
+BenchmarkDotNet.Artifacts/

@@ -93,7 +93,7 @@ public sealed class SensorCoapResource : CoapResourceBase
 | C9 | `✅` | resource discovery | `.well-known/core` 已从 endpoint metadata 生成 CoRE Link Format；支持标题、资源类型、接口描述、content-format、observe 可见性和隐藏端点。 |
 | C10 | `✅` | filters 与安全扩展点 | 已支持 endpoint filter、authorization hook、request context hook 与请求级 `Items`；CoAP.NET 只定义接口和调用时机，不内置宿主业务策略。 |
 | C11 | `✅` | Resource/MVC 示例与迁移文档 | 已新增 `CoAP.Example/CoAP.ResourceMvc` 和 `docs/resource-mvc-migration.md`，覆盖 `AddCoapServer()`、`AddCoapResources()`、`app.MapCoapResources()`、resource class、JSON、binary payload、query option、Content-Format、Accept、Observe、发现输出和错误响应示例，并说明 Resource 风格与 MVC 风格如何共存。 |
-| C12 | `⬜` | 性能、AOT 与文档收口 | CoAP route benchmark、blockwise 大 payload 测试、DTLS PSK smoke、Observe smoke、trim/AOT warning 清单和发布检查清单。 |
+| C12 | `✅` | 性能、AOT 与文档收口 | 已新增 `CoAP.Benchmarks` route matcher/resource tree benchmark、`CoapC12SmokeTest` 覆盖 blockwise 大 payload、DTLS PSK smoke 和 Observe smoke，并补齐 trim/AOT warning 清单与发布检查清单。 |
 | C13 | `⬜` | 宿主应用迁移落地 | 宿主应用移除手写 route endpoint 注册，改用 `AddCoapServer()`、`AddCoapResources()` 和 `app.MapCoapResources()`；保留自己的业务 resource、业务 DTO、授权、审计和领域服务调用。 |
 
 ## 推荐执行顺序
