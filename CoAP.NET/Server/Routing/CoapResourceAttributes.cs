@@ -156,6 +156,143 @@ namespace CoAP.Server.Routing
     }
 
     /// <summary>
+    /// Declares request Content-Format values that a CoAP resource or action can consume.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+    public sealed class CoapConsumesAttribute : Attribute
+    {
+        /// <summary>
+        /// Creates consumes metadata.
+        /// </summary>
+        /// <param name="contentFormats">Accepted CoAP Content-Format values.</param>
+        public CoapConsumesAttribute(params int[] contentFormats)
+        {
+            if (contentFormats == null || contentFormats.Length == 0)
+            {
+                throw new ArgumentException("At least one CoAP Content-Format is required.", nameof(contentFormats));
+            }
+
+            ContentFormats = (int[])contentFormats.Clone();
+        }
+
+        /// <summary>
+        /// Gets accepted CoAP Content-Format values.
+        /// </summary>
+        public int[] ContentFormats { get; }
+    }
+
+    /// <summary>
+    /// Declares response Content-Format values that a CoAP resource or action can produce.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+    public sealed class CoapProducesAttribute : Attribute
+    {
+        /// <summary>
+        /// Creates produces metadata.
+        /// </summary>
+        /// <param name="contentFormats">Produced CoAP Content-Format values.</param>
+        public CoapProducesAttribute(params int[] contentFormats)
+        {
+            if (contentFormats == null || contentFormats.Length == 0)
+            {
+                throw new ArgumentException("At least one CoAP Content-Format is required.", nameof(contentFormats));
+            }
+
+            ContentFormats = (int[])contentFormats.Clone();
+        }
+
+        /// <summary>
+        /// Gets produced CoAP Content-Format values.
+        /// </summary>
+        public int[] ContentFormats { get; }
+    }
+
+    /// <summary>
+    /// Binds an action parameter from route values.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
+    public sealed class CoapFromRouteAttribute : Attribute
+    {
+        /// <summary>
+        /// Creates route-value binding metadata.
+        /// </summary>
+        public CoapFromRouteAttribute()
+        {
+        }
+
+        /// <summary>
+        /// Creates route-value binding metadata.
+        /// </summary>
+        /// <param name="name">The route value name to bind.</param>
+        public CoapFromRouteAttribute(string name)
+        {
+            Name = name;
+        }
+
+        /// <summary>
+        /// Gets the route value name, or null to use the parameter name.
+        /// </summary>
+        public string Name { get; }
+    }
+
+    /// <summary>
+    /// Binds an action parameter from Uri-Query options.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
+    public sealed class CoapFromQueryAttribute : Attribute
+    {
+        /// <summary>
+        /// Creates query binding metadata.
+        /// </summary>
+        public CoapFromQueryAttribute()
+        {
+        }
+
+        /// <summary>
+        /// Creates query binding metadata.
+        /// </summary>
+        /// <param name="name">The query key to bind.</param>
+        public CoapFromQueryAttribute(string name)
+        {
+            Name = name;
+        }
+
+        /// <summary>
+        /// Gets the query key, or null to use the parameter name.
+        /// </summary>
+        public string Name { get; }
+    }
+
+    /// <summary>
+    /// Binds an action parameter from a CoAP request option.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
+    public sealed class CoapFromOptionAttribute : Attribute
+    {
+        /// <summary>
+        /// Creates option binding metadata.
+        /// </summary>
+        /// <param name="optionType">The CoAP option type to bind.</param>
+        public CoapFromOptionAttribute(OptionType optionType)
+        {
+            OptionType = optionType;
+        }
+
+        /// <summary>
+        /// Gets the CoAP option type to bind.
+        /// </summary>
+        public OptionType OptionType { get; }
+    }
+
+    /// <summary>
+    /// Binds an action parameter from the request payload.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
+    public sealed class CoapFromPayloadAttribute : Attribute
+    {
+    }
+
+    /// <summary>
     /// Adds a human-readable title metadata item for future resource discovery output.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]

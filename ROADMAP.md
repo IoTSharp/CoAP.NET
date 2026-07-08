@@ -89,7 +89,7 @@ public sealed class SensorCoapResource : CoapResourceBase
 | C5 | `✅` | CoAP hosting 与 Resource 注册 | 已新增 `AddCoapServer()`、`AddCoapResources()` / `AddCoapMvc()`、`CoapMvcOptions`、`app.MapCoapResources()`；server 生命周期由宿主管理，显式 route handler 降为低层扩展。 |
 | C6 | `✅` | dispatcher pipeline | 已新增 `CoapRequestDispatcher`、`CoapActionInvoker`、`ICoapResult`、`ICoapResultExecutor`、统一异常和错误响应映射；支持宿主 service scope。 |
 | C7 | `✅` | resource attribute routing | 已新增 `[CoapResource]` 推荐标记、`[CoapController]` 兼容标记、`[CoapRoute]`、method attributes、resource/action descriptor、application part 扫描；生成 endpoint 数据源。 |
-| C8 | `⬜` | model binding 与 media negotiation | 支持 route value、query、request option、payload、`CancellationToken`、`CoapRouteContext` 参数绑定；继承 `CoapResourceBase` 时优先通过 `Context` / `Payload` / `RouteValues` 访问上下文；补齐 Content-Format / Accept 匹配和 JSON binder 扩展点。 |
+| C8 | `✅` | model binding 与 media negotiation | 已支持 route value、query、request option、payload、`CancellationToken`、`CoapRouteContext`、远端 endpoint 参数绑定；继承 `CoapResourceBase` 时可通过 `Context` / `Payload` / `RouteValues` / `Options` 访问上下文；已补齐 Content-Format / Accept 匹配和 JSON binder 扩展点。 |
 | C9 | `⬜` | resource discovery | `.well-known/core` 从 endpoint metadata 生成 CoRE Link Format；支持标题、资源类型、接口描述、content-format、observe 可见性和隐藏端点。 |
 | C10 | `⬜` | filters 与安全扩展点 | 支持 endpoint filter、authorization hook、tenant/context hook；CoAP.NET 只定义接口和调用时机，不内置宿主业务策略。 |
 | C11 | `⬜` | Resource/MVC 示例与迁移文档 | 提供 `AddCoapServer()`、`AddCoapResources()`、`app.MapCoapResources()`、resource class、JSON、binary payload、query option、Content-Format、Accept、Observe、发现输出和错误响应示例；说明 Resource 风格与 MVC 风格如何共存。 |
@@ -203,6 +203,14 @@ C0 兼容基线
 - payload 参数：`ReadOnlyMemory<byte>`、`Stream`、`JsonDocument`、DTO。
 - 特殊参数：`CoapRouteContext`、`CancellationToken`、远端 endpoint 信息；继承 `CoapResourceBase` 的业务 resource 可直接访问 `Context`。
 - media negotiation：按 action 声明的 consumes/produces metadata 和请求 option 匹配。
+
+当前完成：
+
+- 已新增 `[CoapFromRoute]`、`[CoapFromQuery]`、`[CoapFromOption]`、`[CoapFromPayload]`、`[CoapConsumes]` 和 `[CoapProduces]`。
+- resource action 已支持简单类型 route/query 绑定、query 集合绑定、常用 option 绑定、raw payload、`Stream`、`JsonDocument` 和 JSON DTO payload 绑定。
+- `CoapRouteContext` 已暴露 request option 快照、Observe、ETag、Block1/Block2、token 和远端 endpoint；`CoapResourceBase` 暴露常用上下文属性。
+- endpoint matcher 已按 `Content-Format` / `Accept` 与 consumes/produces metadata 做协商，不匹配时返回稳定的 4.15 或 4.06。
+- 已提供 `ICoapJsonPayloadBinder` 扩展点；默认实现使用 `System.Text.Json`，Native AOT/source-generated 场景可替换 binder。
 
 验收：
 

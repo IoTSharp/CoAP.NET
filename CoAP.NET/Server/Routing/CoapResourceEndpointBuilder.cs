@@ -13,10 +13,9 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 
 namespace CoAP.Server.Routing
@@ -325,108 +324,19 @@ namespace CoAP.Server.Routing
             CoapResourceActionDescriptor descriptor,
             CoapRouteContext context)
         {
-            var arguments = BindArguments(descriptor, context);
-            var rawResult = descriptor.MethodInfo.Invoke(resource, arguments);
-            return await ConvertResultAsync(rawResult).ConfigureAwait(false);
-        }
-
-        private static object[] BindArguments(
-            CoapResourceActionDescriptor descriptor,
-            CoapRouteContext context)
-        {
-            if (descriptor.Parameters.Count == 0)
-            {
-                return Array.Empty<object>();
-            }
-
-            var arguments = new object[descriptor.Parameters.Count];
-            for (var i = 0; i < descriptor.Parameters.Count; i++)
-            {
-                var parameter = descriptor.Parameters[i];
-                arguments[i] = BindArgument(parameter, context);
-            }
-
-            return arguments;
-        }
-
-        private static object BindArgument(ParameterInfo parameter, CoapRouteContext context)
-        {
-            var parameterType = parameter.ParameterType;
-            if (parameterType == typeof(CoapRouteContext))
-            {
-                return context;
-            }
-
-            if (parameterType == typeof(CancellationToken))
-            {
-                return CancellationToken.None;
-            }
-
-            if (parameterType == typeof(ReadOnlyMemory<byte>))
-            {
-                return context.Payload;
-            }
-
-            if (parameterType == typeof(byte[]))
-            {
-                return context.Payload.ToArray();
-            }
-
-            if (!string.IsNullOrEmpty(parameter.Name) &&
-                context.RouteValues != null &&
-                context.RouteValues.TryGetValue(parameter.Name, out var routeValue))
-            {
-                return ConvertRouteValue(routeValue, parameterType, parameter.Name);
-            }
-
-            if (parameter.HasDefaultValue)
-            {
-                return parameter.DefaultValue;
-            }
-
-            throw new InvalidOperationException(
-                "No CoAP action binder is available for parameter '" + parameter.Name + "' on '" +
-                parameter.Member.DeclaringType.FullName + "." + parameter.Member.Name + "'.");
-        }
-
-        private static object ConvertRouteValue(string value, Type targetType, string parameterName)
-        {
-            if (targetType == typeof(string))
-            {
-                return value;
-            }
-
-            var nullableType = Nullable.GetUnderlyingType(targetType);
-            if (nullableType != null)
-            {
-                if (string.IsNullOrEmpty(value))
-                {
-                    return null;
-                }
-
-                targetType = nullableType;
-            }
-
-            if (targetType == typeof(Guid))
-            {
-                return Guid.Parse(value);
-            }
-
-            if (targetType.IsEnum)
-            {
-                return Enum.Parse(targetType, value, ignoreCase: true);
-            }
-
+            var arguments = CoapActionParameterBinder.BindArguments(descriptor, context);
+            object rawResult;
             try
             {
-                return Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture);
+                rawResult = descriptor.MethodInfo.Invoke(resource, arguments);
             }
-            catch (Exception ex)
+            catch (TargetInvocationException ex) when (ex.InnerException != null)
             {
-                throw new InvalidOperationException(
-                    "Route value for parameter '" + parameterName + "' cannot be converted to " + targetType.FullName + ".",
-                    ex);
+                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                throw;
             }
+
+            return await ConvertResultAsync(rawResult).ConfigureAwait(false);
         }
 
         private static async ValueTask<CoapRouteResult> ConvertResultAsync(object result)

@@ -61,6 +61,16 @@ namespace CoAP.Server.Routing
             : base(StatusCode.BadRequest, message)
         {
         }
+
+        /// <summary>
+        /// Creates a malformed request exception.
+        /// </summary>
+        /// <param name="message">The diagnostic response message.</param>
+        /// <param name="innerException">The exception that caused this failure.</param>
+        public CoapBadRequestException(string message, Exception innerException)
+            : base(StatusCode.BadRequest, message, innerException)
+        {
+        }
     }
 
     /// <summary>

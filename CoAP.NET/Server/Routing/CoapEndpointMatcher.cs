@@ -50,6 +50,16 @@ namespace CoAP.Server.Routing
                     continue;
                 }
 
+                if (!EndpointAcceptsContentFormat(endpoint, context.ContentFormat))
+                {
+                    continue;
+                }
+
+                if (!EndpointProducesAcceptedContent(endpoint, context.Accept))
+                {
+                    continue;
+                }
+
                 match = new CoapEndpointMatch(endpoint, routeValues);
                 return true;
             }
@@ -82,6 +92,51 @@ namespace CoAP.Server.Routing
             }
 
             return matches.Count == 0 ? Array.Empty<CoapEndpoint>() : matches.ToArray();
+        }
+
+        internal static bool EndpointAcceptsContentFormat(CoapEndpoint endpoint, int contentFormat)
+        {
+            if (endpoint == null)
+            {
+                throw new ArgumentNullException(nameof(endpoint));
+            }
+
+            var consumes = endpoint.Metadata.GetMetadata<CoapConsumesAttribute>();
+            return consumes == null || ContainsMediaType(consumes.ContentFormats, contentFormat);
+        }
+
+        internal static bool EndpointProducesAcceptedContent(CoapEndpoint endpoint, int accept)
+        {
+            if (endpoint == null)
+            {
+                throw new ArgumentNullException(nameof(endpoint));
+            }
+
+            if (accept == MediaType.Undefined || accept == MediaType.Any)
+            {
+                return true;
+            }
+
+            var produces = endpoint.Metadata.GetMetadata<CoapProducesAttribute>();
+            return produces == null || ContainsMediaType(produces.ContentFormats, accept);
+        }
+
+        private static bool ContainsMediaType(IReadOnlyList<int> contentFormats, int contentFormat)
+        {
+            if (contentFormats == null || contentFormats.Count == 0)
+            {
+                return true;
+            }
+
+            for (var i = 0; i < contentFormats.Count; i++)
+            {
+                if (contentFormats[i] == MediaType.Any || contentFormats[i] == contentFormat)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

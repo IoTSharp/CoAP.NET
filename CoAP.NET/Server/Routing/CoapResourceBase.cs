@@ -75,6 +75,31 @@ namespace CoAP.Server.Routing
         public int Accept => Context.Accept;
 
         /// <summary>
+        /// Gets the Observe option value, or null when the request is not an observe operation.
+        /// </summary>
+        public int? Observe => Context.Observe;
+
+        /// <summary>
+        /// Gets request options visible to the routing layer.
+        /// </summary>
+        public IReadOnlyList<Option> Options => Context.Options;
+
+        /// <summary>
+        /// Gets ETag option values carried by the request.
+        /// </summary>
+        public IReadOnlyList<byte[]> ETags => Context.ETags;
+
+        /// <summary>
+        /// Gets the request Block1 option, or null when absent.
+        /// </summary>
+        public BlockOption Block1 => Context.Block1;
+
+        /// <summary>
+        /// Gets the request Block2 option, or null when absent.
+        /// </summary>
+        public BlockOption Block2 => Context.Block2;
+
+        /// <summary>
         /// Gets the scoped service provider for the current request, if available.
         /// </summary>
         public IServiceProvider RequestServices => Context.RequestServices;

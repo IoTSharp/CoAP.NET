@@ -118,6 +118,7 @@ namespace CoAP.Server.Routing
                     return;
                 }
 
+                var requestOptions = GetRequestOptions(request);
                 var routeContext = new CoapRouteContext(
                     match.Endpoint,
                     request.Method,
@@ -127,7 +128,11 @@ namespace CoAP.Server.Routing
                     request.Payload == null ? ReadOnlyMemory<byte>.Empty : new ReadOnlyMemory<byte>(request.Payload),
                     request.ContentFormat,
                     request.Accept,
-                    requestServices);
+                    requestServices,
+                    requestOptions,
+                    request.Observe,
+                    request.Source,
+                    request.Token);
 
                 await DispatchAsync(exchange, routeContext, requestServices).ConfigureAwait(false);
             }
@@ -202,6 +207,8 @@ namespace CoAP.Server.Routing
         {
             var routeMatched = false;
             var methodMatched = false;
+            var contentFormatMatched = false;
+            var acceptMatched = false;
             foreach (var endpoint in _dataSource.Endpoints)
             {
                 if (!endpoint.RoutePattern.TryMatch(context.PathSegments, out _))
@@ -213,6 +220,18 @@ namespace CoAP.Server.Routing
                 if (endpoint.Method == context.Method)
                 {
                     methodMatched = true;
+                    if (!CoapEndpointMatcher.EndpointAcceptsContentFormat(endpoint, context.ContentFormat))
+                    {
+                        continue;
+                    }
+
+                    contentFormatMatched = true;
+                    if (!CoapEndpointMatcher.EndpointProducesAcceptedContent(endpoint, context.Accept))
+                    {
+                        continue;
+                    }
+
+                    acceptMatched = true;
                     break;
                 }
             }
@@ -231,9 +250,51 @@ namespace CoAP.Server.Routing
                     "CoAP route method is not allowed.");
             }
 
+            if (!contentFormatMatched)
+            {
+                return CoapRouteResult.Text(
+                    StatusCode.UnsupportedMediaType,
+                    "CoAP route media type is not supported.");
+            }
+
+            if (!acceptMatched)
+            {
+                return CoapRouteResult.Text(
+                    StatusCode.NotAcceptable,
+                    "CoAP route response media type is not acceptable.");
+            }
+
             return CoapRouteResult.Text(
                 StatusCode.UnsupportedMediaType,
                 "CoAP route media type is not supported.");
+        }
+
+        private static IReadOnlyList<Option> GetRequestOptions(Request request)
+        {
+            var options = request.GetOptions();
+            if (options == null)
+            {
+                return Array.Empty<Option>();
+            }
+
+            if (options is ICollection<Option> collection)
+            {
+                if (collection.Count == 0)
+                {
+                    return Array.Empty<Option>();
+                }
+
+                var optionArray = new Option[collection.Count];
+                var index = 0;
+                foreach (var option in collection)
+                {
+                    optionArray[index++] = option;
+                }
+
+                return optionArray;
+            }
+
+            return options.ToArray();
         }
 
         private static IReadOnlyList<string> GetUriQueries(Request request)

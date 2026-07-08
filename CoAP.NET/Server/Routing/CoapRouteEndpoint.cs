@@ -261,7 +261,11 @@ namespace CoAP.Server.Routing
             ReadOnlyMemory<byte> payload,
             int contentFormat,
             int accept,
-            IServiceProvider requestServices = null)
+            IServiceProvider requestServices = null,
+            IReadOnlyList<Option> options = null,
+            int? observe = null,
+            System.Net.EndPoint remoteEndPoint = null,
+            byte[] token = null)
             : this(
                   route == null ? null : route.Endpoint,
                   route,
@@ -272,7 +276,11 @@ namespace CoAP.Server.Routing
                   payload,
                   contentFormat,
                   accept,
-                  requestServices)
+                  requestServices,
+                  options,
+                  observe,
+                  remoteEndPoint,
+                  token)
         {
         }
 
@@ -296,7 +304,11 @@ namespace CoAP.Server.Routing
             ReadOnlyMemory<byte> payload,
             int contentFormat,
             int accept,
-            IServiceProvider requestServices = null)
+            IServiceProvider requestServices = null,
+            IReadOnlyList<Option> options = null,
+            int? observe = null,
+            System.Net.EndPoint remoteEndPoint = null,
+            byte[] token = null)
             : this(
                   endpoint,
                   endpoint == null ? null : endpoint.Metadata.GetMetadata<CoapRoute>(),
@@ -307,7 +319,11 @@ namespace CoAP.Server.Routing
                   payload,
                   contentFormat,
                   accept,
-                  requestServices)
+                  requestServices,
+                  options,
+                  observe,
+                  remoteEndPoint,
+                  token)
         {
         }
 
@@ -321,7 +337,11 @@ namespace CoAP.Server.Routing
             ReadOnlyMemory<byte> payload,
             int contentFormat,
             int accept,
-            IServiceProvider requestServices)
+            IServiceProvider requestServices,
+            IReadOnlyList<Option> options,
+            int? observe,
+            System.Net.EndPoint remoteEndPoint,
+            byte[] token)
         {
             Endpoint = endpoint ?? throw new ArgumentNullException(nameof(endpoint));
             Route = route;
@@ -333,6 +353,13 @@ namespace CoAP.Server.Routing
             ContentFormat = contentFormat;
             Accept = accept;
             RequestServices = requestServices;
+            Options = options ?? Array.Empty<Option>();
+            Observe = observe;
+            RemoteEndPoint = remoteEndPoint;
+            Token = token == null ? null : token.ToArray();
+            ETags = CreateOpaqueOptionValues(Options, OptionType.ETag);
+            Block1 = GetBlockOption(Options, OptionType.Block1);
+            Block2 = GetBlockOption(Options, OptionType.Block2);
         }
 
         /// <summary>
@@ -381,9 +408,122 @@ namespace CoAP.Server.Routing
         public int Accept { get; }
 
         /// <summary>
+        /// The Observe option value, or null when the request does not carry Observe.
+        /// </summary>
+        public int? Observe { get; }
+
+        /// <summary>
+        /// Snapshot of request options visible to the routing layer.
+        /// </summary>
+        public IReadOnlyList<Option> Options { get; }
+
+        /// <summary>
+        /// ETag option values carried by the request.
+        /// </summary>
+        public IReadOnlyList<byte[]> ETags { get; }
+
+        /// <summary>
+        /// The request Block1 option, or null when absent.
+        /// </summary>
+        public BlockOption Block1 { get; }
+
+        /// <summary>
+        /// The request Block2 option, or null when absent.
+        /// </summary>
+        public BlockOption Block2 { get; }
+
+        /// <summary>
+        /// The remote endpoint that sent the request, if known.
+        /// </summary>
+        public System.Net.EndPoint RemoteEndPoint { get; }
+
+        /// <summary>
+        /// The request token bytes, or null when no token was supplied.
+        /// </summary>
+        public byte[] Token { get; }
+
+        /// <summary>
         /// The scoped service provider for this request, if the route was invoked by a host-integrated server.
         /// </summary>
         public IServiceProvider RequestServices { get; }
+
+        /// <summary>
+        /// Enumerates request options with the specified type.
+        /// </summary>
+        /// <param name="optionType">The option type to find.</param>
+        /// <returns>Matching request options in request order.</returns>
+        public IEnumerable<Option> GetOptions(OptionType optionType)
+        {
+            for (var i = 0; i < Options.Count; i++)
+            {
+                var option = Options[i];
+                if (option != null && option.Type == optionType)
+                {
+                    yield return option;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the first request option with the specified type.
+        /// </summary>
+        /// <param name="optionType">The option type to find.</param>
+        /// <returns>The first matching option, or null.</returns>
+        public Option GetFirstOption(OptionType optionType)
+        {
+            for (var i = 0; i < Options.Count; i++)
+            {
+                var option = Options[i];
+                if (option != null && option.Type == optionType)
+                {
+                    return option;
+                }
+            }
+
+            return null;
+        }
+
+        private static IReadOnlyList<byte[]> CreateOpaqueOptionValues(
+            IReadOnlyList<Option> options,
+            OptionType optionType)
+        {
+            if (options == null || options.Count == 0)
+            {
+                return Array.Empty<byte[]>();
+            }
+
+            var values = new List<byte[]>();
+            for (var i = 0; i < options.Count; i++)
+            {
+                var option = options[i];
+                if (option != null && option.Type == optionType)
+                {
+                    values.Add(option.RawValue == null ? null : option.RawValue.ToArray());
+                }
+            }
+
+            return values.Count == 0 ? Array.Empty<byte[]>() : values.ToArray();
+        }
+
+        private static BlockOption GetBlockOption(
+            IReadOnlyList<Option> options,
+            OptionType optionType)
+        {
+            if (options == null || options.Count == 0)
+            {
+                return null;
+            }
+
+            for (var i = 0; i < options.Count; i++)
+            {
+                if (options[i] is BlockOption blockOption && blockOption.Type == optionType)
+                {
+                    return blockOption;
+                }
+            }
+
+            return null;
+        }
     }
 
     /// <summary>

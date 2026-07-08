@@ -102,6 +102,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<ICoapEndpointMatcher, CoapEndpointMatcher>();
             services.TryAddSingleton<CoapActionInvoker>();
             services.TryAddSingleton<ICoapResultExecutor, CoapResultExecutor>();
+            services.TryAddSingleton<ICoapJsonPayloadBinder, CoapSystemTextJsonPayloadBinder>();
             services.TryAddSingleton<CoapRequestDispatcher>();
             services.TryAddSingleton<CoapResourceEndpointMapper>();
             return services;
