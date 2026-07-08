@@ -44,6 +44,9 @@ namespace CoAP
             var matcher = provider.GetRequiredService<ICoapEndpointMatcher>();
 
             Assert.AreEqual(1, dataSource.Endpoints.Count);
+            Assert.IsNotNull(provider.GetRequiredService<CoapRequestDispatcher>());
+            Assert.IsNotNull(provider.GetRequiredService<CoapActionInvoker>());
+            Assert.IsNotNull(provider.GetRequiredService<ICoapResultExecutor>());
             Assert.IsTrue(matcher.TryMatch(
                 new CoapEndpointMatchContext(
                     Method.GET,
@@ -89,6 +92,35 @@ namespace CoAP
             Assert.AreEqual(StatusCode.Changed, exchange.SentResponse.StatusCode);
         }
 
+        [Test]
+        public void MapCoapResources_CreatesRequestScopeForInvocation()
+        {
+            ScopedProbe.DisposedCount = 0;
+            var services = new ServiceCollection();
+            services.AddCoapServer();
+            services.AddScoped<ScopedProbe>();
+            services.AddCoapResources(options => options.AddRoute(
+                CoapRoute.Get("diagnostics/{target}/status", context =>
+                {
+                    Assert.IsNotNull(context.RequestServices);
+                    var probe = context.RequestServices.GetRequiredService<ScopedProbe>();
+                    probe.WasResolved = true;
+                    return new ValueTask<CoapRouteResult>(CoapRouteResult.Changed());
+                })));
+
+            using var provider = services.BuildServiceProvider();
+            var host = new TestHost(provider);
+            host.MapCoapResources();
+            var status = GetRootResource(provider.GetRequiredService<CoapServer>())
+                .GetChild("diagnostics")
+                .GetChild("edge-01")
+                .GetChild("status");
+
+            status.HandleRequest(CreateExchange(Method.GET));
+
+            Assert.AreEqual(1, ScopedProbe.DisposedCount);
+        }
+
         private static IResource GetRootResource(CoapServer server)
         {
             var field = typeof(CoapServer).GetField("_root", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -119,6 +151,21 @@ namespace CoAP
             {
                 SentResponse = response;
                 Response = response;
+            }
+        }
+
+        private sealed class ScopedProbe : IDisposable
+        {
+            public static int DisposedCount;
+
+            public bool WasResolved { get; set; }
+
+            public void Dispose()
+            {
+                if (WasResolved)
+                {
+                    DisposedCount++;
+                }
             }
         }
 

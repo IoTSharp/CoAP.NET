@@ -74,6 +74,11 @@ namespace CoAP.Server.Routing
         /// </summary>
         public int Accept => Context.Accept;
 
+        /// <summary>
+        /// Gets the scoped service provider for the current request, if available.
+        /// </summary>
+        public IServiceProvider RequestServices => Context.RequestServices;
+
         internal async ValueTask<CoapRouteResult> InvokeWithContextAsync(
             CoapRouteContext context,
             Func<ValueTask<CoapRouteResult>> action)

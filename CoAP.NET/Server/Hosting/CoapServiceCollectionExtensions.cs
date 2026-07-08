@@ -100,6 +100,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 return new CoapEndpointDataSource(options.BuildEndpoints());
             });
             services.TryAddSingleton<ICoapEndpointMatcher, CoapEndpointMatcher>();
+            services.TryAddSingleton<CoapActionInvoker>();
+            services.TryAddSingleton<ICoapResultExecutor, CoapResultExecutor>();
+            services.TryAddSingleton<CoapRequestDispatcher>();
             services.TryAddSingleton<CoapResourceEndpointMapper>();
             return services;
         }

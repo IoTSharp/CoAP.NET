@@ -36,13 +36,12 @@ namespace CoAP
         [Test]
         public void HandleRequest_WritesPayloadAndResponseOptions()
         {
-            var payload = Encoding.UTF8.GetBytes("{\"ok\":true}");
             var eTag = new byte[] { 0x01, 0x02, 0x03 };
             var endpoint = CreateEndpoint(CoapRoute.Get("diagnostics/{target}/status", context =>
             {
                 Assert.AreEqual("edge-01", context.RouteValues["target"]);
                 return new ValueTask<CoapRouteResult>(
-                    CoapRouteResult.Content(payload, MediaType.ApplicationJson)
+                    CoapRouteResult.Json("{\"ok\":true}")
                         .WithETag(eTag)
                         .WithMaxAge(30)
                         .WithLocationPath("diagnostics/edge-01/status")
@@ -282,6 +281,36 @@ namespace CoAP
             {
                 var ignored = invokedResource.Context;
             });
+        }
+
+        [Test]
+        public void HandleRequest_HandlerException_ReturnsStableServerError()
+        {
+            var endpoint = CreateEndpoint(CoapRoute.Get("diagnostics/{target}/status", _ =>
+            {
+                throw new InvalidOperationException("handler failed");
+            }), "edge-01", "status");
+            var exchange = CreateExchange(Method.GET);
+
+            endpoint.HandleRequest(exchange);
+
+            Assert.IsNotNull(exchange.SentResponse);
+            Assert.AreEqual(StatusCode.InternalServerError, exchange.SentResponse.StatusCode);
+            Assert.AreEqual("CoAP route handler failed.", exchange.SentResponse.PayloadString);
+        }
+
+        [Test]
+        public void HandleRequest_NullResult_ReturnsStableServerError()
+        {
+            var endpoint = CreateEndpoint(CoapRoute.Get("diagnostics/{target}/status", _ =>
+                new ValueTask<CoapRouteResult>((CoapRouteResult)null)), "edge-01", "status");
+            var exchange = CreateExchange(Method.GET);
+
+            endpoint.HandleRequest(exchange);
+
+            Assert.IsNotNull(exchange.SentResponse);
+            Assert.AreEqual(StatusCode.InternalServerError, exchange.SentResponse.StatusCode);
+            Assert.AreEqual("CoAP route handler returned no result.", exchange.SentResponse.PayloadString);
         }
 
         [Test]

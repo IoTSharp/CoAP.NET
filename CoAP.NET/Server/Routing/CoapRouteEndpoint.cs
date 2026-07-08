@@ -260,7 +260,8 @@ namespace CoAP.Server.Routing
             IReadOnlyList<string> queries,
             ReadOnlyMemory<byte> payload,
             int contentFormat,
-            int accept)
+            int accept,
+            IServiceProvider requestServices = null)
             : this(
                   route == null ? null : route.Endpoint,
                   route,
@@ -270,7 +271,8 @@ namespace CoAP.Server.Routing
                   queries,
                   payload,
                   contentFormat,
-                  accept)
+                  accept,
+                  requestServices)
         {
         }
 
@@ -293,7 +295,8 @@ namespace CoAP.Server.Routing
             IReadOnlyList<string> queries,
             ReadOnlyMemory<byte> payload,
             int contentFormat,
-            int accept)
+            int accept,
+            IServiceProvider requestServices = null)
             : this(
                   endpoint,
                   endpoint == null ? null : endpoint.Metadata.GetMetadata<CoapRoute>(),
@@ -303,7 +306,8 @@ namespace CoAP.Server.Routing
                   queries,
                   payload,
                   contentFormat,
-                  accept)
+                  accept,
+                  requestServices)
         {
         }
 
@@ -316,7 +320,8 @@ namespace CoAP.Server.Routing
             IReadOnlyList<string> queries,
             ReadOnlyMemory<byte> payload,
             int contentFormat,
-            int accept)
+            int accept,
+            IServiceProvider requestServices)
         {
             Endpoint = endpoint ?? throw new ArgumentNullException(nameof(endpoint));
             Route = route;
@@ -327,6 +332,7 @@ namespace CoAP.Server.Routing
             Payload = payload;
             ContentFormat = contentFormat;
             Accept = accept;
+            RequestServices = requestServices;
         }
 
         /// <summary>
@@ -373,12 +379,17 @@ namespace CoAP.Server.Routing
         /// The Accept option value.
         /// </summary>
         public int Accept { get; }
+
+        /// <summary>
+        /// The scoped service provider for this request, if the route was invoked by a host-integrated server.
+        /// </summary>
+        public IServiceProvider RequestServices { get; }
     }
 
     /// <summary>
     /// CoAP route handler response.
     /// </summary>
-    public sealed class CoapRouteResult
+    public sealed class CoapRouteResult : ICoapResult
     {
         private CoapRouteResult(
             StatusCode statusCode,
@@ -387,7 +398,8 @@ namespace CoAP.Server.Routing
             IReadOnlyList<byte[]> eTags,
             long? maxAge,
             string locationPath,
-            string locationQuery)
+            string locationQuery,
+            int? observe)
         {
             StatusCode = statusCode;
             Payload = payload;
@@ -396,6 +408,7 @@ namespace CoAP.Server.Routing
             MaxAge = maxAge;
             LocationPath = locationPath;
             LocationQuery = locationQuery;
+            Observe = observe;
         }
 
         /// <summary>
@@ -433,6 +446,9 @@ namespace CoAP.Server.Routing
         /// </summary>
         public string LocationQuery { get; }
 
+        /// <inheritdoc />
+        public int? Observe { get; }
+
         /// <summary>
         /// Creates a response without a payload.
         /// </summary>
@@ -440,7 +456,7 @@ namespace CoAP.Server.Routing
         /// <returns>A route result.</returns>
         public static CoapRouteResult Status(StatusCode statusCode)
         {
-            return new CoapRouteResult(statusCode, ReadOnlyMemory<byte>.Empty, MediaType.Undefined, null, null, null, null);
+            return new CoapRouteResult(statusCode, ReadOnlyMemory<byte>.Empty, MediaType.Undefined, null, null, null, null, null);
         }
 
         /// <summary>
@@ -472,7 +488,7 @@ namespace CoAP.Server.Routing
         /// <returns>A route result.</returns>
         public static CoapRouteResult Bytes(StatusCode statusCode, ReadOnlyMemory<byte> payload, int contentFormat)
         {
-            return new CoapRouteResult(statusCode, payload, contentFormat, null, null, null, null);
+            return new CoapRouteResult(statusCode, payload, contentFormat, null, null, null, null, null);
         }
 
         /// <summary>
@@ -487,6 +503,51 @@ namespace CoAP.Server.Routing
                 ? ReadOnlyMemory<byte>.Empty
                 : Encoding.UTF8.GetBytes(message);
             return Bytes(statusCode, payload, MediaType.TextPlain);
+        }
+
+        /// <summary>
+        /// Creates a 2.05 Content response with a UTF-8 JSON payload.
+        /// </summary>
+        /// <param name="json">The JSON response body.</param>
+        /// <returns>A route result.</returns>
+        public static CoapRouteResult Json(string json)
+        {
+            return Json(StatusCode.Content, json);
+        }
+
+        /// <summary>
+        /// Creates a JSON response with a UTF-8 payload.
+        /// </summary>
+        /// <param name="statusCode">The CoAP response status code.</param>
+        /// <param name="json">The JSON response body.</param>
+        /// <returns>A route result.</returns>
+        public static CoapRouteResult Json(StatusCode statusCode, string json)
+        {
+            var payload = string.IsNullOrEmpty(json)
+                ? ReadOnlyMemory<byte>.Empty
+                : Encoding.UTF8.GetBytes(json);
+            return Json(statusCode, payload);
+        }
+
+        /// <summary>
+        /// Creates a 2.05 Content response with a JSON payload.
+        /// </summary>
+        /// <param name="payload">The UTF-8 JSON response payload.</param>
+        /// <returns>A route result.</returns>
+        public static CoapRouteResult Json(ReadOnlyMemory<byte> payload)
+        {
+            return Json(StatusCode.Content, payload);
+        }
+
+        /// <summary>
+        /// Creates a JSON response.
+        /// </summary>
+        /// <param name="statusCode">The CoAP response status code.</param>
+        /// <param name="payload">The UTF-8 JSON response payload.</param>
+        /// <returns>A route result.</returns>
+        public static CoapRouteResult Json(StatusCode statusCode, ReadOnlyMemory<byte> payload)
+        {
+            return Bytes(statusCode, payload, MediaType.ApplicationJson);
         }
 
         /// <summary>
@@ -552,11 +613,27 @@ namespace CoAP.Server.Routing
             return Copy(locationQuery: locationQuery);
         }
 
+        /// <summary>
+        /// Returns a copy of this result with an Observe option.
+        /// </summary>
+        /// <param name="observe">The Observe option value.</param>
+        /// <returns>A route result with the supplied Observe option.</returns>
+        public CoapRouteResult WithObserve(int observe)
+        {
+            if (observe < 0 || observe > (1 << 24) - 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(observe), "Observe option must be between 0 and 16777215.");
+            }
+
+            return Copy(observe: observe);
+        }
+
         private CoapRouteResult Copy(
             IReadOnlyList<byte[]> eTags = null,
             long? maxAge = null,
             string locationPath = null,
-            string locationQuery = null)
+            string locationQuery = null,
+            int? observe = null)
         {
             return new CoapRouteResult(
                 StatusCode,
@@ -565,7 +642,8 @@ namespace CoAP.Server.Routing
                 eTags ?? ETags,
                 maxAge ?? MaxAge,
                 locationPath ?? LocationPath,
-                locationQuery ?? LocationQuery);
+                locationQuery ?? LocationQuery,
+                observe ?? Observe);
         }
     }
 
@@ -576,7 +654,7 @@ namespace CoAP.Server.Routing
     {
         private static readonly ILogger Log = CoapLogging.CreateLogger(typeof(CoapRouteEndpoint));
         private readonly ICoapEndpointDataSource _dataSource;
-        private readonly ICoapEndpointMatcher _matcher;
+        private readonly CoapRequestDispatcher _dispatcher;
         private readonly IReadOnlyList<CoapEndpoint> _candidateEndpoints;
         private readonly IReadOnlyList<string> _pathSegments;
         private IResource _parent;
@@ -584,14 +662,14 @@ namespace CoAP.Server.Routing
         private CoapRouteEndpoint(
             string name,
             ICoapEndpointDataSource dataSource,
-            ICoapEndpointMatcher matcher,
+            CoapRequestDispatcher dispatcher,
             IReadOnlyList<CoapEndpoint> candidateEndpoints,
             IReadOnlyList<string> pathSegments,
             bool visible)
         {
             Name = name;
             _dataSource = dataSource;
-            _matcher = matcher;
+            _dispatcher = dispatcher;
             _candidateEndpoints = candidateEndpoints;
             _pathSegments = pathSegments;
             Visible = visible;
@@ -637,6 +715,21 @@ namespace CoAP.Server.Routing
             ICoapEndpointDataSource dataSource,
             ICoapEndpointMatcher matcher)
         {
+            return Create(dataSource, matcher, null);
+        }
+
+        /// <summary>
+        /// Creates root resources for endpoints supplied by a data source.
+        /// </summary>
+        /// <param name="dataSource">The endpoint data source.</param>
+        /// <param name="matcher">The endpoint matcher.</param>
+        /// <param name="dispatcher">The request dispatcher.</param>
+        /// <returns>Root resources grouped by first URI path segment.</returns>
+        public static IReadOnlyList<IResource> Create(
+            ICoapEndpointDataSource dataSource,
+            ICoapEndpointMatcher matcher,
+            CoapRequestDispatcher dispatcher)
+        {
             if (dataSource == null)
             {
                 throw new ArgumentNullException(nameof(dataSource));
@@ -647,13 +740,14 @@ namespace CoAP.Server.Routing
                 throw new ArgumentNullException(nameof(matcher));
             }
 
+            dispatcher ??= CoapRequestDispatcher.CreateDefault(dataSource, matcher);
             return dataSource.Endpoints
                 .Select(endpoint => endpoint ?? throw new ArgumentException("Endpoint data source cannot contain null entries.", nameof(dataSource)))
                 .GroupBy(endpoint => endpoint.RootSegment, StringComparer.Ordinal)
                 .Select(group => (IResource)new CoapRouteEndpoint(
                     group.Key,
                     dataSource,
-                    matcher,
+                    dispatcher,
                     group.ToArray(),
                     new[] { group.Key },
                     true))
@@ -730,7 +824,7 @@ namespace CoAP.Server.Routing
                 : new CoapRouteEndpoint(
                     name,
                     _dataSource,
-                    _matcher,
+                    _dispatcher,
                     matchingEndpoints,
                     nextSegments,
                     false) { Parent = this };
@@ -756,42 +850,13 @@ namespace CoAP.Server.Routing
 
             try
             {
-                HandleRouteRequestAsync(exchange).AsTask().GetAwaiter().GetResult();
+                _dispatcher.DispatchAsync(exchange, _pathSegments).AsTask().GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
                 Log.LogError(ex, "CoAP route handler failed. Path={Path}", string.Join("/", _pathSegments));
                 SendText(exchange, StatusCode.InternalServerError, "CoAP route handler failed.");
             }
-        }
-
-        private async ValueTask HandleRouteRequestAsync(Exchange exchange)
-        {
-            var request = exchange.Request;
-            var matchContext = new CoapEndpointMatchContext(
-                request.Method,
-                _pathSegments,
-                request.ContentFormat,
-                request.Accept,
-                request.Observe);
-
-            if (_matcher.TryMatch(matchContext, out var match))
-            {
-                var context = new CoapRouteContext(
-                    match.Endpoint,
-                    request.Method,
-                    _pathSegments,
-                    match.RouteValues,
-                    GetUriQueries(request),
-                    request.Payload == null ? ReadOnlyMemory<byte>.Empty : new ReadOnlyMemory<byte>(request.Payload),
-                    request.ContentFormat,
-                    request.Accept);
-                var result = await match.Endpoint.InvokeAsync(context).ConfigureAwait(false);
-                SendResult(exchange, result ?? CoapRouteResult.Status(StatusCode.InternalServerError));
-                return;
-            }
-
-            SendText(exchange, StatusCode.MethodNotAllowed, "CoAP route method is not allowed.");
         }
 
         private static string[] AppendPathSegment(IReadOnlyList<string> pathSegments, string segment)
@@ -804,69 +869,6 @@ namespace CoAP.Server.Routing
 
             nextSegments[^1] = segment;
             return nextSegments;
-        }
-
-        private static IReadOnlyList<string> GetUriQueries(Request request)
-        {
-            var queryOptions = request.GetOptions(OptionType.UriQuery);
-            if (queryOptions == null)
-            {
-                return Array.Empty<string>();
-            }
-
-            if (queryOptions is ICollection<Option> collection)
-            {
-                if (collection.Count == 0)
-                {
-                    return Array.Empty<string>();
-                }
-
-                var queries = new string[collection.Count];
-                var index = 0;
-                foreach (var option in collection)
-                {
-                    queries[index++] = option.StringValue;
-                }
-
-                return queries;
-            }
-
-            return queryOptions.Select(option => option.StringValue).ToArray();
-        }
-
-        private static void SendResult(Exchange exchange, CoapRouteResult result)
-        {
-            var response = new Response(result.StatusCode);
-            if (!result.Payload.IsEmpty)
-            {
-                response.Payload = result.Payload.ToArray();
-                if (result.ContentFormat != MediaType.Undefined)
-                {
-                    response.ContentType = result.ContentFormat;
-                }
-            }
-
-            if (result.MaxAge.HasValue)
-            {
-                response.MaxAge = result.MaxAge.Value;
-            }
-
-            if (!string.IsNullOrEmpty(result.LocationPath))
-            {
-                response.LocationPath = result.LocationPath;
-            }
-
-            if (!string.IsNullOrEmpty(result.LocationQuery))
-            {
-                response.LocationQuery = result.LocationQuery;
-            }
-
-            foreach (var eTag in result.ETags)
-            {
-                response.AddETag(eTag);
-            }
-
-            exchange.SendResponse(response);
         }
 
         private static void SendText(Exchange exchange, StatusCode statusCode, string message)

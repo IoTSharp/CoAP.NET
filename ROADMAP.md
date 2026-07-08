@@ -86,7 +86,7 @@ public sealed class SensorCoapResource : CoapResourceBase
 | C3 | `✅` | 低分配 payload 与 option 访问 | `CoapRouteContext.Payload` 已暴露 `ReadOnlyMemory<byte>`；route values 已改为数组化只读集合，无参数路由复用空集合。 |
 | C4 | `✅` | routing core 抽象 | 已提取 `CoapRoutePattern`、`CoapEndpoint`、`CoapEndpointMetadataCollection`、`ICoapEndpointDataSource`、`ICoapEndpointMatcher`；`CoapRouteEndpoint` 已改为消费 endpoint 数据源。 |
 | C5 | `✅` | CoAP hosting 与 Resource 注册 | 已新增 `AddCoapServer()`、`AddCoapResources()` / `AddCoapMvc()`、`CoapMvcOptions`、`app.MapCoapResources()`；server 生命周期由宿主管理，显式 route handler 降为低层扩展。 |
-| C6 | `⬜` | dispatcher pipeline | 新增 `CoapRequestDispatcher`、`CoapActionInvoker`、`ICoapResult`、`ICoapResultExecutor`、统一异常和错误响应映射；支持宿主 service scope。 |
+| C6 | `✅` | dispatcher pipeline | 已新增 `CoapRequestDispatcher`、`CoapActionInvoker`、`ICoapResult`、`ICoapResultExecutor`、统一异常和错误响应映射；支持宿主 service scope。 |
 | C7 | `⬜` | resource attribute routing | 新增 `[CoapController]` 兼容标记、`[CoapRoute]`、method attributes、resource/action descriptor、application part 扫描；生成 endpoint 数据源。 |
 | C8 | `⬜` | model binding 与 media negotiation | 支持 route value、query、request option、payload、`CancellationToken`、`CoapRouteContext` 参数绑定；继承 `CoapResourceBase` 时优先通过 `Context` / `Payload` / `RouteValues` 访问上下文；补齐 Content-Format / Accept 匹配和 JSON binder 扩展点。 |
 | C9 | `⬜` | resource discovery | `.well-known/core` 从 endpoint metadata 生成 CoRE Link Format；支持标题、资源类型、接口描述、content-format、observe 可见性和隐藏端点。 |
@@ -162,6 +162,13 @@ C0 兼容基线
 - `ICoapResultExecutor`：把 `ICoapResult` 写回 `Response`。
 - 统一异常处理：未匹配、method 不允许、media type 不支持、业务异常分别映射到 CoAP response code。
 - 支持 `IServiceProvider` / scope factory，但不要求所有宿主都引用 ASP.NET Core。
+
+当前完成：
+
+- `CoapRouteEndpoint` 已改为调用 `CoapRequestDispatcher`，不再内联 action 调用和 response 写回。
+- `CoapRouteResult` 已实现 `ICoapResult`，并补齐 JSON payload 与 Observe 结果表达。
+- `AddCoapResources()` 已注册 dispatcher、action invoker 和 result executor；host-managed 请求会创建并释放 request scope。
+- 低层 `CoapRouteEndpoint.Create(...)` 仍可使用默认 dispatcher，不要求宿主接入 DI。
 
 验收：
 
