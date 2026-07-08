@@ -43,11 +43,13 @@ dotnet run -c Release --project CoAP.Benchmarks/CoAP.Benchmarks.csproj -- --filt
 
 `CoAP.NET/CoAP.NET.csproj` 设置 `IsAotCompatible=true`，Release build 会启用 trim/AOT analyzer。当前已知边界如下：
 
-- `CoapResourceEndpointBuilder` 使用 application-part reflection 扫描 resource/action；trim/AOT 宿主必须保留 resource 程序集成员，或改用显式 endpoint/route 注册。
-- `CoapSystemTextJsonPayloadBinder` 的默认 JSON binder 面向非 AOT 宿主；Native AOT 宿主应替换 `ICoapJsonPayloadBinder` 为 source-generated `JsonTypeInfo` binder。
+- `AddCoapResources()` 默认只构建显式 endpoint、route 和 endpoint factory；Native AOT 宿主应通过 source generator 或手写 factory 注册 endpoint。
+- `CoapResourceEndpointBuilder` 使用 application-part reflection 扫描 resource/action；该路径只能通过 `AddReflectionResourceDiscovery()` / `AddApplicationPart(...)` 显式启用，并已标记 `RequiresUnreferencedCode` / `RequiresDynamicCode`。
+- JSON DTO payload 绑定应调用 `AddCoapJsonPayloadBinder(JsonSerializerContext)` 或 `AddCoapJsonPayloadBinder(IJsonTypeInfoResolver, JsonSerializerOptions)`，由 source-generated `JsonTypeInfo` 驱动。
+- `CoapSystemTextJsonPayloadBinder` 只作为非 AOT 兼容入口保留，并已标记 `RequiresUnreferencedCode` / `RequiresDynamicCode`。
 - DTLS PSK 依赖 `BouncyCastle.Cryptography`，只位于 CoAP.NET 传输层；发布 coap-only 宿主时可通过宿主配置关闭 coaps 监听。
 
-发布前 `dotnet build CoAP.NET/CoAP.NET.csproj -c Release` 不应产生新的 IL2026、IL2070、IL3050 或 IL3053 warning。若必须新增 suppression，需在代码旁说明宿主责任和替代路径。
+发布前 `dotnet build CoAP.NET/CoAP.NET.csproj -c Release` 不应产生新的 IL2026、IL2070、IL3050 或 IL3053 warning。不得用 `UnconditionalSuppressMessage` 或 `#pragma` 强行屏蔽 IL warning；无法静态证明安全的路径必须标记 `RequiresUnreferencedCode` / `RequiresDynamicCode`，并提供 generated endpoint / source-generated JSON 替代路径。
 
 ## 发布检查
 

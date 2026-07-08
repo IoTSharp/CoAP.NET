@@ -25,10 +25,8 @@ namespace CoAP.Server.Routing
         private static readonly Assembly CoapAssembly = typeof(CoapResourceEndpointBuilder).Assembly;
         private static readonly string CoapAssemblyName = CoapAssembly.GetName().Name;
 
-        [UnconditionalSuppressMessage(
-            "Trimming",
-            "IL2072",
-            Justification = "Resource types come from application-part reflection; trimmed/AOT hosts must preserve resource members or register endpoints explicitly.")]
+        [RequiresUnreferencedCode("Reflection-based CoAP resource discovery scans application assemblies and resource members. Native AOT hosts should use generated endpoint factories.")]
+        [RequiresDynamicCode("Reflection-based CoAP resource discovery invokes runtime-discovered resource methods. Native AOT hosts should use generated endpoint factories.")]
         public static IReadOnlyList<CoapEndpoint> Build(CoapMvcOptions options)
         {
             if (options == null)
@@ -49,6 +47,7 @@ namespace CoAP.Server.Routing
             return endpoints.Count == 0 ? Array.Empty<CoapEndpoint>() : endpoints.ToArray();
         }
 
+        [RequiresUnreferencedCode("Reflection-based CoAP resource discovery scans application assemblies and resource members. Native AOT hosts should use generated endpoint factories.")]
         private static IEnumerable<Type> DiscoverResourceTypes(CoapMvcOptions options)
         {
             var seenTypes = new HashSet<Type>();
@@ -69,10 +68,7 @@ namespace CoAP.Server.Routing
             }
         }
 
-        [UnconditionalSuppressMessage(
-            "Trimming",
-            "IL2026",
-            Justification = "CoAP resource discovery scans host application parts at startup; trimmed/AOT hosts must preserve resource assemblies or register endpoints explicitly.")]
+        [RequiresUnreferencedCode("Reflection-based CoAP resource discovery scans application assemblies. Native AOT hosts should use generated endpoint factories.")]
         private static IEnumerable<Assembly> DiscoverApplicationParts(IEnumerable<Assembly> configuredParts)
         {
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -109,10 +105,7 @@ namespace CoAP.Server.Routing
             return seen.Add(assembly.FullName ?? assembly.GetName().Name);
         }
 
-        [UnconditionalSuppressMessage(
-            "Trimming",
-            "IL2026",
-            Justification = "Assembly-reference probing is used only for startup discovery; trimmed/AOT hosts can use explicit application parts or endpoint registrations.")]
+        [RequiresUnreferencedCode("Assembly-reference probing is not trim-safe. Native AOT hosts should use generated endpoint factories.")]
         private static bool IsCandidateApplicationAssembly(Assembly assembly)
         {
             if (assembly == null || assembly.IsDynamic || assembly == CoapAssembly)
@@ -143,10 +136,7 @@ namespace CoAP.Server.Routing
             }
         }
 
-        [UnconditionalSuppressMessage(
-            "Trimming",
-            "IL2026",
-            Justification = "CoAP resource discovery scans host application parts at startup; trimmed/AOT hosts must preserve resource types or register endpoints explicitly.")]
+        [RequiresUnreferencedCode("Assembly type scanning is not trim-safe. Native AOT hosts should use generated endpoint factories.")]
         private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
         {
             try
@@ -196,6 +186,8 @@ namespace CoAP.Server.Routing
             return new CoapResourceDescriptor(resourceType, routePrefixes, metadata);
         }
 
+        [RequiresUnreferencedCode("Reflection-based CoAP resource endpoint creation builds delegates for runtime-discovered methods. Native AOT hosts should use generated endpoints.")]
+        [RequiresDynamicCode("Reflection-based CoAP resource endpoint creation builds delegates for runtime-discovered methods. Native AOT hosts should use generated endpoints.")]
         private static IEnumerable<CoapEndpoint> CreateEndpoints(CoapResourceDescriptor resource)
         {
             var methods = resource.ResourceType.GetMethods(BindingFlags.Instance | BindingFlags.Public);
@@ -280,6 +272,8 @@ namespace CoAP.Server.Routing
             return normalizedPrefix + "/" + normalizedTemplate;
         }
 
+        [RequiresUnreferencedCode("Reflection-based CoAP resource invocation reads runtime resource signatures. Native AOT hosts should use generated endpoints.")]
+        [RequiresDynamicCode("Reflection-based CoAP resource invocation may construct runtime-discovered collection types. Native AOT hosts should use generated endpoints.")]
         private static async ValueTask<CoapRouteResult> InvokeActionAsync(
             CoapResourceActionDescriptor descriptor,
             CoapRouteContext context)
@@ -319,6 +313,8 @@ namespace CoAP.Server.Routing
             }
         }
 
+        [RequiresUnreferencedCode("Reflection-based CoAP resource invocation reads runtime resource signatures. Native AOT hosts should use generated endpoints.")]
+        [RequiresDynamicCode("Reflection-based CoAP resource invocation may construct runtime-discovered collection types. Native AOT hosts should use generated endpoints.")]
         private static async ValueTask<CoapRouteResult> InvokeActionCoreAsync(
             object resource,
             CoapResourceActionDescriptor descriptor,

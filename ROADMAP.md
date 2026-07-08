@@ -56,7 +56,7 @@ public sealed class SensorCoapResource : CoapResourceBase
 目标不是复制完整 ASP.NET Core MVC，而是提供 CoAP 适配的最小 MVC 子集：
 
 - server hosting：`AddCoapServer()` 注册监听端口、传输、DTLS 和后台生命周期。
-- resource registration：`AddCoapResources()` / `AddCoapMvc()` 注册 endpoint data source、resource discovery、matcher、dispatcher、binder、result executor 和 discovery provider。
+- resource registration：`AddCoapResources()` / `AddCoapMvc()` 注册 endpoint data source、endpoint factory、matcher、dispatcher、binder、result executor 和 discovery provider；reflection discovery 作为显式兼容入口保留。
 - endpoint mapping：`app.MapCoapResources()` 像 `app.MapControllers()` 一样完成 CoAP resource endpoint 映射，不暴露 `CoapServer` 手工组装。
 - attribute routing：`[CoapResource]` 是推荐资源标记；`[CoapController]` 仅作为兼容标记；action 使用 `[CoapRoute]`、`[CoapGet]`、`[CoapPost]`、`[CoapPut]`、`[CoapDelete]`、`[CoapObserve]`。
 - convention routing：按 resource/action 命名生成默认 route，允许宿主覆盖。
@@ -139,7 +139,7 @@ C0 兼容基线
 目标是把宿主入口固定为常规 MVC 风格：服务注册发生在 `builder.Services`，resource 映射发生在 `app`，CoAP server 生命周期由 host 管理，让宿主应用不再显式创建 `CoapServer` 或 `CoapRouteEndpoint`。
 
 - `AddCoapServer()`：已注册 CoAP server 配置、监听端点、可扩展 endpoint factory、后台服务和 host 生命周期。
-- `AddCoapResources()`：已注册 `CoapMvcOptions`、endpoint data source、matcher 和 resource mapper；resource/controller discovery、dispatcher、binder、result executor 和 discovery provider 分别在 C6-C9 继续补齐。
+- `AddCoapResources()`：已注册 `CoapMvcOptions`、endpoint data source、endpoint factory、matcher 和 resource mapper；reflection resource/controller discovery 通过显式兼容入口启用，dispatcher、binder、result executor 和 discovery provider 分别在 C6-C9 继续补齐。
 - `AddCoapMvc()`：已作为 `AddCoapResources()` 的兼容别名，为后续完整 MVC 能力保留入口。
 - `CoapMvcOptions`：当前承载 `ApplicationPart`、显式 endpoint 和低层 route 兼容注册；route conventions、filter、默认 discovery metadata 和 media type 策略在后续阶段扩展。
 - `app.MapCoapResources()`：已像 `app.MapControllers()` 一样映射 CoAP resource endpoint，不接受裸 `IServiceProvider` 参数。
@@ -210,7 +210,7 @@ C0 兼容基线
 - resource action 已支持简单类型 route/query 绑定、query 集合绑定、常用 option 绑定、raw payload、`Stream`、`JsonDocument` 和 JSON DTO payload 绑定。
 - `CoapRouteContext` 已暴露 request option 快照、Observe、ETag、Block1/Block2、token 和远端 endpoint；`CoapResourceBase` 暴露常用上下文属性。
 - endpoint matcher 已按 `Content-Format` / `Accept` 与 consumes/produces metadata 做协商，不匹配时返回稳定的 4.15 或 4.06。
-- 已提供 `ICoapJsonPayloadBinder` 扩展点；默认实现使用 `System.Text.Json`，Native AOT/source-generated 场景可替换 binder。
+- 已提供 `ICoapJsonPayloadBinder` 扩展点；Native AOT 场景通过 `AddCoapJsonPayloadBinder(JsonSerializerContext)` 使用 source-generated metadata，反射型 `CoapSystemTextJsonPayloadBinder` 仅作为非 AOT 兼容入口。
 
 验收：
 

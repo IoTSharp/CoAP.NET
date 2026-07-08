@@ -11,6 +11,8 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,7 +27,7 @@ namespace CoAP
             var services = new ServiceCollection();
             services.AddCoapServer();
             services.AddSingleton<InvocationProbe>();
-            services.AddCoapResources();
+            services.AddCoapResources(options => options.AddReflectionResourceDiscovery());
 
             using var provider = services.BuildServiceProvider();
             var dataSource = provider.GetRequiredService<ICoapEndpointDataSource>();
@@ -47,7 +49,7 @@ namespace CoAP
             var services = new ServiceCollection();
             services.AddCoapServer();
             services.AddSingleton<InvocationProbe>();
-            services.AddCoapResources();
+            services.AddCoapResources(options => options.AddReflectionResourceDiscovery());
 
             using var provider = services.BuildServiceProvider();
             var host = new TestHost(provider);
@@ -95,7 +97,8 @@ namespace CoAP
             var services = new ServiceCollection();
             services.AddCoapServer();
             services.AddSingleton<InvocationProbe>();
-            services.AddCoapResources();
+            services.AddCoapJsonPayloadBinder(CoapResourceRoutingJsonContext.Default);
+            services.AddCoapResources(options => options.AddReflectionResourceDiscovery());
 
             using var provider = services.BuildServiceProvider();
             var host = new TestHost(provider);
@@ -141,7 +144,8 @@ namespace CoAP
             var services = new ServiceCollection();
             services.AddCoapServer();
             services.AddSingleton<InvocationProbe>();
-            services.AddCoapResources();
+            services.AddCoapJsonPayloadBinder(CoapResourceRoutingJsonContext.Default);
+            services.AddCoapResources(options => options.AddReflectionResourceDiscovery());
 
             using var provider = services.BuildServiceProvider();
             var host = new TestHost(provider);
@@ -432,5 +436,12 @@ namespace CoAP
             {
             }
         }
+
+    }
+
+    [JsonSourceGenerationOptions(JsonSerializerDefaults.Web)]
+    [JsonSerializable(typeof(CoapResourceAttributeRoutingTest.ReadingPayload))]
+    internal sealed partial class CoapResourceRoutingJsonContext : JsonSerializerContext
+    {
     }
 }

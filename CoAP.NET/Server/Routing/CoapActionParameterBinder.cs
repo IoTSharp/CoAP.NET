@@ -23,6 +23,10 @@ namespace CoAP.Server.Routing
 {
     internal static class CoapActionParameterBinder
     {
+        private static readonly ICoapJsonPayloadBinder MissingJsonPayloadBinder = new CoapMissingJsonPayloadBinder();
+
+        [RequiresUnreferencedCode("Reflection-based CoAP action parameter binding reads runtime resource signatures. Native AOT hosts should use generated endpoints.")]
+        [RequiresDynamicCode("Reflection-based CoAP action parameter binding may construct collection types dynamically. Native AOT hosts should use generated endpoints.")]
         public static object[] BindArguments(
             CoapResourceActionDescriptor descriptor,
             CoapRouteContext context)
@@ -51,6 +55,7 @@ namespace CoAP.Server.Routing
             return arguments;
         }
 
+        [RequiresDynamicCode("Reflection-based CoAP parameter binding may construct collection values dynamically. Native AOT hosts should use generated endpoints.")]
         private static object BindArgument(ParameterInfo parameter, CoapRouteContext context)
         {
             var parameterType = parameter.ParameterType;
@@ -158,6 +163,7 @@ namespace CoAP.Server.Routing
             return true;
         }
 
+        [RequiresDynamicCode("Reflection-based CoAP query binding may construct collection values dynamically. Native AOT hosts should use generated endpoints.")]
         private static bool TryBindQueryValue(
             ParameterInfo parameter,
             CoapRouteContext context,
@@ -175,6 +181,7 @@ namespace CoAP.Server.Routing
             return true;
         }
 
+        [RequiresDynamicCode("Reflection-based CoAP payload binding may need default values for runtime-discovered collection parameters. Native AOT hosts should use generated endpoints.")]
         private static object BindPayload(ParameterInfo parameter, CoapRouteContext context)
         {
             var parameterType = parameter.ParameterType;
@@ -221,6 +228,7 @@ namespace CoAP.Server.Routing
             }
         }
 
+        [RequiresDynamicCode("Reflection-based CoAP option binding may construct collection values dynamically. Native AOT hosts should use generated endpoints.")]
         private static object BindOption(
             ParameterInfo parameter,
             CoapRouteContext context,
@@ -245,6 +253,7 @@ namespace CoAP.Server.Routing
             }
         }
 
+        [RequiresDynamicCode("Reflection-based CoAP option binding may construct collection values dynamically. Native AOT hosts should use generated endpoints.")]
         private static bool TryBindWellKnownOption(
             ParameterInfo parameter,
             CoapRouteContext context,
@@ -308,6 +317,7 @@ namespace CoAP.Server.Routing
             return false;
         }
 
+        [RequiresDynamicCode("Reflection-based CoAP option binding may need default values for runtime-discovered collection parameters. Native AOT hosts should use generated endpoints.")]
         private static object BindBlockOption(ParameterInfo parameter, BlockOption blockOption, string source)
         {
             if (blockOption == null)
@@ -324,6 +334,7 @@ namespace CoAP.Server.Routing
             return ConvertIntegralValue(blockOption.IntValue, parameter.ParameterType, parameter.Name, source);
         }
 
+        [RequiresDynamicCode("Reflection-based CoAP option binding may construct collection values dynamically. Native AOT hosts should use generated endpoints.")]
         private static object BindGeneralOption(
             ParameterInfo parameter,
             CoapRouteContext context,
@@ -357,6 +368,7 @@ namespace CoAP.Server.Routing
             return ConvertOptionValue(options[0], parameter.ParameterType, parameter.Name);
         }
 
+        [RequiresDynamicCode("Reflection-based CoAP token binding may need default values for runtime-discovered collection parameters. Native AOT hosts should use generated endpoints.")]
         private static object BindToken(ParameterInfo parameter, CoapRouteContext context)
         {
             if (context.Token == null || context.Token.Length == 0)
@@ -456,6 +468,7 @@ namespace CoAP.Server.Routing
                 source);
         }
 
+        [RequiresDynamicCode("Reflection-based CoAP collection binding creates collection values for runtime-discovered element types. Native AOT hosts should use generated endpoints.")]
         private static object ConvertStringValues(
             IReadOnlyList<string> values,
             Type targetType,
@@ -554,6 +567,7 @@ namespace CoAP.Server.Routing
             }
         }
 
+        [RequiresDynamicCode("Reflection-based CoAP default value binding may create collections for runtime-discovered element types. Native AOT hosts should use generated endpoints.")]
         private static object GetMissingValue(ParameterInfo parameter, string source)
         {
             if (parameter.HasDefaultValue)
@@ -603,7 +617,7 @@ namespace CoAP.Server.Routing
         private static ICoapJsonPayloadBinder GetJsonPayloadBinder(CoapRouteContext context)
         {
             return context.RequestServices?.GetService(typeof(ICoapJsonPayloadBinder)) as ICoapJsonPayloadBinder ??
-                CoapSystemTextJsonPayloadBinder.Shared;
+                MissingJsonPayloadBinder;
         }
 
         private static bool IsRawPayloadType(Type type)
@@ -690,10 +704,6 @@ namespace CoAP.Server.Routing
             }
         }
 
-        [UnconditionalSuppressMessage(
-            "Trimming",
-            "IL2070",
-            Justification = "Action parameter types are discovered by resource reflection; AOT hosts must preserve resource signatures or provide explicit endpoints.")]
         private static bool TryGetCollectionElementType(Type targetType, out Type elementType)
         {
             elementType = null;
@@ -722,25 +732,10 @@ namespace CoAP.Server.Routing
                 }
             }
 
-            var interfaces = targetType.GetInterfaces();
-            for (var i = 0; i < interfaces.Length; i++)
-            {
-                var interfaceType = interfaces[i];
-                if (interfaceType.IsGenericType &&
-                    interfaceType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                {
-                    elementType = interfaceType.GetGenericArguments()[0];
-                    return true;
-                }
-            }
-
             return false;
         }
 
-        [UnconditionalSuppressMessage(
-            "AOT",
-            "IL3050",
-            Justification = "Collection binding materializes action parameter collection types discovered from resource signatures; AOT hosts must preserve these closed generic types.")]
+        [RequiresDynamicCode("Reflection-based CoAP collection binding creates arrays and List<T> instances for runtime-discovered element types. Native AOT hosts should use generated endpoints.")]
         private static object CreateCollection(
             Type targetType,
             Type elementType,

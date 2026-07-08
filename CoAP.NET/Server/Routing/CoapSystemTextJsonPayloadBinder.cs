@@ -20,19 +20,11 @@ namespace CoAP.Server.Routing
     /// </summary>
     public sealed class CoapSystemTextJsonPayloadBinder : ICoapJsonPayloadBinder
     {
-        internal static readonly CoapSystemTextJsonPayloadBinder Shared = new CoapSystemTextJsonPayloadBinder();
-
         /// <summary>
-        /// Creates a binder with Web defaults.
+        /// Creates a reflection-based binder with Web defaults.
         /// </summary>
-        [UnconditionalSuppressMessage(
-            "Trimming",
-            "IL2026",
-            Justification = "The default binder is reflection-based for non-AOT hosts; trimmed/AOT hosts can replace ICoapJsonPayloadBinder with a source-generated binder.")]
-        [UnconditionalSuppressMessage(
-            "AOT",
-            "IL3050",
-            Justification = "The default binder is reflection-based for non-AOT hosts; Native AOT hosts can replace ICoapJsonPayloadBinder with a source-generated binder.")]
+        [RequiresUnreferencedCode("The default System.Text.Json resolver uses reflection. Native AOT hosts should register a source-generated CoapJsonTypeInfoPayloadBinder.")]
+        [RequiresDynamicCode("The default System.Text.Json resolver may require runtime code generation. Native AOT hosts should register a source-generated CoapJsonTypeInfoPayloadBinder.")]
         public CoapSystemTextJsonPayloadBinder()
             : this(new JsonSerializerOptions(JsonSerializerDefaults.Web)
             {
@@ -45,6 +37,8 @@ namespace CoAP.Server.Routing
         /// Creates a binder with caller-provided serializer options.
         /// </summary>
         /// <param name="jsonSerializerOptions">Serializer options used to resolve JSON metadata.</param>
+        [RequiresUnreferencedCode("Caller-provided JsonSerializerOptions may use reflection-based metadata. Native AOT hosts should register a source-generated CoapJsonTypeInfoPayloadBinder.")]
+        [RequiresDynamicCode("Caller-provided JsonSerializerOptions may require runtime code generation. Native AOT hosts should register a source-generated CoapJsonTypeInfoPayloadBinder.")]
         public CoapSystemTextJsonPayloadBinder(JsonSerializerOptions jsonSerializerOptions)
         {
             JsonSerializerOptions = jsonSerializerOptions ?? throw new ArgumentNullException(nameof(jsonSerializerOptions));

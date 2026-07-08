@@ -118,6 +118,27 @@ app.MapCoapResources();
 app.Run();
 ```
 
+Native AOT hosts should register generated endpoint factories and
+source-generated JSON metadata:
+
+```csharp
+builder.Services.AddCoapJsonPayloadBinder(MyCoapJsonContext.Default);
+builder.Services.AddCoapResources(options =>
+{
+    options.AddEndpointFactory(MyGeneratedCoapEndpoints.Create);
+});
+```
+
+Reflection-based resource discovery remains available for non-AOT hosts or
+compatibility tests:
+
+```csharp
+builder.Services.AddCoapResources(options =>
+{
+    options.AddReflectionResourceDiscovery();
+});
+```
+
 Resource attribute routing:
 
 ```csharp

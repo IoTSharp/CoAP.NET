@@ -12,6 +12,7 @@
 using CoAP.Server.Routing;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace CoAP.Server.Hosting
@@ -21,6 +22,8 @@ namespace CoAP.Server.Hosting
     /// </summary>
     public sealed class CoapMvcOptions
     {
+        private bool _reflectionResourceDiscoveryEnabled;
+
         /// <summary>
         /// Gets plugin or external assemblies that should participate in future resource discovery.
         /// </summary>
@@ -37,10 +40,18 @@ namespace CoAP.Server.Hosting
         public IList<CoapRoute> Routes { get; } = new List<CoapRoute>();
 
         /// <summary>
+        /// Gets endpoint factories registered by source generators or compatibility adapters.
+        /// </summary>
+        public IList<Func<IServiceProvider, IEnumerable<CoapEndpoint>>> EndpointFactories { get; } =
+            new List<Func<IServiceProvider, IEnumerable<CoapEndpoint>>>();
+
+        /// <summary>
         /// Adds a plugin or external assembly to the resource application parts.
         /// </summary>
         /// <param name="assembly">The assembly that contains CoAP resource classes.</param>
         /// <returns>The current options instance.</returns>
+        [RequiresUnreferencedCode("Application part discovery scans resource assemblies with reflection. Native AOT hosts should use generated endpoint factories.")]
+        [RequiresDynamicCode("Application part discovery invokes runtime-discovered resource methods. Native AOT hosts should use generated endpoint factories.")]
         public CoapMvcOptions AddApplicationPart(Assembly assembly)
         {
             if (assembly == null)
@@ -49,6 +60,7 @@ namespace CoAP.Server.Hosting
             }
 
             ApplicationParts.Add(assembly);
+            AddReflectionResourceDiscovery();
             return this;
         }
 
@@ -57,6 +69,8 @@ namespace CoAP.Server.Hosting
         /// </summary>
         /// <typeparam name="TMarker">A type from the assembly to add.</typeparam>
         /// <returns>The current options instance.</returns>
+        [RequiresUnreferencedCode("Application part discovery scans resource assemblies with reflection. Native AOT hosts should use generated endpoint factories.")]
+        [RequiresDynamicCode("Application part discovery invokes runtime-discovered resource methods. Native AOT hosts should use generated endpoint factories.")]
         public CoapMvcOptions AddApplicationPart<TMarker>()
         {
             return AddApplicationPart(typeof(TMarker).Assembly);
@@ -94,10 +108,42 @@ namespace CoAP.Server.Hosting
             return this;
         }
 
-        internal IReadOnlyList<CoapEndpoint> BuildEndpoints()
+        /// <summary>
+        /// Adds an endpoint factory, typically emitted by a source generator.
+        /// </summary>
+        /// <param name="endpointFactory">Factory that creates endpoint descriptors.</param>
+        /// <returns>The current options instance.</returns>
+        public CoapMvcOptions AddEndpointFactory(Func<IServiceProvider, IEnumerable<CoapEndpoint>> endpointFactory)
         {
-            var resourceEndpoints = CoapResourceEndpointBuilder.Build(this);
-            var endpoints = new List<CoapEndpoint>(Endpoints.Count + Routes.Count + resourceEndpoints.Count);
+            if (endpointFactory == null)
+            {
+                throw new ArgumentNullException(nameof(endpointFactory));
+            }
+
+            EndpointFactories.Add(endpointFactory);
+            return this;
+        }
+
+        /// <summary>
+        /// Enables reflection-based resource discovery for non-AOT hosts.
+        /// </summary>
+        /// <returns>The current options instance.</returns>
+        [RequiresUnreferencedCode("Reflection-based CoAP resource discovery is not trim-safe. Native AOT hosts should use generated endpoint factories.")]
+        [RequiresDynamicCode("Reflection-based CoAP resource discovery invokes runtime-discovered methods. Native AOT hosts should use generated endpoint factories.")]
+        public CoapMvcOptions AddReflectionResourceDiscovery()
+        {
+            if (!_reflectionResourceDiscoveryEnabled)
+            {
+                _reflectionResourceDiscoveryEnabled = true;
+                EndpointFactories.Add(new ReflectionResourceEndpointFactoryMarker(this).BuildEndpoints);
+            }
+
+            return this;
+        }
+
+        internal IReadOnlyList<CoapEndpoint> BuildEndpoints(IServiceProvider serviceProvider)
+        {
+            var endpoints = new List<CoapEndpoint>(Endpoints.Count + Routes.Count);
             for (var i = 0; i < Endpoints.Count; i++)
             {
                 var endpoint = Endpoints[i];
@@ -120,12 +166,49 @@ namespace CoAP.Server.Hosting
                 endpoints.Add(route.Endpoint);
             }
 
-            for (var i = 0; i < resourceEndpoints.Count; i++)
+            for (var i = 0; i < EndpointFactories.Count; i++)
             {
-                endpoints.Add(resourceEndpoints[i]);
+                var endpointFactory = EndpointFactories[i];
+                if (endpointFactory == null)
+                {
+                    throw new InvalidOperationException("CoAP endpoint factory registration cannot contain null entries.");
+                }
+
+                var factoryEndpoints = endpointFactory(serviceProvider);
+                if (factoryEndpoints == null)
+                {
+                    continue;
+                }
+
+                foreach (var endpoint in factoryEndpoints)
+                {
+                    if (endpoint == null)
+                    {
+                        throw new InvalidOperationException("CoAP endpoint factory cannot return null entries.");
+                    }
+
+                    endpoints.Add(endpoint);
+                }
             }
 
             return endpoints.Count == 0 ? Array.Empty<CoapEndpoint>() : endpoints.ToArray();
+        }
+
+        private sealed class ReflectionResourceEndpointFactoryMarker
+        {
+            private readonly CoapMvcOptions _options;
+
+            public ReflectionResourceEndpointFactoryMarker(CoapMvcOptions options)
+            {
+                _options = options ?? throw new ArgumentNullException(nameof(options));
+            }
+
+            [RequiresUnreferencedCode("Reflection-based CoAP resource discovery is not trim-safe. Native AOT hosts should use generated endpoint factories.")]
+            [RequiresDynamicCode("Reflection-based CoAP resource discovery invokes runtime-discovered methods. Native AOT hosts should use generated endpoint factories.")]
+            public IEnumerable<CoapEndpoint> BuildEndpoints(IServiceProvider serviceProvider)
+            {
+                return CoapResourceEndpointBuilder.Build(_options);
+            }
         }
     }
 }

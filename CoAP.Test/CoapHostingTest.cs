@@ -59,6 +59,27 @@ namespace CoAP
         }
 
         [Test]
+        public void AddCoapResources_UsesEndpointFactories()
+        {
+            var services = new ServiceCollection();
+            services.AddCoapResources(options => options.AddEndpointFactory(_ => new[]
+            {
+                new CoapEndpoint(
+                    Method.POST,
+                    "generated/{target}/telemetry",
+                    _ => new ValueTask<CoapRouteResult>(CoapRouteResult.Changed()))
+            }));
+
+            using var provider = services.BuildServiceProvider();
+            var dataSource = provider.GetRequiredService<ICoapEndpointDataSource>();
+            var endpoint = dataSource.Endpoints.SingleOrDefault(candidate =>
+                candidate.Method == Method.POST &&
+                candidate.RoutePattern.Template == "generated/{target}/telemetry");
+
+            Assert.IsNotNull(endpoint);
+        }
+
+        [Test]
         public void MapCoapResources_AddsRegisteredRoutesToServerResourceTree()
         {
             var invoked = false;

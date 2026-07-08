@@ -5,6 +5,8 @@ using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Concurrent;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,7 +26,8 @@ namespace CoAP.Examples.ResourceMvc
             {
                 options.ListenAnyIP(Port);
             });
-            builder.Services.AddCoapResources();
+            builder.Services.AddCoapJsonPayloadBinder(ResourceMvcJsonContext.Default);
+            builder.Services.AddCoapResources(options => options.AddReflectionResourceDiscovery());
 
             var app = builder.Build();
             app.MapCoapResources();
@@ -62,7 +65,7 @@ namespace CoAP.Examples.ResourceMvc
         public CoapRouteResult GetLatest(string sensor, [CoapFromQuery("unit")] string requestedUnit = null)
         {
             var reading = _readings.GetLatest(sensor, requestedUnit);
-            return Json(reading).WithMaxAge(10);
+            return Json(reading, ResourceMvcJsonContext.Default.ReadingState).WithMaxAge(10);
         }
 
         [CoapPost("readings")]
@@ -88,12 +91,12 @@ namespace CoAP.Examples.ResourceMvc
                 payload,
                 remoteEndPoint);
 
-            return Json(new
+            return Json(new UploadReadingResponse
             {
-                ok = true,
-                reading,
-                path = string.Join("/", context.PathSegments)
-            }).WithLocationPath("sensors/" + sensor + "/latest");
+                Ok = true,
+                Reading = reading,
+                Path = string.Join("/", context.PathSegments)
+            }, ResourceMvcJsonContext.Default.UploadReadingResponse).WithLocationPath("sensors/" + sensor + "/latest");
         }
 
         [CoapPost("snapshot")]
@@ -105,11 +108,11 @@ namespace CoAP.Examples.ResourceMvc
             [CoapFromPayload] ReadOnlyMemory<byte> payload)
         {
             var receipt = _readings.SaveSnapshot(sensor, payload.Length);
-            return Json(new
+            return Json(new UploadSnapshotResponse
             {
-                ok = true,
-                receipt
-            }).WithLocationPath("sensors/" + sensor + "/snapshot");
+                Ok = true,
+                Receipt = receipt
+            }, ResourceMvcJsonContext.Default.UploadSnapshotResponse).WithLocationPath("sensors/" + sensor + "/snapshot");
         }
 
         [CoapObserve("status")]
@@ -120,12 +123,12 @@ namespace CoAP.Examples.ResourceMvc
         public CoapRouteResult ObserveStatus(string sensor)
         {
             var observe = _observeSequence.Next();
-            return Json(new
+            return Json(new SensorStatusResponse
             {
-                sensor,
-                status = "online",
-                observe
-            }).WithObserve(observe).WithMaxAge(5);
+                Sensor = sensor,
+                Status = "online",
+                Observe = observe
+            }, ResourceMvcJsonContext.Default.SensorStatusResponse).WithObserve(observe).WithMaxAge(5);
         }
 
         [CoapGet("fault")]
@@ -138,9 +141,9 @@ namespace CoAP.Examples.ResourceMvc
                 "sample error response for sensor '" + sensor + "'");
         }
 
-        private static CoapRouteResult Json(object value)
+        private static CoapRouteResult Json<T>(T value, JsonTypeInfo<T> jsonTypeInfo)
         {
-            return CoapRouteResult.Json(JsonSerializer.Serialize(value, JsonDefaults.Options));
+            return CoapRouteResult.Json(JsonSerializer.SerializeToUtf8Bytes(value, jsonTypeInfo));
         }
     }
 
@@ -267,8 +270,39 @@ namespace CoAP.Examples.ResourceMvc
         public DateTimeOffset Timestamp { get; set; }
     }
 
-    internal static class JsonDefaults
+    public sealed class UploadReadingResponse
     {
-        public static readonly JsonSerializerOptions Options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        public bool Ok { get; set; }
+
+        public ReadingState Reading { get; set; }
+
+        public string Path { get; set; }
+    }
+
+    public sealed class UploadSnapshotResponse
+    {
+        public bool Ok { get; set; }
+
+        public SnapshotReceipt Receipt { get; set; }
+    }
+
+    public sealed class SensorStatusResponse
+    {
+        public string Sensor { get; set; }
+
+        public string Status { get; set; }
+
+        public int Observe { get; set; }
+    }
+
+    [JsonSourceGenerationOptions(JsonSerializerDefaults.Web)]
+    [JsonSerializable(typeof(ReadingPayload))]
+    [JsonSerializable(typeof(ReadingState))]
+    [JsonSerializable(typeof(SnapshotReceipt))]
+    [JsonSerializable(typeof(UploadReadingResponse))]
+    [JsonSerializable(typeof(UploadSnapshotResponse))]
+    [JsonSerializable(typeof(SensorStatusResponse))]
+    internal sealed partial class ResourceMvcJsonContext : JsonSerializerContext
+    {
     }
 }

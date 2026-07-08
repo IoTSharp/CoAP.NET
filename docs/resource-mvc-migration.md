@@ -11,14 +11,17 @@ builder.Services.AddCoapServer(options =>
 {
     options.ListenAnyIP(5683);
 });
-builder.Services.AddCoapResources();
+builder.Services.AddCoapResources(options =>
+{
+    options.AddEndpointFactory(MyGeneratedCoapEndpoints.Create);
+});
 
 var app = builder.Build();
 app.MapCoapResources();
 app.Run();
 ```
 
-普通宿主应用不需要显式调用 `AddApplicationPart(...)`。该扩展点仅用于插件程序集、外部模块或测试场景。
+Native AOT 宿主应由 source generator 生成 endpoint factory，并通过 `AddEndpointFactory(...)` 注册。非 AOT 宿主若暂时使用运行时 attribute scanning，可显式启用 `AddReflectionResourceDiscovery()`；`AddApplicationPart(...)` 仍只用于插件程序集、外部模块或测试场景。
 
 ## Resource class 示例
 
@@ -68,6 +71,17 @@ public CoapRouteResult UploadReading(string sensor, ReadingPayload payload)
 {
     return CoapRouteResult.Json("{\"ok\":true}");
 }
+```
+
+Native AOT 宿主需要注册 source-generated JSON metadata：
+
+```csharp
+[JsonSerializable(typeof(ReadingPayload))]
+internal sealed partial class MyCoapJsonContext : JsonSerializerContext
+{
+}
+
+builder.Services.AddCoapJsonPayloadBinder(MyCoapJsonContext.Default);
 ```
 
 客户端需要设置 `Content-Format: application/json`。如果请求使用其他 Content-Format，CoAP.NET 会在 action 前返回 `4.15 Unsupported Content-Format`。
@@ -175,7 +189,10 @@ server.Start();
 
 ```csharp
 builder.Services.AddCoapServer(options => options.ListenAnyIP(5683));
-builder.Services.AddCoapResources();
+builder.Services.AddCoapResources(options =>
+{
+    options.AddEndpointFactory(MyGeneratedCoapEndpoints.Create);
+});
 var app = builder.Build();
 app.MapCoapResources();
 app.Run();

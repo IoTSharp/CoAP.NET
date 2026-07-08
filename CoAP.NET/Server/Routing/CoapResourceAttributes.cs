@@ -13,7 +13,7 @@ using System;
 namespace CoAP.Server.Routing
 {
     /// <summary>
-    /// Marks a class as a CoAP resource discovered by <c>AddCoapResources()</c>.
+    /// Marks a class as a CoAP resource discovered by reflection discovery or source generation.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
     public sealed class CoapResourceAttribute : Attribute

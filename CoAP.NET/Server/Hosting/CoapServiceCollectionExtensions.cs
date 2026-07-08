@@ -18,6 +18,10 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -97,14 +101,102 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<ICoapEndpointDataSource>(serviceProvider =>
             {
                 var options = serviceProvider.GetRequiredService<IOptions<CoapMvcOptions>>().Value;
-                return new CoapEndpointDataSource(options.BuildEndpoints());
+                return new CoapEndpointDataSource(options.BuildEndpoints(serviceProvider));
             });
             services.TryAddSingleton<ICoapEndpointMatcher, CoapEndpointMatcher>();
             services.TryAddSingleton<CoapActionInvoker>();
             services.TryAddSingleton<ICoapResultExecutor, CoapResultExecutor>();
-            services.TryAddSingleton<ICoapJsonPayloadBinder, CoapSystemTextJsonPayloadBinder>();
+            services.TryAddSingleton<ICoapJsonPayloadBinder, CoapMissingJsonPayloadBinder>();
             services.TryAddSingleton<CoapRequestDispatcher>();
             services.TryAddSingleton<CoapResourceEndpointMapper>();
+            return services;
+        }
+
+        /// <summary>
+        /// Registers a source-generated JSON payload binder for CoAP resource action parameters.
+        /// </summary>
+        /// <param name="services">The service collection.</param>
+        /// <param name="jsonSerializerContext">The source-generated JSON serializer context.</param>
+        /// <returns>The service collection.</returns>
+        public static IServiceCollection AddCoapJsonPayloadBinder(
+            this IServiceCollection services,
+            JsonSerializerContext jsonSerializerContext)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            if (jsonSerializerContext == null)
+            {
+                throw new ArgumentNullException(nameof(jsonSerializerContext));
+            }
+
+            services.Replace(ServiceDescriptor.Singleton<ICoapJsonPayloadBinder>(
+                new CoapJsonTypeInfoPayloadBinder(jsonSerializerContext)));
+            return services;
+        }
+
+        /// <summary>
+        /// Registers a source-generated JSON payload binder for CoAP resource action parameters.
+        /// </summary>
+        /// <param name="services">The service collection.</param>
+        /// <param name="resolver">The source-generated JSON metadata resolver.</param>
+        /// <param name="jsonSerializerOptions">Serializer options used when resolving metadata.</param>
+        /// <returns>The service collection.</returns>
+        public static IServiceCollection AddCoapJsonPayloadBinder(
+            this IServiceCollection services,
+            IJsonTypeInfoResolver resolver,
+            JsonSerializerOptions jsonSerializerOptions = null)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            if (resolver == null)
+            {
+                throw new ArgumentNullException(nameof(resolver));
+            }
+
+            services.Replace(ServiceDescriptor.Singleton<ICoapJsonPayloadBinder>(
+                new CoapJsonTypeInfoPayloadBinder(resolver, jsonSerializerOptions)));
+            return services;
+        }
+
+        /// <summary>
+        /// Registers the reflection-based System.Text.Json payload binder for non-AOT hosts.
+        /// </summary>
+        /// <param name="services">The service collection.</param>
+        /// <returns>The service collection.</returns>
+        [RequiresUnreferencedCode("The reflection-based JSON binder is not trim-safe. Native AOT hosts should call AddCoapJsonPayloadBinder with a source-generated JsonSerializerContext.")]
+        [RequiresDynamicCode("The reflection-based JSON binder may require runtime code generation. Native AOT hosts should call AddCoapJsonPayloadBinder with a source-generated JsonSerializerContext.")]
+        public static IServiceCollection AddCoapSystemTextJsonPayloadBinder(this IServiceCollection services)
+        {
+            return AddCoapSystemTextJsonPayloadBinder(services, null);
+        }
+
+        /// <summary>
+        /// Registers the reflection-based System.Text.Json payload binder for non-AOT hosts.
+        /// </summary>
+        /// <param name="services">The service collection.</param>
+        /// <param name="jsonSerializerOptions">Serializer options used to resolve JSON metadata.</param>
+        /// <returns>The service collection.</returns>
+        [RequiresUnreferencedCode("The reflection-based JSON binder is not trim-safe. Native AOT hosts should call AddCoapJsonPayloadBinder with a source-generated JsonSerializerContext.")]
+        [RequiresDynamicCode("The reflection-based JSON binder may require runtime code generation. Native AOT hosts should call AddCoapJsonPayloadBinder with a source-generated JsonSerializerContext.")]
+        public static IServiceCollection AddCoapSystemTextJsonPayloadBinder(
+            this IServiceCollection services,
+            JsonSerializerOptions jsonSerializerOptions)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            var binder = jsonSerializerOptions == null
+                ? new CoapSystemTextJsonPayloadBinder()
+                : new CoapSystemTextJsonPayloadBinder(jsonSerializerOptions);
+            services.Replace(ServiceDescriptor.Singleton<ICoapJsonPayloadBinder>(binder));
             return services;
         }
 

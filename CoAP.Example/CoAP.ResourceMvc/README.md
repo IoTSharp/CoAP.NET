@@ -7,7 +7,11 @@ builder.Services.AddCoapServer(options =>
 {
     options.ListenAnyIP(5683);
 });
-builder.Services.AddCoapResources();
+builder.Services.AddCoapJsonPayloadBinder(ResourceMvcJsonContext.Default);
+builder.Services.AddCoapResources(options =>
+{
+    options.AddReflectionResourceDiscovery();
+});
 
 var app = builder.Build();
 app.MapCoapResources();
