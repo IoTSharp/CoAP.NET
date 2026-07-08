@@ -119,7 +119,7 @@ The full Resource-style server sample is in
 `CoAP.Example/CoAP.Server`. It registers resources such as `hello`, `storage`,
 `large`, `separate`, and `time` by calling `server.Add(new ...Resource(...))`.
 
-Route-style server endpoint:
+Resource-class route endpoint:
 
 ```csharp
 using CoAP;
@@ -131,21 +131,29 @@ using System.Threading.Tasks;
 var server = new CoapServer();
 var routes = CoapRouteEndpoint.Create(new[]
 {
-    CoapRoute.Post("diagnostics/{target}/ping", context =>
+    CoapRoute.Post(
+        "diagnostics/{target}/ping",
+        () => new DiagnosticsCoapResource(),
+        resource => resource.PingAsync())
+});
+
+server.Add(routes.ToArray());
+server.Start();
+
+sealed class DiagnosticsCoapResource : CoapResourceBase
+{
+    public ValueTask<CoapRouteResult> PingAsync()
     {
-        var target = context.RouteValues["target"];
-        var bytes = context.Payload;
+        var target = RouteValues["target"];
+        var bytes = Payload;
         var payload = System.Text.Encoding.UTF8.GetBytes("{\"ok\":true}");
         return new ValueTask<CoapRouteResult>(
             CoapRouteResult.Content(payload, MediaType.ApplicationJson)
                 .WithMaxAge(30)
                 .WithETag(new byte[] { 0x01, 0x02 })
                 .WithLocationPath($"diagnostics/{target}/ping"));
-    })
-});
-
-server.Add(routes.ToArray());
-server.Start();
+    }
+}
 ```
 
 DTLS PSK server endpoint:

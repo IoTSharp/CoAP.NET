@@ -1,14 +1,14 @@
 # CoAP.NET 路线图
 
-本文档只记录 CoAP.NET fork 自身的兼容、MVC Routing、性能和维护路线。CoAP 标准中的 Resource 概念继续保留在协议栈内部；新增 route / endpoint / controller 风格 API 的目的，是给应用代码一个更接近现代 .NET 服务器编程的入口，避免业务代码必须直接继承协议内部 Resource 类型。
+本文档只记录 CoAP.NET fork 自身的兼容、MVC Routing、性能和维护路线。CoAP 标准中的 Resource 概念继续保留在协议栈内部；新增 route / endpoint / resource 风格 API 的目的，是给应用代码一个更接近现代 .NET 服务器编程的入口，避免业务代码必须直接继承协议内部 Resource 类型。
 
 宿主应用只声明业务端点和调用业务服务。路由注册、路由匹配、请求分发、结果执行、资源发现和框架约定应沉淀在 CoAP.NET 内部，最终达到类似 REST API controller 的开发体验。
 
 ## 目标边界
 
 - 保留原 CoAP.NET client、server、resource tree、blockwise、observe 和 DTLS PSK 能力。
-- 新增 CoAP route adapter：`CoapRoute`、`CoapGet/Post/Put/Delete`、`CoapRouteContext` 和显式 route builder。
-- 新增 CoAP MVC Routing：endpoint 数据源、route pattern、matcher、dispatcher、controller/action 描述、attribute route 和 convention route。
+- 新增 CoAP route adapter：`CoapRoute`、`CoapGet/Post/Put/Delete`、`CoapRouteContext`、`CoapResourceBase` 和显式 route builder。
+- 新增 CoAP MVC Routing：endpoint 数据源、route pattern、matcher、dispatcher、resource/action 描述、attribute route 和 convention route。
 - 新增 CoAP resource discovery 集成：`.well-known/core` 由 endpoint metadata 生成资源描述，支持 `rt`、`if`、`ct`、`obs` 等 CoRE Link Format 属性。
 - CoAP.NET 内部仍可继承 `CoAP.Server.Resources.Resource`；应用集成层只暴露 route / endpoint。
 - 低分配优先：payload 对外提供 `ReadOnlyMemory<byte>`，JSON 解析优先走 source-generated `System.Text.Json`。
@@ -18,7 +18,7 @@
 
 ## MVC Routing 目标形态
 
-CoAP.NET 的主入口应与 ASP.NET Core MVC 的使用方式接近。宿主注册 CoAP server 和 MVC 服务，框架按宿主应用程序集自动发现 controller；业务项目只声明 controller/action，不再手写 `CoapRouteEndpoint.Create(...)`，也不直接 `new CoapServer()` 或传递 `IServiceProvider`。
+CoAP.NET 的主入口应与 ASP.NET Core MVC 的使用方式接近。宿主注册 CoAP server 和 MVC 服务，框架按宿主应用程序集自动发现 resource；业务项目只声明 resource/action，不再手写 `CoapRouteEndpoint.Create(...)`，也不直接 `new CoapServer()` 或传递 `IServiceProvider`。
 
 ```csharp
 builder.Services.AddCoapServer(options =>
@@ -32,22 +32,22 @@ app.MapCoapResources();
 app.Run();
 ```
 
-`AddApplicationPart(...)` 只作为插件程序集、外部模块或测试场景的扩展入口，普通宿主业务 controller 不需要显式调用。
+`AddApplicationPart(...)` 只作为插件程序集、外部模块或测试场景的扩展入口，普通宿主业务 resource 不需要显式调用。
 
 业务项目只声明业务路径和业务动作：
 
 ```csharp
 [CoapController]
 [CoapRoute("sensors/{sensor}")]
-public sealed class SensorCoapController
+public sealed class SensorCoapResource : CoapResourceBase
 {
     [CoapPost("readings")]
     [CoapResourceTitle("Sensor reading upload")]
     public ValueTask<ICoapResult> UploadReadingAsync(
         string sensor,
-        CoapRouteContext context,
         CancellationToken cancellationToken)
     {
+        var payload = Payload;
         // 宿主业务逻辑：鉴权、资源校验、数据写入、事件发布。
     }
 }
@@ -56,21 +56,21 @@ public sealed class SensorCoapController
 目标不是复制完整 ASP.NET Core MVC，而是提供 CoAP 适配的最小 MVC 子集：
 
 - server hosting：`AddCoapServer()` 注册监听端口、传输、DTLS 和后台生命周期。
-- resource registration：`AddCoapResources()` / `AddCoapMvc()` 注册 endpoint data source、controller discovery、matcher、dispatcher、binder、result executor 和 discovery provider。
+- resource registration：`AddCoapResources()` / `AddCoapMvc()` 注册 endpoint data source、resource/controller discovery、matcher、dispatcher、binder、result executor 和 discovery provider。
 - endpoint mapping：`app.MapCoapResources()` 像 `app.MapControllers()` 一样完成 CoAP resource endpoint 映射，不暴露 `CoapServer` 手工组装。
 - attribute routing：`[CoapRoute]`、`[CoapGet]`、`[CoapPost]`、`[CoapPut]`、`[CoapDelete]`、`[CoapObserve]`。
-- convention routing：按 controller/action 命名生成默认 route，允许宿主覆盖。
+- convention routing：按 resource/action 命名生成默认 route，允许宿主覆盖。
 - endpoint metadata：method、path、content-format、accept、observe、discovery 属性、授权策略名。
 - dispatcher pipeline：匹配 endpoint，创建调用上下文，执行 filter，绑定参数，调用 action，执行 result。
 - resource discovery：根据 endpoint metadata 生成 `.well-known/core` 输出。
-- DI 友好：controller 可由宿主服务容器创建，CoAP.NET 不持有业务单例。
+- DI 友好：resource 可由宿主服务容器创建，CoAP.NET 不持有业务单例。
 
 显式 route handler 只作为底层兼容和轻量测试入口继续保留，不作为宿主应用的推荐开发模式，也不再用某个宿主应用的业务路径作为示例。
 
 ## 当前基线
 
 - `CoAP.Server.Routing.CoapRouteEndpoint` 已存在，能够把 method + Uri-Path 映射到 `CoapRouteHandler`。
-- `CoapRouteContext` 已暴露 path、route values、queries、payload、Content-Format、Accept。
+- `CoapRouteContext` 已暴露 path、route values、queries、payload、Content-Format、Accept；`CoapResourceBase` 已能像 MVC 的 `ControllerBase` 一样在 action 内暴露当前上下文。
 - `CoapRouteResult` 已支持 status、text/binary payload、Content-Format、ETag、Max-Age、Location-Path 和 Location-Query。
 - 既有宿主集成可能仍通过手写 route endpoint 注册表和业务上下文拼装接入 CoAP.NET；这只是过渡状态。
 - 下一阶段要把通用的注册、匹配、分发和发现能力迁入 CoAP.NET；宿主应用只保留业务路径声明和业务服务调用。
@@ -86,13 +86,13 @@ public sealed class SensorCoapController
 | C4 | `⬜` | routing core 抽象 | 提取 `CoapRoutePattern`、`CoapEndpoint`、`CoapEndpointMetadataCollection`、`ICoapEndpointDataSource`、`ICoapEndpointMatcher`；`CoapRouteEndpoint` 改为消费 endpoint 数据源。 |
 | C5 | `⬜` | CoAP hosting 与 Resource 注册 | 新增 `AddCoapServer()`、`AddCoapResources()` / `AddCoapMvc()`、`CoapMvcOptions`、`app.MapCoapResources()`；server 生命周期由宿主管理，显式 route handler 降为低层扩展。 |
 | C6 | `⬜` | dispatcher pipeline | 新增 `CoapRequestDispatcher`、`CoapActionInvoker`、`ICoapResult`、`ICoapResultExecutor`、统一异常和错误响应映射；支持宿主 service scope。 |
-| C7 | `⬜` | controller attribute routing | 新增 `[CoapController]`、`[CoapRoute]`、method attributes、controller/action descriptor、application part 扫描；生成 endpoint 数据源。 |
-| C8 | `⬜` | model binding 与 media negotiation | 支持 route value、query、request option、payload、`CancellationToken`、`CoapRouteContext` 参数绑定；补齐 Content-Format / Accept 匹配和 JSON binder 扩展点。 |
+| C7 | `⬜` | resource attribute routing | 新增 `[CoapController]` 兼容标记、`[CoapRoute]`、method attributes、resource/action descriptor、application part 扫描；生成 endpoint 数据源。 |
+| C8 | `⬜` | model binding 与 media negotiation | 支持 route value、query、request option、payload、`CancellationToken`、`CoapRouteContext` 参数绑定；继承 `CoapResourceBase` 时优先通过 `Context` / `Payload` / `RouteValues` 访问上下文；补齐 Content-Format / Accept 匹配和 JSON binder 扩展点。 |
 | C9 | `⬜` | resource discovery | `.well-known/core` 从 endpoint metadata 生成 CoRE Link Format；支持标题、资源类型、接口描述、content-format、observe 可见性和隐藏端点。 |
 | C10 | `⬜` | filters 与安全扩展点 | 支持 endpoint filter、authorization hook、tenant/context hook；CoAP.NET 只定义接口和调用时机，不内置宿主业务策略。 |
-| C11 | `⬜` | Resource/MVC 示例与迁移文档 | 提供 `AddCoapServer()`、`AddCoapResources()`、`app.MapCoapResources()`、controller、JSON、binary payload、query option、Content-Format、Accept、Observe、发现输出和错误响应示例；说明 Resource 风格与 MVC 风格如何共存。 |
+| C11 | `⬜` | Resource/MVC 示例与迁移文档 | 提供 `AddCoapServer()`、`AddCoapResources()`、`app.MapCoapResources()`、resource class、JSON、binary payload、query option、Content-Format、Accept、Observe、发现输出和错误响应示例；说明 Resource 风格与 MVC 风格如何共存。 |
 | C12 | `⬜` | 性能、AOT 与文档收口 | CoAP route benchmark、blockwise 大 payload 测试、DTLS PSK smoke、Observe smoke、trim/AOT warning 清单和发布检查清单。 |
-| C13 | `⬜` | 宿主应用迁移落地 | 宿主应用移除手写 route endpoint 注册，改用 `AddCoapServer()`、`AddCoapResources()` 和 `app.MapCoapResources()`；保留自己的业务 controller、业务 DTO、授权、审计和领域服务调用。 |
+| C13 | `⬜` | 宿主应用迁移落地 | 宿主应用移除手写 route endpoint 注册，改用 `AddCoapServer()`、`AddCoapResources()` 和 `app.MapCoapResources()`；保留自己的业务 resource、业务 DTO、授权、审计和领域服务调用。 |
 
 ## 推荐执行顺序
 
@@ -104,7 +104,7 @@ C0 兼容基线
         -> C4 routing core 抽象
           -> C5 AddCoapServer / AddCoapResources / app.MapCoapResources
             -> C6 dispatcher pipeline
-              -> C7 controller attribute routing
+              -> C7 resource attribute routing
                 -> C8 model binding / media negotiation
                   -> C9 resource discovery
                     -> C10 filters / security hooks
@@ -122,7 +122,7 @@ C0 兼容基线
 - `CoapRoutePattern`：解析 `{name}`、literal segment、可选约束，负责 path 匹配和 route value 提取。
 - `CoapEndpoint`：描述一个可调用 CoAP endpoint，包含 method、route pattern、handler/action、metadata。
 - `CoapEndpointMetadataCollection`：保存 discovery、media type、observe、authorization、filter 等元数据。
-- `ICoapEndpointDataSource`：暴露 endpoint 集合，供 route handler 和 controller 扫描共同使用。
+- `ICoapEndpointDataSource`：暴露 endpoint 集合，供 route handler 和 resource 扫描共同使用。
 - `ICoapEndpointMatcher`：按 method、Uri-Path、Content-Format、Accept、Observe 等条件选择 endpoint。
 - `CoapRouteEndpoint`：继续作为 resource tree adapter，但只负责把 CoAP.NET resource tree 请求转给 matcher/dispatcher。
 
@@ -134,11 +134,11 @@ C0 兼容基线
 
 ### C5 CoAP hosting 与 Resource 注册
 
-目标是把宿主入口固定为常规 MVC 风格：服务注册发生在 `builder.Services`，controller 映射发生在 `app`，CoAP server 生命周期由 host 管理，让宿主应用不再显式创建 `CoapServer` 或 `CoapRouteEndpoint`。
+目标是把宿主入口固定为常规 MVC 风格：服务注册发生在 `builder.Services`，resource 映射发生在 `app`，CoAP server 生命周期由 host 管理，让宿主应用不再显式创建 `CoapServer` 或 `CoapRouteEndpoint`。
 
 - `AddCoapServer()`：注册 CoAP server 配置、监听端点、传输、DTLS、后台服务和生命周期。
-- `AddCoapResources()`：按宿主应用程序集自动发现 CoAP controller/resource endpoint，注册 endpoint data source、matcher、dispatcher、binder、result executor、discovery provider。
-- `AddCoapMvc()`：作为完整 MVC 能力入口或 `AddCoapResources()` 的兼容别名，包含 controller、filter、model binding、result executor。
+- `AddCoapResources()`：按宿主应用程序集自动发现 CoAP resource/controller endpoint，注册 endpoint data source、matcher、dispatcher、binder、result executor、discovery provider。
+- `AddCoapMvc()`：作为完整 MVC 能力入口或 `AddCoapResources()` 的兼容别名，包含 resource/controller、filter、model binding、result executor。
 - `CoapMvcOptions`：配置 route conventions、filter、默认 discovery metadata、media type 策略；`ApplicationPart` 只用于插件程序集、外部模块和测试。
 - `app.MapCoapResources()`：像 `app.MapControllers()` 一样映射 CoAP resource endpoint，不接受裸 `IServiceProvider` 参数。
 - `MapCoapRoutes(...)`：只保留给低层 handler、单文件样例和轻量测试，不作为宿主应用推荐入口。
@@ -146,7 +146,7 @@ C0 兼容基线
 验收：
 
 - README 和示例中的推荐启动代码使用 `AddCoapServer()`、`AddCoapResources()` 和 `app.MapCoapResources()`。
-- 普通业务 controller 不需要 `AddApplicationPart(...)`。
+- 普通业务 resource 不需要 `AddApplicationPart(...)`。
 - 宿主应用可删除 `new CoapServer()`、手写 resource endpoint 注册表这类 server/resource 注册入口。
 - 显式 route handler 的示例被标注为低层兼容入口。
 
@@ -155,7 +155,7 @@ C0 兼容基线
 目标是让“匹配后怎么调用业务代码”成为 CoAP.NET 通用能力。
 
 - `CoapRequestDispatcher`：从 `Exchange` 或 `CoapRouteContext` 创建 endpoint invocation。
-- `CoapActionInvoker`：调用 handler 或 controller action。
+- `CoapActionInvoker`：调用 handler 或 resource action。
 - `ICoapResult`：统一表达 status、payload、Content-Format、ETag、Max-Age、Location-Path、Observe 等 response 信息。
 - `ICoapResultExecutor`：把 `ICoapResult` 写回 `Response`。
 - 统一异常处理：未匹配、method 不允许、media type 不支持、业务异常分别映射到 CoAP response code。
@@ -165,33 +165,33 @@ C0 兼容基线
 
 - route handler 抛异常时返回稳定的 5.xx 响应并记录日志。
 - `ICoapResult` 可以无 payload、text payload、JSON payload、binary payload。
-- handler 和 controller 共用同一套结果执行器。
+- handler 和 resource 共用同一套结果执行器。
 
-### C7 controller attribute routing
+### C7 resource attribute routing
 
-目标是把业务项目从“手写 route 注册表”迁到“声明 controller/action”。
+目标是把业务项目从“手写 route 注册表”迁到“声明 resource/action”。
 
-- controller 扫描：按 `[CoapController]` 或命名约定识别 controller。
+- resource 扫描：按 `[CoapController]` 或 `*CoapResource` 命名约定识别业务 resource；`*CoapController` 仅作为兼容识别，不作为新示例命名。
 - route attributes：`[CoapRoute]` 定义前缀，`[CoapGet]` / `[CoapPost]` / `[CoapPut]` / `[CoapDelete]` / `[CoapObserve]` 定义 action route。
 - action descriptor：记录 method、route template、参数、返回类型、metadata。
 - application model convention：允许宿主修改 route 前缀、隐藏发现、添加默认 metadata。
-- endpoint 生成：controller action 最终转成 `CoapEndpoint`。
+- endpoint 生成：resource action 最终转成 `CoapEndpoint`。
 
 验收：
 
-- 示例 controller 可注册 `sensors/{sensor}/readings`、`diagnostics/{target}/status` 等通用路径。
-- 业务项目不需要直接引用 `IResource`。
-- controller route 与 handler route 可以共存。
+- 示例 resource 可注册 `sensors/{sensor}/readings`、`diagnostics/{target}/status` 等通用路径。
+- 业务项目不需要直接引用 `IResource`；需要协议上下文时优先继承 `CoapResourceBase`。
+- resource route 与 handler route 可以共存。
 
 ### C8 model binding 与 media negotiation
 
-目标是让 controller action 参数由 CoAP.NET 绑定，不让业务层手动拆协议细节。
+目标是让 resource action 参数由 CoAP.NET 绑定，不让业务层手动拆协议细节。
 
 - route value 参数：`string device`、`Guid id`、`int point`。
 - query 参数：从 Uri-Query 绑定简单类型和集合。
 - option 参数：Content-Format、Accept、Observe、ETag、Block option。
 - payload 参数：`ReadOnlyMemory<byte>`、`Stream`、`JsonDocument`、DTO。
-- 特殊参数：`CoapRouteContext`、`CancellationToken`、远端 endpoint 信息。
+- 特殊参数：`CoapRouteContext`、`CancellationToken`、远端 endpoint 信息；继承 `CoapResourceBase` 的业务 resource 可直接访问 `Context`。
 - media negotiation：按 action 声明的 consumes/produces metadata 和请求 option 匹配。
 
 验收：
@@ -207,12 +207,12 @@ C0 兼容基线
 - 从 endpoint metadata 生成 CoRE Link Format。
 - 支持 `rt`、`if`、`ct`、`obs`、title 等常用属性。
 - 支持隐藏 endpoint，避免管理或内部入口暴露给设备。
-- 支持 controller/action attribute 声明 discovery metadata。
+- 支持 resource/action attribute 声明 discovery metadata。
 - 与原 `DiscoveryResource` 共存，必要时由 discovery resource 查询 endpoint 数据源。
 
 验收：
 
-- `.well-known/core` 能列出 route/controller endpoint。
+- `.well-known/core` 能列出 route/resource endpoint。
 - 隐藏 endpoint 不出现在 discovery 输出。
 - Observe endpoint 标记 `obs`。
 
@@ -227,7 +227,7 @@ C0 兼容基线
 
 验收：
 
-- 宿主应用可以把 access token、身份、领域对象校验挂到 filter 或 controller service，而不是写在 CoAP.NET。
+- 宿主应用可以把 access token、身份、领域对象校验挂到 filter 或 resource service，而不是写在 CoAP.NET。
 - CoAP.NET 不引用任何宿主应用的 contracts、data 或数据库包。
 
 ## 宿主应用迁移计划
@@ -240,17 +240,17 @@ C0 兼容基线
 | route segment 匹配和 route values 提取 | 由 `CoapRoutePattern` 和 matcher 处理 | CoAP.NET |
 | method/content-format/accept/observe 匹配 | 由 endpoint matcher 和 media negotiation 处理 | CoAP.NET |
 | `.well-known/core` 发现输出 | 由 endpoint metadata 生成 | CoAP.NET |
-| 业务路径 | 放到业务 controller attribute | 宿主应用 |
-| access token、权限、租户、领域对象、消息发布、审计 | 业务 service、filter 或 controller action | 宿主应用 |
+| 业务路径 | 放到业务 resource attribute | 宿主应用 |
+| access token、权限、租户、领域对象、消息发布、审计 | 业务 service、filter 或 resource action | 宿主应用 |
 | 宿主领域语义 | 保持在宿主应用控制面 | 宿主应用 |
 
 宿主应用第一轮目标：
 
-1. 新增业务 CoAP controller，声明宿主自己的 resource 路径。
-2. controller 内调用现有业务服务，先不重写业务逻辑。
-3. 旧的 `CoAPService` 或手写 server 启动逻辑逐步退化为 CoAP.NET hosting 内部实现，宿主只通过 `AddCoapServer()` 配置端口和传输，通过 `app.MapCoapResources()` 映射业务 resource/controller。
-4. 测试覆盖 controller 注册、匹配、业务调用和错误响应后，删除旧手写 route 注册。
-5. 后续新增业务入口时继续增加 controller/action，而不是增加手写路由分发器。
+1. 新增业务 CoAP resource，声明宿主自己的 resource 路径。
+2. resource 内调用现有业务服务，先不重写业务逻辑。
+3. 旧的 `CoAPService` 或手写 server 启动逻辑逐步退化为 CoAP.NET hosting 内部实现，宿主只通过 `AddCoapServer()` 配置端口和传输，通过 `app.MapCoapResources()` 映射业务 resource。
+4. 测试覆盖 resource 注册、匹配、业务调用和错误响应后，删除旧手写 route 注册。
+5. 后续新增业务入口时继续增加 resource/action，而不是增加手写路由分发器。
 
 ## 验收标准
 
@@ -260,8 +260,8 @@ C0 兼容基线
 - `async void DoPost` 不出现在新 route 入口；异常能被 adapter 捕获并转成 CoAP response。
 - Blockwise、Observe、DTLS PSK 与 route adapter 的组合有 smoke 测试。
 - CoAP.NET 能独立测试 endpoint 注册、匹配、分发和发现，不依赖任何宿主应用。
-- 宿主应用最终只保留业务 controller/action、业务 DTO、领域服务、权限和审计，不再拥有 CoAP routing framework。
-- `.well-known/core` 的 route/controller 发现输出来自 CoAP.NET metadata。
+- 宿主应用最终只保留业务 resource/action、业务 DTO、领域服务、权限和审计，不再拥有 CoAP routing framework。
+- `.well-known/core` 的 route/resource 发现输出来自 CoAP.NET metadata。
 
 ## 不做
 

@@ -30,6 +30,15 @@ namespace CoAP.Server.Routing
     public delegate ValueTask<CoapRouteResult> CoapRouteHandler(CoapRouteContext context);
 
     /// <summary>
+    /// Handles a matched CoAP route with a resource class instance.
+    /// </summary>
+    /// <typeparam name="TResource">The CoAP resource class type.</typeparam>
+    /// <param name="resource">The resource instance for the current invocation.</param>
+    /// <returns>The response to send to the CoAP client.</returns>
+    public delegate ValueTask<CoapRouteResult> CoapResourceRouteHandler<in TResource>(TResource resource)
+        where TResource : CoapResourceBase;
+
+    /// <summary>
     /// Describes a route template and handler for the CoAP resource tree adapter.
     /// </summary>
     public sealed class CoapRoute
@@ -143,6 +152,23 @@ namespace CoAP.Server.Routing
         }
 
         /// <summary>
+        /// Creates a POST route backed by a CoAP resource class.
+        /// </summary>
+        /// <typeparam name="TResource">The CoAP resource class type.</typeparam>
+        /// <param name="template">The URI path template.</param>
+        /// <param name="resourceFactory">Factory that creates the resource instance for this invocation.</param>
+        /// <param name="handler">The resource action handler.</param>
+        /// <returns>A route descriptor.</returns>
+        public static CoapRoute Post<TResource>(
+            string template,
+            Func<TResource> resourceFactory,
+            CoapResourceRouteHandler<TResource> handler)
+            where TResource : CoapResourceBase
+        {
+            return CreateResourceRoute(Method.POST, template, resourceFactory, handler);
+        }
+
+        /// <summary>
         /// Creates a GET route.
         /// </summary>
         /// <param name="template">The URI path template.</param>
@@ -151,6 +177,23 @@ namespace CoAP.Server.Routing
         public static CoapRoute Get(string template, CoapRouteHandler handler)
         {
             return new CoapRoute(Method.GET, template, handler);
+        }
+
+        /// <summary>
+        /// Creates a GET route backed by a CoAP resource class.
+        /// </summary>
+        /// <typeparam name="TResource">The CoAP resource class type.</typeparam>
+        /// <param name="template">The URI path template.</param>
+        /// <param name="resourceFactory">Factory that creates the resource instance for this invocation.</param>
+        /// <param name="handler">The resource action handler.</param>
+        /// <returns>A route descriptor.</returns>
+        public static CoapRoute Get<TResource>(
+            string template,
+            Func<TResource> resourceFactory,
+            CoapResourceRouteHandler<TResource> handler)
+            where TResource : CoapResourceBase
+        {
+            return CreateResourceRoute(Method.GET, template, resourceFactory, handler);
         }
 
         /// <summary>
@@ -165,6 +208,23 @@ namespace CoAP.Server.Routing
         }
 
         /// <summary>
+        /// Creates a PUT route backed by a CoAP resource class.
+        /// </summary>
+        /// <typeparam name="TResource">The CoAP resource class type.</typeparam>
+        /// <param name="template">The URI path template.</param>
+        /// <param name="resourceFactory">Factory that creates the resource instance for this invocation.</param>
+        /// <param name="handler">The resource action handler.</param>
+        /// <returns>A route descriptor.</returns>
+        public static CoapRoute Put<TResource>(
+            string template,
+            Func<TResource> resourceFactory,
+            CoapResourceRouteHandler<TResource> handler)
+            where TResource : CoapResourceBase
+        {
+            return CreateResourceRoute(Method.PUT, template, resourceFactory, handler);
+        }
+
+        /// <summary>
         /// Creates a DELETE route.
         /// </summary>
         /// <param name="template">The URI path template.</param>
@@ -173,6 +233,52 @@ namespace CoAP.Server.Routing
         public static CoapRoute Delete(string template, CoapRouteHandler handler)
         {
             return new CoapRoute(Method.DELETE, template, handler);
+        }
+
+        /// <summary>
+        /// Creates a DELETE route backed by a CoAP resource class.
+        /// </summary>
+        /// <typeparam name="TResource">The CoAP resource class type.</typeparam>
+        /// <param name="template">The URI path template.</param>
+        /// <param name="resourceFactory">Factory that creates the resource instance for this invocation.</param>
+        /// <param name="handler">The resource action handler.</param>
+        /// <returns>A route descriptor.</returns>
+        public static CoapRoute Delete<TResource>(
+            string template,
+            Func<TResource> resourceFactory,
+            CoapResourceRouteHandler<TResource> handler)
+            where TResource : CoapResourceBase
+        {
+            return CreateResourceRoute(Method.DELETE, template, resourceFactory, handler);
+        }
+
+        private static CoapRoute CreateResourceRoute<TResource>(
+            Method method,
+            string template,
+            Func<TResource> resourceFactory,
+            CoapResourceRouteHandler<TResource> handler)
+            where TResource : CoapResourceBase
+        {
+            if (resourceFactory == null)
+            {
+                throw new ArgumentNullException(nameof(resourceFactory));
+            }
+
+            if (handler == null)
+            {
+                throw new ArgumentNullException(nameof(handler));
+            }
+
+            return new CoapRoute(method, template, async context =>
+            {
+                var resource = resourceFactory();
+                if (resource == null)
+                {
+                    throw new InvalidOperationException("The CoAP resource factory returned null.");
+                }
+
+                return await resource.InvokeWithContextAsync(context, () => handler(resource)).ConfigureAwait(false);
+            });
         }
 
         private static RouteSegment[] ParseTemplate(string template)

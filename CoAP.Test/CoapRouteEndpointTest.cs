@@ -3,6 +3,7 @@ using CoAP.Server.Resources;
 using CoAP.Server.Routing;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -62,6 +63,34 @@ namespace CoAP
         }
 
         [Test]
+        public void HandleRequest_SetsRouteContextOnResourceBase_AndClearsItAfterInvocation()
+        {
+            var resources = new List<DiagnosticsCoapResource>();
+            var endpoint = CreateEndpoint(CoapRoute.Post(
+                "diagnostics/{target}/ping",
+                () =>
+                {
+                    var resource = new DiagnosticsCoapResource();
+                    resources.Add(resource);
+                    return resource;
+                },
+                resource => resource.PingAsync()), "edge-01", "ping");
+            var exchange = CreateExchange(Method.POST);
+
+            endpoint.HandleRequest(exchange);
+
+            var invokedResource = resources.Single();
+            Assert.IsTrue(invokedResource.ContextWasAvailable);
+            Assert.AreEqual(Method.POST, invokedResource.MethodSeen);
+            Assert.AreEqual("edge-01", invokedResource.TargetSeen);
+            Assert.AreEqual(StatusCode.Changed, exchange.SentResponse.StatusCode);
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                var ignored = invokedResource.Context;
+            });
+        }
+
+        [Test]
         public void HandleRequest_MethodMismatch_ReturnsMethodNotAllowed()
         {
             var endpoint = CreateEndpoint(CoapRoute.Get("diagnostics/{target}/status", _ =>
@@ -110,6 +139,23 @@ namespace CoAP
             {
                 SentResponse = response;
                 Response = response;
+            }
+        }
+
+        private sealed class DiagnosticsCoapResource : CoapResourceBase
+        {
+            public bool ContextWasAvailable { get; private set; }
+
+            public Method MethodSeen { get; private set; }
+
+            public string TargetSeen { get; private set; }
+
+            public ValueTask<CoapRouteResult> PingAsync()
+            {
+                ContextWasAvailable = Context != null;
+                MethodSeen = Method;
+                TargetSeen = RouteValues["target"];
+                return new ValueTask<CoapRouteResult>(CoapRouteResult.Changed());
             }
         }
     }
