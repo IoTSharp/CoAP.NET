@@ -17,7 +17,7 @@
     <PackageTags>coap;coaps;dtls;iot;udp;rfc7252;blockwise;observe</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>assets/coap-net-logo.png</PackageIcon>
-    <PackageReleaseNotes>Modernized to .NET 10, Native AOT analyzers, restored client APIs, and optional DTLS PSK transport.</PackageReleaseNotes>
+    <PackageReleaseNotes>CoAP.NET 3.0.0 modernizes the IoTSharp fork for .NET 10 with host-managed Resource/MVC routing, low-allocation route contexts, endpoint metadata discovery, filters and authorization hooks, source-generated endpoint factories, optional DTLS PSK transport, NuGet package icon/readme metadata, and GitHub Actions publishing.</PackageReleaseNotes>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <IsPackable>true</IsPackable>
     <IsAotCompatible>true</IsAotCompatible>

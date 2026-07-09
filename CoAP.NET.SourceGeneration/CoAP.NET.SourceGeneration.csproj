@@ -17,6 +17,7 @@
     <PackageTags>coap;source-generator;roslyn;iot</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>assets/coap-net-logo.png</PackageIcon>
+    <PackageReleaseNotes>CoAP.NET 3.0.0 adds source-generated Resource/MVC endpoint factories for trim- and Native AOT-friendly CoAP hosts, plus explicit language-version configuration for CI builds.</PackageReleaseNotes>
     <PackageLicenseExpression></PackageLicenseExpression>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>

@@ -17,6 +17,7 @@
     <PackageTags>coap;coaps;dtls;iot;udp;rfc7252;aspnetcore</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>assets/coap-net-logo.png</PackageIcon>
+    <PackageReleaseNotes>CoAP.NET 3.0.0 adds ASP.NET Core application-builder adapters for mapping host-managed CoAP resources through app.MapCoapResources(), aligned with the Generic Host Resource/MVC routing model.</PackageReleaseNotes>
     <PackageLicenseExpression></PackageLicenseExpression>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>

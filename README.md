@@ -14,6 +14,8 @@ The Resource/MVC sample and migration guide are available in
 [CoAP.Example/CoAP.ResourceMvc](CoAP.Example/CoAP.ResourceMvc) and
 [docs/resource-mvc-migration.md](docs/resource-mvc-migration.md). C12 release
 validation is tracked in [docs/c12-release-checklist.md](docs/c12-release-checklist.md).
+The 3.0 release notes are available in
+[docs/release-notes/3.0.0.md](docs/release-notes/3.0.0.md).
 
 ## NuGet Packages
 
