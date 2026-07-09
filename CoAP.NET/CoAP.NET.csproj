@@ -54,6 +54,8 @@
   <ItemGroup>
     <PackageReference Include="BouncyCastle.Cryptography" Condition="'$(ManagePackageVersionsCentrally)' == 'true'" />
     <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" Condition="'$(ManagePackageVersionsCentrally)' != 'true'" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Condition="'$(ManagePackageVersionsCentrally)' == 'true'" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.9" Condition="'$(ManagePackageVersionsCentrally)' != 'true'" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Condition="'$(ManagePackageVersionsCentrally)' == 'true'" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.9" Condition="'$(ManagePackageVersionsCentrally)' != 'true'" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Condition="'$(ManagePackageVersionsCentrally)' == 'true'" />

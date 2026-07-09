@@ -14,8 +14,10 @@ using CoAP.Net;
 using CoAP.Server;
 using CoAP.Server.Hosting;
 using CoAP.Server.Routing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -37,7 +39,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns>The service collection.</returns>
         public static IServiceCollection AddCoapServer(this IServiceCollection services)
         {
-            return AddCoapServer(services, null);
+            return AddCoapServer(services, (Action<CoapServerOptions>)null);
         }
 
         /// <summary>
@@ -65,6 +67,59 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<IServer>(serviceProvider => serviceProvider.GetRequiredService<CoapServer>());
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, CoapServerHostedService>());
             return services;
+        }
+
+        /// <summary>
+        /// Registers a hosted CoAP server from configuration-bound listen settings.
+        /// </summary>
+        /// <param name="services">The service collection.</param>
+        /// <param name="listenOptions">The listen settings.</param>
+        /// <returns>The service collection.</returns>
+        public static IServiceCollection AddCoapServer(
+            this IServiceCollection services,
+            CoapServerListenOptions listenOptions)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            if (listenOptions == null)
+            {
+                throw new ArgumentNullException(nameof(listenOptions));
+            }
+
+            listenOptions.Validate();
+            services.TryAddSingleton(listenOptions);
+            if (!listenOptions.HasEnabledTransport)
+            {
+                return services;
+            }
+
+            return AddCoapServer(services, options => options.ApplyListenOptions(listenOptions));
+        }
+
+        /// <summary>
+        /// Registers a hosted CoAP server by reading listen settings from a configuration section.
+        /// </summary>
+        /// <param name="services">The service collection.</param>
+        /// <param name="configuration">The configuration section containing CoAP listen settings.</param>
+        /// <returns>The service collection.</returns>
+        public static IServiceCollection AddCoapServer(
+            this IServiceCollection services,
+            IConfiguration configuration)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            if (configuration == null)
+            {
+                throw new ArgumentNullException(nameof(configuration));
+            }
+
+            return AddCoapServer(services, BindListenOptions(configuration));
         }
 
         /// <summary>
@@ -226,6 +281,12 @@ namespace Microsoft.Extensions.DependencyInjection
 
         private static CoapServer CreateCoapServer(IServiceProvider serviceProvider)
         {
+            var loggerFactory = serviceProvider.GetService<ILoggerFactory>();
+            if (loggerFactory != null)
+            {
+                CoapLogging.LoggerFactory = loggerFactory;
+            }
+
             var options = serviceProvider.GetRequiredService<IOptions<CoapServerOptions>>().Value;
             var config = options.Config ?? CoapConfig.Default;
             var server = new CoapServer(config);
@@ -241,6 +302,17 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             return server;
+        }
+
+        private static CoapServerListenOptions BindListenOptions(IConfiguration configuration)
+        {
+            var options = configuration.Get<CoapServerListenOptions>() ?? new CoapServerListenOptions();
+            if (options.Dtls == null)
+            {
+                options.Dtls = new CoapServerDtlsPskOptions();
+            }
+
+            return options;
         }
     }
 }

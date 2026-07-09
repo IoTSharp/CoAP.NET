@@ -34,5 +34,27 @@ namespace Microsoft.AspNetCore.Builder
             app.ApplicationServices.GetRequiredService<CoapResourceEndpointMapper>().Map();
             return app;
         }
+
+        /// <summary>
+        /// Enables the hosted CoAP server integration for an ASP.NET Core application.
+        /// </summary>
+        /// <param name="app">The ASP.NET Core application builder.</param>
+        /// <returns>The application builder.</returns>
+        public static IApplicationBuilder UseCoapServer(this IApplicationBuilder app)
+        {
+            if (app == null)
+            {
+                throw new ArgumentNullException(nameof(app));
+            }
+
+            var listenOptions = app.ApplicationServices.GetService<CoapServerListenOptions>();
+            if (listenOptions != null && !listenOptions.HasEnabledTransport)
+            {
+                return app;
+            }
+
+            app.ApplicationServices.GetRequiredService<CoapResourceEndpointMapper>().Map();
+            return app;
+        }
     }
 }

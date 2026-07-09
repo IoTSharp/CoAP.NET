@@ -33,7 +33,7 @@ namespace CoAP.Channel
     public sealed class DtlsPskChannel : IChannel
     {
         private static readonly ILogger Log = CoapLogging.CreateLogger(typeof(DtlsPskChannel));
-        private readonly Int32 _port;
+        private readonly IPEndPoint _localEndPoint;
         private readonly ConfiguredPskIdentityManager _identityManager;
         private readonly TimeSpan _sessionIdleTimeout;
         private readonly ConcurrentDictionary<IPEndPoint, DtlsPeerSession> _sessions
@@ -47,7 +47,7 @@ namespace CoAP.Channel
         /// Initializes a DTLS PSK channel bound to the given UDP port.
         /// </summary>
         public DtlsPskChannel(Int32 port, IReadOnlyDictionary<String, String> pskKeys)
-            : this(port, pskKeys, TimeSpan.FromMinutes(5))
+            : this(new IPEndPoint(IPAddress.Any, port), pskKeys, TimeSpan.FromMinutes(5))
         {
         }
 
@@ -58,15 +58,36 @@ namespace CoAP.Channel
             Int32 port,
             IReadOnlyDictionary<String, String> pskKeys,
             TimeSpan sessionIdleTimeout)
+            : this(new IPEndPoint(IPAddress.Any, port), pskKeys, sessionIdleTimeout)
         {
-            if (port < 0 || port > UInt16.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(port));
+        }
+
+        /// <summary>
+        /// Initializes a DTLS PSK channel bound to the given local UDP endpoint.
+        /// </summary>
+        public DtlsPskChannel(IPEndPoint localEndPoint, IReadOnlyDictionary<String, String> pskKeys)
+            : this(localEndPoint, pskKeys, TimeSpan.FromMinutes(5))
+        {
+        }
+
+        /// <summary>
+        /// Initializes a DTLS PSK channel bound to the given local UDP endpoint.
+        /// </summary>
+        public DtlsPskChannel(
+            IPEndPoint localEndPoint,
+            IReadOnlyDictionary<String, String> pskKeys,
+            TimeSpan sessionIdleTimeout)
+        {
+            if (localEndPoint == null)
+                throw new ArgumentNullException(nameof(localEndPoint));
+            if (localEndPoint.Port < 0 || localEndPoint.Port > UInt16.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(localEndPoint));
             if (pskKeys == null)
                 throw new ArgumentNullException(nameof(pskKeys));
             if (pskKeys.Count == 0)
                 throw new ArgumentException("At least one PSK identity must be configured.", nameof(pskKeys));
 
-            _port = port;
+            _localEndPoint = localEndPoint;
             _identityManager = new ConfiguredPskIdentityManager(pskKeys);
             _sessionIdleTimeout = sessionIdleTimeout <= TimeSpan.Zero ? TimeSpan.FromMinutes(5) : sessionIdleTimeout;
         }
@@ -74,7 +95,7 @@ namespace CoAP.Channel
         /// <inheritdoc/>
         public System.Net.EndPoint LocalEndPoint
         {
-            get { return _socket == null ? new IPEndPoint(IPAddress.Any, _port) : _socket.LocalEndPoint; }
+            get { return _socket == null ? _localEndPoint : _socket.LocalEndPoint; }
         }
 
         /// <inheritdoc/>
@@ -87,8 +108,8 @@ namespace CoAP.Channel
                 return;
 
             _stop = new CancellationTokenSource();
-            _socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            _socket.Bind(new IPEndPoint(IPAddress.Any, _port));
+            _socket = new Socket(_localEndPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
+            _socket.Bind(_localEndPoint);
             _receiveTask = Task.Run(() => ReceiveLoopAsync(_stop.Token));
             _cleanupTask = Task.Run(() => CleanupLoopAsync(_stop.Token));
         }
@@ -147,7 +168,7 @@ namespace CoAP.Channel
                     received = await socket.ReceiveFromAsync(
                         buffer,
                         SocketFlags.None,
-                        new IPEndPoint(IPAddress.Any, 0),
+                        CreateReceiveAnyEndPoint(),
                         cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
@@ -220,6 +241,14 @@ namespace CoAP.Channel
             if (Log.IsEnabled(LogLevel.Debug))
                 Log.LogDebug("DTLS server session created for {RemoteEndPoint}.", remote);
             return session;
+        }
+
+        private IPEndPoint CreateReceiveAnyEndPoint()
+        {
+            IPAddress address = _localEndPoint.AddressFamily == AddressFamily.InterNetworkV6
+                ? IPAddress.IPv6Any
+                : IPAddress.Any;
+            return new IPEndPoint(address, 0);
         }
 
         private void RemoveSession(IPEndPoint remote, DtlsPeerSession session)

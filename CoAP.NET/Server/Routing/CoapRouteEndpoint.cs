@@ -489,6 +489,96 @@ namespace CoAP.Server.Routing
             return null;
         }
 
+        /// <summary>
+        /// Gets decoded Uri-Query values with the specified key using ordinal matching.
+        /// </summary>
+        /// <param name="name">The query key.</param>
+        /// <returns>The decoded query values in request order.</returns>
+        public IReadOnlyList<string> GetQueryValues(string name)
+        {
+            return GetQueryValues(name, StringComparison.Ordinal);
+        }
+
+        /// <summary>
+        /// Gets decoded Uri-Query values with the specified key.
+        /// </summary>
+        /// <param name="name">The query key.</param>
+        /// <param name="comparisonType">The string comparison used for key matching.</param>
+        /// <returns>The decoded query values in request order.</returns>
+        public IReadOnlyList<string> GetQueryValues(string name, StringComparison comparisonType)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentException("A CoAP query key is required.", nameof(name));
+            }
+
+            return GetQueryValues(Queries, name, comparisonType);
+        }
+
+        /// <summary>
+        /// Gets the last decoded Uri-Query value with the specified key using ordinal matching.
+        /// </summary>
+        /// <param name="name">The query key.</param>
+        /// <param name="value">The decoded query value, or null when absent.</param>
+        /// <returns>True when a matching query value exists.</returns>
+        public bool TryGetQueryValue(string name, out string value)
+        {
+            return TryGetQueryValue(name, StringComparison.Ordinal, out value);
+        }
+
+        /// <summary>
+        /// Gets the last decoded Uri-Query value with the specified key.
+        /// </summary>
+        /// <param name="name">The query key.</param>
+        /// <param name="comparisonType">The string comparison used for key matching.</param>
+        /// <param name="value">The decoded query value, or null when absent.</param>
+        /// <returns>True when a matching query value exists.</returns>
+        public bool TryGetQueryValue(string name, StringComparison comparisonType, out string value)
+        {
+            var values = GetQueryValues(name, comparisonType);
+            if (values.Count == 0)
+            {
+                value = null;
+                return false;
+            }
+
+            value = values[values.Count - 1];
+            return true;
+        }
+
+        internal static IReadOnlyList<string> GetQueryValues(
+            IReadOnlyList<string> queries,
+            string name,
+            StringComparison comparisonType)
+        {
+            if (queries == null || queries.Count == 0)
+            {
+                return Array.Empty<string>();
+            }
+
+            var values = new List<string>();
+            for (var i = 0; i < queries.Count; i++)
+            {
+                var query = queries[i];
+                if (query == null)
+                {
+                    continue;
+                }
+
+                var separator = query.IndexOf('=');
+                var key = separator < 0 ? query : query.Substring(0, separator);
+                if (!string.Equals(DecodeQueryComponent(key), name, comparisonType))
+                {
+                    continue;
+                }
+
+                var value = separator < 0 ? string.Empty : query.Substring(separator + 1);
+                values.Add(DecodeQueryComponent(value));
+            }
+
+            return values.Count == 0 ? Array.Empty<string>() : values.ToArray();
+        }
+
         private static IReadOnlyList<byte[]> CreateOpaqueOptionValues(
             IReadOnlyList<Option> options,
             OptionType optionType)
@@ -529,6 +619,23 @@ namespace CoAP.Server.Routing
             }
 
             return null;
+        }
+
+        private static string DecodeQueryComponent(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+
+            try
+            {
+                return Uri.UnescapeDataString(value);
+            }
+            catch (UriFormatException)
+            {
+                return value;
+            }
         }
     }
 
