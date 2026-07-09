@@ -9,7 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" />
+    <PackageReference Include="BenchmarkDotNet" Condition="'$(ManagePackageVersionsCentrally)' == 'true'" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.8" Condition="'$(ManagePackageVersionsCentrally)' != 'true'" />
   </ItemGroup>
 
   <ItemGroup>

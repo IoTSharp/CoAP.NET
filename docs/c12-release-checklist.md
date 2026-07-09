@@ -56,5 +56,5 @@ dotnet run -c Release --project CoAP.Benchmarks/CoAP.Benchmarks.csproj -- --filt
 - README 的推荐宿主入口仍是 `AddCoapServer()`、`AddCoapResources()`、`app.MapCoapResources()`。
 - 示例和文档没有把 `AddCoapControllers()` / `MapCoapControllers()` 作为推荐入口。
 - 低层 `CoapRouteEndpoint.Create(...)` 只作为兼容、测试或 benchmark 入口出现。
-- `dotnet pack` 输出位于 `CoAP.NET/artifacts`，包内包含 `README.md` 和 `LICENSE`。
+- `dotnet pack` 输出位于 `CoAP.NET/artifacts`，包内包含 `README.md`、`LICENSE` 和 NuGet 图标。
 - C12 smoke、完整 `CoAP.Test`、Resource/MVC 示例 build 均通过后，再进入 C13 宿主应用迁移。

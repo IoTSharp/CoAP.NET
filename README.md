@@ -1,9 +1,13 @@
 # CoAP.NET
 
+[![NuGet Version](https://img.shields.io/nuget/v/IoTSharp.CoAP.NET?label=IoTSharp.CoAP.NET)](https://www.nuget.org/packages/IoTSharp.CoAP.NET)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/IoTSharp.CoAP.NET?label=downloads)](https://www.nuget.org/packages/IoTSharp.CoAP.NET)
+
 CoAP.NET is a modernized CoAP framework for .NET 10. It keeps the original
 CoAP.NET client and server model, blockwise transfer, observe support, and
 resource tree, while adding Microsoft.Extensions.Logging integration, Native
-AOT analyzer compatibility, and optional DTLS PSK transport.
+AOT analyzer compatibility, Resource/MVC-style hosting, and optional DTLS PSK
+transport.
 
 See [ROADMAP.md](ROADMAP.md) for the CoAP route adapter and low-allocation plan.
 The Resource/MVC sample and migration guide are available in
@@ -11,23 +15,109 @@ The Resource/MVC sample and migration guide are available in
 [docs/resource-mvc-migration.md](docs/resource-mvc-migration.md). C12 release
 validation is tracked in [docs/c12-release-checklist.md](docs/c12-release-checklist.md).
 
-```powershell
-dotnet add package <coap-package-id> --version 3.0.0
+## NuGet Packages
+
+| Package | Purpose | Install |
+| --- | --- | --- |
+| [IoTSharp.CoAP.NET](https://www.nuget.org/packages/IoTSharp.CoAP.NET) | Core CoAP client/server, resource tree, blockwise, Observe, DTLS PSK, Generic Host integration, Resource/MVC routing. | `dotnet add package IoTSharp.CoAP.NET --version 3.0.0` |
+| [IoTSharp.CoAP.NET.SourceGeneration](https://www.nuget.org/packages/IoTSharp.CoAP.NET.SourceGeneration) | Analyzer package that emits generated Resource/MVC endpoint factories for trim/AOT-friendly hosts. | `dotnet add package IoTSharp.CoAP.NET.SourceGeneration --version 3.0.0` |
+| [IoTSharp.CoAP.NET.AspNetCore](https://www.nuget.org/packages/IoTSharp.CoAP.NET.AspNetCore) | ASP.NET Core `IApplicationBuilder` adapter for hosts that want `app.MapCoapResources()`. | `dotnet add package IoTSharp.CoAP.NET.AspNetCore --version 3.0.0` |
+
+## Current Capabilities
+
+- CoAP client APIs for GET, POST, PUT, DELETE, discovery, Observe, synchronous
+  calls, and asynchronous calls.
+- CoAP server APIs with the original resource tree, `.well-known/core`
+  discovery, blockwise transfer, Observe, and resource attributes.
+- UDP `coap://` transport and optional PSK-based DTLS `coaps://` transport.
+- Host-managed startup through `AddCoapServer()`, `AddCoapResources()`,
+  `AddCoapMvc()`, and `MapCoapResources()`.
+- Resource/MVC-style programming with `[CoapResource]`, `[CoapRoute]`,
+  `[CoapGet]`, `[CoapPost]`, `[CoapPut]`, `[CoapDelete]`, and `[CoapObserve]`.
+- Endpoint metadata for method, path, Content-Format, Accept, Observe,
+  resource discovery attributes, and authorization policy names.
+- Parameter binding for route values, query options, request options, payloads,
+  `CancellationToken`, `CoapRouteContext`, and remote endpoint values.
+- JSON payload binding through source-generated `System.Text.Json` metadata or
+  explicit reflection-based compatibility.
+- Endpoint filters, authorization hooks, and request context hooks for
+  host-owned identity, tenant, audit, and policy integration.
+- Low-allocation route context surfaces, including `ReadOnlyMemory<byte>`
+  payload access and compact route value storage.
+- `Microsoft.Extensions.Logging` integration and Native AOT analyzer coverage
+  for the core package.
+
+## Common Usage
+
+Create a Generic Host server:
+
+```csharp
+using CoAP;
+using CoAP.Server.Routing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
+var builder = Host.CreateApplicationBuilder(args);
+
+builder.Services.AddCoapServer(options =>
+{
+    options.ListenAnyIP(5683);
+});
+builder.Services.AddCoapSystemTextJsonPayloadBinder();
+builder.Services.AddCoapResources();
+
+var app = builder.Build();
+app.MapCoapResources();
+await app.RunAsync();
 ```
 
-## Features
+Declare a resource action:
 
-- CoAP client APIs for GET, POST, PUT, DELETE, discovery, and observe.
-- CoAP server APIs with resource routing and blockwise support.
-- UDP transport for `coap://` and DTLS PSK transport for `coaps://`.
-- Host-integrated startup through `AddCoapServer()`, `AddCoapResources()`,
-  `AddCoapMvc()`, and `MapCoapResources()`.
-- Source-generated Resource/MVC endpoint factories for AOT-friendly hosts that
-  do not want runtime reflection discovery.
-- Endpoint filters, authorization hooks, and request context hooks for
-  host-owned policy integration.
-- Logging through `Microsoft.Extensions.Logging`.
-- Packable as an independent NuGet package.
+```csharp
+using CoAP;
+using CoAP.Server.Routing;
+
+[CoapResource]
+[CoapRoute("sensors/{sensor}")]
+public sealed class SensorCoapResource : CoapResourceBase
+{
+    [CoapPost("readings")]
+    [CoapConsumes(MediaType.ApplicationJson)]
+    [CoapProduces(MediaType.ApplicationJson)]
+    public CoapRouteResult UploadReading(
+        string sensor,
+        [CoapFromQuery] int point,
+        ReadingPayload payload)
+    {
+        return CoapRouteResult.Json("{\"ok\":true}");
+    }
+}
+
+public sealed class ReadingPayload
+{
+    public double Value { get; set; }
+}
+```
+
+Use source-generated endpoint factories and JSON metadata in AOT-sensitive
+hosts:
+
+```csharp
+builder.Services.AddCoapJsonPayloadBinder(MyCoapJsonContext.Default);
+builder.Services.AddCoapResources(options =>
+{
+    options.AddEndpointFactory(MyGeneratedCoapEndpoints.Create);
+});
+```
+
+Send a client request:
+
+```csharp
+using CoAP;
+
+var client = new CoapClient(new Uri("coap://127.0.0.1:5683/sensors/demo/readings?point=1"));
+var response = client.Post("{\"value\":42}", MediaType.ApplicationJson);
+```
 
 ## Resource compatibility baseline
 
@@ -292,9 +382,28 @@ server.Start();
 
 ```powershell
 dotnet pack CoAP.NET/CoAP.NET.csproj -c Release
+dotnet pack CoAP.NET.SourceGeneration/CoAP.NET.SourceGeneration.csproj -c Release
+dotnet pack CoAP.NET.AspNetCore/CoAP.NET.AspNetCore.csproj -c Release
 ```
 
-The package is written to `CoAP.NET/artifacts` by default.
+The core package is written to `CoAP.NET/artifacts` by default. The GitHub
+Actions release workflow writes all publishable packages to the workflow
+artifact directory before pushing them.
+
+## Publish
+
+NuGet publishing is handled by
+[`.github/workflows/publish-nuget.yml`](.github/workflows/publish-nuget.yml).
+The workflow:
+
+- builds the core package, ASP.NET Core adapter, source generator, Resource/MVC
+  sample, and tests;
+- packs `IoTSharp.CoAP.NET`, `IoTSharp.CoAP.NET.AspNetCore`, and
+  `IoTSharp.CoAP.NET.SourceGeneration`;
+- publishes to NuGet.org on `v*.*.*` tags by using the organization
+  `NUGET_API_KEY` secret;
+- supports manual runs with a version input and an explicit `publish_to_nuget`
+  switch.
 
 ## C0 verification
 

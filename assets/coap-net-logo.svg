@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">CoAP.NET logo</title>
+  <desc id="desc">A compact CoAP.NET mark with a connected hexagonal packet route and radio waves.</desc>
+  <defs>
+    <linearGradient id="bg" x1="68" y1="54" x2="452" y2="460" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#10264d"/>
+      <stop offset="0.54" stop-color="#0f766e"/>
+      <stop offset="1" stop-color="#2d6cdf"/>
+    </linearGradient>
+    <linearGradient id="line" x1="116" y1="133" x2="393" y2="377" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#9ff7ff"/>
+      <stop offset="1" stop-color="#f8ffb8"/>
+    </linearGradient>
+    <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#05111f" flood-opacity="0.32"/>
+    </filter>
+  </defs>
+  <rect x="32" y="32" width="448" height="448" rx="96" fill="url(#bg)"/>
+  <path d="M131 184 256 112l125 72v144l-125 72-125-72Z" fill="none" stroke="#ffffff" stroke-opacity="0.2" stroke-width="18"/>
+  <g filter="url(#soft-shadow)">
+    <path d="M151 196 256 136l105 60v120l-105 60-105-60Z" fill="#071d35" fill-opacity="0.74" stroke="url(#line)" stroke-width="15" stroke-linejoin="round"/>
+    <path d="M192 225h79c27 0 49 22 49 49s-22 49-49 49h-79" fill="none" stroke="#ffffff" stroke-width="27" stroke-linecap="round"/>
+    <path d="M278 207c36 7 63 39 63 77 0 15-4 29-11 42" fill="none" stroke="#7be4ff" stroke-width="14" stroke-linecap="round"/>
+    <path d="M307 176c53 16 91 65 91 122 0 25-7 49-20 69" fill="none" stroke="#f8ffb8" stroke-width="12" stroke-linecap="round" opacity="0.88"/>
+    <circle cx="151" cy="196" r="18" fill="#9ff7ff"/>
+    <circle cx="361" cy="196" r="18" fill="#f8ffb8"/>
+    <circle cx="256" cy="376" r="18" fill="#ffffff"/>
+    <circle cx="256" cy="136" r="12" fill="#ffffff" opacity="0.78"/>
+  </g>
+  <text x="256" y="434" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="700" letter-spacing="0" fill="#ffffff">CoAP.NET</text>
+</svg>

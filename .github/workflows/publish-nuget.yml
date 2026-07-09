@@ -1,0 +1,126 @@
+name: Publish NuGet Packages
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Package version, for example 3.0.0
+        required: true
+      publish_to_nuget:
+        description: Publish packages to NuGet.org with the organization NUGET_API_KEY secret
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  NUGET_XMLDOC_MODE: skip
+  NUGET_SOURCE: https://api.nuget.org/v3/index.json
+
+jobs:
+  pack-and-publish:
+    name: Pack and publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Resolve release inputs
+        id: release
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            version="${{ inputs.version }}"
+            publish="${{ inputs.publish_to_nuget }}"
+          else
+            version="${GITHUB_REF_NAME#v}"
+            publish="true"
+          fi
+
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "publish=${publish}" >> "$GITHUB_OUTPUT"
+          echo "PACKAGE_VERSION=${version}" >> "$GITHUB_ENV"
+
+      - name: Restore
+        run: |
+          dotnet restore CoAP.NET/CoAP.NET.csproj
+          dotnet restore CoAP.NET.AspNetCore/CoAP.NET.AspNetCore.csproj
+          dotnet restore CoAP.NET.SourceGeneration/CoAP.NET.SourceGeneration.csproj
+          dotnet restore CoAP.Test/CoAP.Test.csproj
+          dotnet restore CoAP.Example/CoAP.ResourceMvc/CoAP.ResourceMvc.csproj
+
+      - name: Build
+        run: |
+          dotnet build CoAP.NET/CoAP.NET.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true
+          dotnet build CoAP.NET.AspNetCore/CoAP.NET.AspNetCore.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true
+          dotnet build CoAP.NET.SourceGeneration/CoAP.NET.SourceGeneration.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true
+          dotnet build CoAP.Example/CoAP.ResourceMvc/CoAP.ResourceMvc.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true
+
+      - name: Test
+        run: dotnet test CoAP.Test/CoAP.Test.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true
+
+      - name: Pack NuGet packages
+        shell: bash
+        run: |
+          mkdir -p "${RUNNER_TEMP}/nupkg"
+
+          for project in \
+            "CoAP.NET/CoAP.NET.csproj" \
+            "CoAP.NET.AspNetCore/CoAP.NET.AspNetCore.csproj" \
+            "CoAP.NET.SourceGeneration/CoAP.NET.SourceGeneration.csproj"
+          do
+            dotnet pack "${project}" \
+              -c Release \
+              --no-restore \
+              --output "${RUNNER_TEMP}/nupkg" \
+              -p:ContinuousIntegrationBuild=true \
+              -p:Version="${PACKAGE_VERSION}" \
+              -p:PackageVersion="${PACKAGE_VERSION}" \
+              -p:InformationalVersion="${PACKAGE_VERSION}"
+          done
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: coap-net-nuget-${{ steps.release.outputs.version }}
+          path: ${{ runner.temp }}/nupkg/*.nupkg
+          if-no-files-found: error
+
+      - name: Validate NuGet.org secret
+        if: steps.release.outputs.publish == 'true'
+        shell: bash
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if [[ -z "${NUGET_API_KEY}" ]]; then
+            echo "NUGET_API_KEY is required to publish CoAP.NET packages to NuGet.org." >&2
+            exit 1
+          fi
+
+      - name: Publish to NuGet.org
+        if: steps.release.outputs.publish == 'true'
+        shell: bash
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          shopt -s nullglob
+          for package in "${RUNNER_TEMP}"/nupkg/*.nupkg; do
+            dotnet nuget push "${package}" \
+              --api-key "${NUGET_API_KEY}" \
+              --source "${NUGET_SOURCE}" \
+              --skip-duplicate
+          done

@@ -9,12 +9,14 @@
     <Description>Source generators for CoAP.NET resource endpoint factories.</Description>
     <Copyright>Copyright © IoTSharp 2026</Copyright>
     <RepositoryUrl>https://github.com/IoTSharp/CoAP.NET</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/IoTSharp/CoAP.NET</PackageProjectUrl>
     <RepositoryType>Git</RepositoryType>
     <VersionPrefix>3.0.0</VersionPrefix>
     <Version>3.0.0</Version>
     <PackageVersion>3.0.0</PackageVersion>
     <PackageTags>coap;source-generator;roslyn;iot</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>assets/coap-net-logo.png</PackageIcon>
     <PackageLicenseExpression></PackageLicenseExpression>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
@@ -36,6 +38,7 @@
   <ItemGroup>
     <None Include="..\LICENSE" Pack="true" PackagePath="" />
     <None Include="..\README.md" Pack="true" PackagePath="" />
+    <None Include="..\assets\coap-net-logo.png" Pack="true" PackagePath="assets\" />
     <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
