@@ -1,9 +1,12 @@
-name: Publish NuGet Packages
+name: Build and Publish
 
 on:
   push:
+    branches:
+      - '**'
     tags:
-      - 'v*.*.*'
+      - 'v*'
+  pull_request:
   workflow_dispatch:
     inputs:
       version:
@@ -26,8 +29,8 @@ env:
   NUGET_SOURCE: https://api.nuget.org/v3/index.json
 
 jobs:
-  pack-and-publish:
-    name: Pack and publish
+  build-and-publish:
+    name: Build, test, and publish
     runs-on: ubuntu-latest
 
     steps:
@@ -46,12 +49,19 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             version="${{ inputs.version }}"
             publish="${{ inputs.publish_to_nuget }}"
-          else
+            pack="true"
+          elif [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
             version="${GITHUB_REF_NAME#v}"
             publish="true"
+            pack="true"
+          else
+            version="0.0.0-ci"
+            publish="false"
+            pack="false"
           fi
 
           echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "pack=${pack}" >> "$GITHUB_OUTPUT"
           echo "publish=${publish}" >> "$GITHUB_OUTPUT"
           echo "PACKAGE_VERSION=${version}" >> "$GITHUB_ENV"
 
@@ -74,6 +84,7 @@ jobs:
         run: dotnet test CoAP.Test/CoAP.Test.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true
 
       - name: Pack NuGet packages
+        if: steps.release.outputs.pack == 'true'
         shell: bash
         run: |
           mkdir -p "${RUNNER_TEMP}/nupkg"
@@ -94,6 +105,7 @@ jobs:
           done
 
       - name: Upload package artifacts
+        if: steps.release.outputs.pack == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: coap-net-nuget-${{ steps.release.outputs.version }}

@@ -397,10 +397,11 @@ NuGet publishing is handled by
 The workflow:
 
 - builds the core package, ASP.NET Core adapter, source generator, Resource/MVC
-  sample, and tests;
+  sample, and tests on branch pushes and pull requests;
 - packs `IoTSharp.CoAP.NET`, `IoTSharp.CoAP.NET.AspNetCore`, and
-  `IoTSharp.CoAP.NET.SourceGeneration`;
-- publishes to NuGet.org on `v*.*.*` tags by using the organization
+  `IoTSharp.CoAP.NET.SourceGeneration` for release tags and manual release
+  runs;
+- publishes to NuGet.org on `v*` tags by using the organization
   `NUGET_API_KEY` secret;
 - supports manual runs with a version input and an explicit `publish_to_nuget`
   switch.
