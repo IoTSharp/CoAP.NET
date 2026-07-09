@@ -105,6 +105,8 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="services">The service collection.</param>
         /// <param name="configuration">The configuration section containing CoAP listen settings.</param>
         /// <returns>The service collection.</returns>
+        [RequiresUnreferencedCode("Configuration binding uses reflection to bind CoAP listen options. Native AOT hosts should pass CoapServerListenOptions or configure CoapServerOptions directly.")]
+        [RequiresDynamicCode("Configuration binding may require runtime code generation. Native AOT hosts should pass CoapServerListenOptions or configure CoapServerOptions directly.")]
         public static IServiceCollection AddCoapServer(
             this IServiceCollection services,
             IConfiguration configuration)
@@ -304,9 +306,12 @@ namespace Microsoft.Extensions.DependencyInjection
             return server;
         }
 
+        [RequiresUnreferencedCode("Configuration binding uses reflection to bind CoAP listen options.")]
+        [RequiresDynamicCode("Configuration binding may require runtime code generation.")]
         private static CoapServerListenOptions BindListenOptions(IConfiguration configuration)
         {
-            var options = configuration.Get<CoapServerListenOptions>() ?? new CoapServerListenOptions();
+            var options = new CoapServerListenOptions();
+            configuration.Bind(options);
             if (options.Dtls == null)
             {
                 options.Dtls = new CoapServerDtlsPskOptions();
