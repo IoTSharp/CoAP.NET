@@ -12,9 +12,9 @@
     <PackageReference Include="nunit" Condition="'$(ManagePackageVersionsCentrally)' == 'true'" />
     <PackageReference Include="nunit" Version="3.13.3" Condition="'$(ManagePackageVersionsCentrally)' != 'true'" />
     <PackageReference Include="NUnit3TestAdapter" Condition="'$(ManagePackageVersionsCentrally)' == 'true'" />
-    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" Condition="'$(ManagePackageVersionsCentrally)' != 'true'" />
+    <PackageReference Include="NUnit3TestAdapter" Version="6.2.0" Condition="'$(ManagePackageVersionsCentrally)' != 'true'" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Condition="'$(ManagePackageVersionsCentrally)' == 'true'" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.7.0" Condition="'$(ManagePackageVersionsCentrally)' != 'true'" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" Condition="'$(ManagePackageVersionsCentrally)' != 'true'" />
   </ItemGroup>
 
   <ItemGroup>
