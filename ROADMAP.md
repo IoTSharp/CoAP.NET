@@ -2,6 +2,8 @@
 
 本文档只记录 CoAP.NET fork 自身的兼容、MVC Routing、性能和维护路线。CoAP 标准中的 Resource 概念继续保留在协议栈内部；新增 route / endpoint / resource 风格 API 的目的，是给应用代码一个更接近现代 .NET 服务器编程的入口，避免业务代码必须直接继承协议内部 Resource 类型。
 
+全仓优先级见[根路线](../../ROADMAP.md#当前推进顺序)；本文件保留子库内部依赖，不另设与引擎争用的全仓执行顺序。
+
 宿主应用只声明业务端点和调用业务服务。路由注册、路由匹配、请求分发、结果执行、资源发现和框架约定应沉淀在 CoAP.NET 内部，最终达到类似 REST API controller 的开发体验。
 
 ## 目标边界
@@ -75,7 +77,7 @@ public sealed class SensorCoapResource : CoapResourceBase
 - `CoapRouteResult` 已支持 status、text/binary payload、Content-Format、ETag、Max-Age、Location-Path 和 Location-Query。
 - `[CoapResource]`、`[CoapRoute]`、method attributes、resource/action descriptor 和 application part 扫描已能生成 endpoint 数据源；`[CoapController]` 保留为兼容标记。
 - 既有宿主集成可能仍通过手写 route endpoint 注册表和业务上下文拼装接入 CoAP.NET；这只是过渡状态。
-- 下一阶段要把通用的注册、匹配、分发和发现能力迁入 CoAP.NET；宿主应用只保留业务路径声明和业务服务调用。
+- 通用注册、匹配、分发和发现能力已进入CoAP.NET；本仓SonnetDB已通过AddCoapServer/AddCoapResources/MapCoapResources接入。其它宿主迁移按各自工程核查，不重新派C13。
 
 ## 阶段
 
@@ -93,10 +95,12 @@ public sealed class SensorCoapResource : CoapResourceBase
 | C9 | `✅` | resource discovery | `.well-known/core` 已从 endpoint metadata 生成 CoRE Link Format；支持标题、资源类型、接口描述、content-format、observe 可见性和隐藏端点。 |
 | C10 | `✅` | filters 与安全扩展点 | 已支持 endpoint filter、authorization hook、request context hook 与请求级 `Items`；CoAP.NET 只定义接口和调用时机，不内置宿主业务策略。 |
 | C11 | `✅` | Resource/MVC 示例与迁移文档 | 已新增 `CoAP.Example/CoAP.ResourceMvc` 和 `docs/resource-mvc-migration.md`，覆盖 `AddCoapServer()`、`AddCoapResources()`、`app.MapCoapResources()`、resource class、JSON、binary payload、query option、Content-Format、Accept、Observe、发现输出和错误响应示例，并说明 Resource 风格与 MVC 风格如何共存。 |
-| C12 | `✅` | 性能、AOT 与文档收口 | 已新增 `CoAP.Benchmarks` route matcher/resource tree benchmark、`CoapC12SmokeTest` 覆盖 blockwise 大 payload、DTLS PSK smoke 和 Observe smoke，并补齐 trim/AOT warning 清单与发布检查清单。 |
+| C12 | `🟡` | benchmark/smoke/analyzer入口已实现；性能与AOT实物验收待补 | 已新增 `CoAP.Benchmarks` route matcher/resource tree benchmark、`CoapC12SmokeTest` 覆盖 blockwise 大 payload、DTLS PSK smoke 和 Observe smoke，并补齐 trim/AOT warning 清单与发布检查清单。 |
 | C13 | `✅` | 宿主应用迁移落地 | 宿主应用移除手写 route endpoint 注册，改用 `AddCoapServer()`、`AddCoapResources()` 和 `app.MapCoapResources()`；保留自己的业务 resource、业务 DTO、授权、审计和领域服务调用。 |
 
-## 推荐执行顺序
+2026-11-11核查：C0～C11和本仓宿主C13的工程实现保留；C12的测试/benchmark/检查清单存在，不能等同真实NativeAOT宿主或生产性能通过。下一步只补对应运行矩阵，完整证据边界见[生态审计](../../docs/audits/roadmap-audit-20261111/ecosystem.md)。本子库通用协议边界与Resource推荐API不变。
+
+## 历史实施依赖与剩余验收
 
 ```text
 C0 兼容基线
