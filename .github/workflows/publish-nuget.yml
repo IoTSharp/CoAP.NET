@@ -10,13 +10,8 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Package version, for example 3.0.0
-        required: true
-      publish_to_nuget:
-        description: Publish packages to NuGet.org with the organization NUGET_API_KEY secret
-        required: true
-        type: boolean
-        default: false
+        description: Package version to validate; publishing requires a version tag
+        required: false
 
 permissions:
   contents: read
@@ -29,10 +24,13 @@ env:
   NUGET_SOURCE: https://api.nuget.org/v3/index.json
 
 jobs:
-  build-and-publish:
-    name: Build, test, and publish
+  build-and-test:
+    name: Build, test, and pack
     runs-on: ubuntu-latest
-
+    timeout-minutes: 15
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      publish: ${{ steps.release.outputs.publish }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -42,97 +40,114 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Resolve release inputs
+      - name: Resolve release version
         id: release
         shell: bash
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            version="${{ inputs.version }}"
-            publish="${{ inputs.publish_to_nuget }}"
-            pack="true"
-          elif [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+          set -euo pipefail
+          publish=false
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
             version="${GITHUB_REF_NAME#v}"
-            publish="true"
-            pack="true"
+            publish=true
+          elif [[ "${GITHUB_EVENT_NAME}" == workflow_dispatch && -n "${INPUT_VERSION}" ]]; then
+            version="${INPUT_VERSION}"
           else
-            version="0.0.0-ci"
-            publish="false"
-            pack="false"
+            version=$(sed -n 's:.*<PackageVersion>\(.*\)</PackageVersion>.*:\1:p' CoAP.NET/CoAP.NET.csproj)
           fi
-
+          if [[ ! "${version}" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Expected a MAJOR.MINOR.PATCH package version without leading zeros." >&2
+            exit 1
+          fi
+          IFS=. read -r major minor patch <<< "${version}"
+          for component in "${major}" "${minor}" "${patch}"; do
+            if [[ ${#component} -gt 5 ]] || (( 10#${component} > 65534 )); then
+              echo "Version components must fit the assembly version range 0..65534." >&2
+              exit 1
+            fi
+          done
           echo "version=${version}" >> "$GITHUB_OUTPUT"
-          echo "pack=${pack}" >> "$GITHUB_OUTPUT"
           echo "publish=${publish}" >> "$GITHUB_OUTPUT"
           echo "PACKAGE_VERSION=${version}" >> "$GITHUB_ENV"
 
       - name: Restore
         run: |
-          dotnet restore CoAP.NET/CoAP.NET.csproj
-          dotnet restore CoAP.NET.AspNetCore/CoAP.NET.AspNetCore.csproj
-          dotnet restore CoAP.NET.SourceGeneration/CoAP.NET.SourceGeneration.csproj
           dotnet restore CoAP.Test/CoAP.Test.csproj
           dotnet restore CoAP.Example/CoAP.ResourceMvc/CoAP.ResourceMvc.csproj
 
-      - name: Build
-        run: |
-          dotnet build CoAP.NET/CoAP.NET.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true
-          dotnet build CoAP.NET.AspNetCore/CoAP.NET.AspNetCore.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true
-          dotnet build CoAP.NET.SourceGeneration/CoAP.NET.SourceGeneration.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true
-          dotnet build CoAP.Example/CoAP.ResourceMvc/CoAP.ResourceMvc.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true
-
-      - name: Test
-        run: dotnet test CoAP.Test/CoAP.Test.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true
-
-      - name: Pack NuGet packages
-        if: steps.release.outputs.pack == 'true'
+      - name: Build tested libraries and sample
         shell: bash
         run: |
-          mkdir -p "${RUNNER_TEMP}/nupkg"
-
-          for project in \
-            "CoAP.NET/CoAP.NET.csproj" \
-            "CoAP.NET.AspNetCore/CoAP.NET.AspNetCore.csproj" \
-            "CoAP.NET.SourceGeneration/CoAP.NET.SourceGeneration.csproj"
-          do
-            dotnet pack "${project}" \
-              -c Release \
-              --no-restore \
-              --output "${RUNNER_TEMP}/nupkg" \
+          set -euo pipefail
+          for project in CoAP.Test/CoAP.Test.csproj CoAP.Example/CoAP.ResourceMvc/CoAP.ResourceMvc.csproj; do
+            dotnet build "${project}" -c Release --no-restore \
               -p:ContinuousIntegrationBuild=true \
-              -p:Version="${PACKAGE_VERSION}" \
-              -p:PackageVersion="${PACKAGE_VERSION}" \
-              -p:InformationalVersion="${PACKAGE_VERSION}"
+              -p:Version="${PACKAGE_VERSION}" -p:PackageVersion="${PACKAGE_VERSION}" \
+              -p:RepositoryCommit="${GITHUB_SHA}" -p:SourceRevisionId="${GITHUB_SHA}"
           done
 
-      - name: Upload package artifacts
-        if: steps.release.outputs.pack == 'true'
+      - name: Test
+        run: dotnet test CoAP.Test/CoAP.Test.csproj -c Release --no-build --no-restore --logger "trx;LogFileName=coap.trx" --results-directory "${RUNNER_TEMP}/test-results"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coap-net-tests-${{ github.run_id }}
+          path: ${{ runner.temp }}/test-results/*.trx
+          if-no-files-found: warn
+
+      - name: Pack the tested build
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/nupkg"
+          for project in CoAP.NET/CoAP.NET.csproj CoAP.NET.AspNetCore/CoAP.NET.AspNetCore.csproj CoAP.NET.SourceGeneration/CoAP.NET.SourceGeneration.csproj; do
+            dotnet pack "${project}" -c Release --no-build --no-restore \
+              --output "${RUNNER_TEMP}/nupkg" -p:ContinuousIntegrationBuild=true \
+              -p:Version="${PACKAGE_VERSION}" -p:PackageVersion="${PACKAGE_VERSION}" \
+              -p:RepositoryCommit="${GITHUB_SHA}" -p:SourceRevisionId="${GITHUB_SHA}"
+          done
+
+      - name: Upload tested packages
         uses: actions/upload-artifact@v7
         with:
           name: coap-net-nuget-${{ steps.release.outputs.version }}
           path: ${{ runner.temp }}/nupkg/*.nupkg
           if-no-files-found: error
 
-      - name: Validate NuGet.org secret
-        if: steps.release.outputs.publish == 'true'
+  publish:
+    name: Publish tested packages
+    needs: build-and-test
+    if: needs.build-and-test.outputs.publish == 'true' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Download tested packages
+        uses: actions/download-artifact@v7
+        with:
+          name: coap-net-nuget-${{ needs.build-and-test.outputs.version }}
+          path: ${{ runner.temp }}/nupkg
+
+      - name: Publish exact package set
         shell: bash
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          PACKAGE_VERSION: ${{ needs.build-and-test.outputs.version }}
         run: |
+          set -euo pipefail
           if [[ -z "${NUGET_API_KEY}" ]]; then
             echo "NUGET_API_KEY is required to publish CoAP.NET packages to NuGet.org." >&2
             exit 1
           fi
-
-      - name: Publish to NuGet.org
-        if: steps.release.outputs.publish == 'true'
-        shell: bash
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-        run: |
-          shopt -s nullglob
-          for package in "${RUNNER_TEMP}"/nupkg/*.nupkg; do
-            dotnet nuget push "${package}" \
-              --api-key "${NUGET_API_KEY}" \
-              --source "${NUGET_SOURCE}" \
-              --skip-duplicate
+          for package_id in IoTSharp.CoAP.NET IoTSharp.CoAP.NET.AspNetCore IoTSharp.CoAP.NET.SourceGeneration; do
+            package="${RUNNER_TEMP}/nupkg/${package_id}.${PACKAGE_VERSION}.nupkg"
+            test -f "${package}"
+            dotnet nuget push "${package}" --api-key "${NUGET_API_KEY}" --source "${NUGET_SOURCE}" --timeout 120
           done
