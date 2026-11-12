@@ -112,6 +112,12 @@ namespace CoAP.Net
             get { return _config; }
         }
 
+        /// <summary>获取此端点实际支持的选项定义及自定义选项注册入口。</summary>
+        public CoapOptionRegistry OptionRegistry { get; } = new CoapOptionRegistry();
+
+        /// <summary>是否允许代理请求。仅在宿主提供实际代理消息分发器时启用；默认关闭。</summary>
+        public Boolean SupportsProxying { get; set; }
+
         public IExecutor Executor
         {
             get { return _executor; }
@@ -270,6 +276,19 @@ namespace CoAP.Net
 
                 request.Source = e.EndPoint;
 
+                if (!OptionRegistry.ValidateAndFilter(request, out String diagnostic))
+                {
+                    if (request.Type == MessageType.CON)
+                        SendOptionError(request, StatusCode.BadOption, diagnostic);
+                    return;
+                }
+                if (!SupportsProxying && (request.HasOption(OptionType.ProxyUri) ||
+                    request.HasOption(OptionType.ProxyScheme)))
+                {
+                    SendOptionError(request, StatusCode.ProxyingNotSupported, null);
+                    return;
+                }
+
                 Fire(ReceivingRequest, request);
 
                 if (!request.IsCancelled)
@@ -297,6 +316,13 @@ namespace CoAP.Net
                     return;
                 }
                 response.Source = e.EndPoint;
+
+                if (!OptionRegistry.ValidateAndFilter(response, out _))
+                {
+                    if (response.Type == MessageType.CON)
+                        Reject(response);
+                    return;
+                }
 
                 Fire(ReceivingResponse, response);
 
@@ -359,6 +385,28 @@ namespace CoAP.Net
             {
                 Log.LogDebug("Silently ignoring non-CoAP message from " + e.EndPoint);
             }
+        }
+
+        private void SendOptionError(Request request, StatusCode status, String diagnostic)
+        {
+            Response response = Response.CreateResponse(request, status);
+            response.Type = request.Type == MessageType.CON ? MessageType.ACK : MessageType.NON;
+            response.ID = request.Type == MessageType.CON ? request.ID : Message.None;
+            if (diagnostic != null)
+                response.Payload = System.Text.Encoding.UTF8.GetBytes(diagnostic);
+            if (request.Type == MessageType.NON)
+            {
+                // A NON reply uses the local MID namespace and the normal
+                // exchange cleanup instead of echoing the request's MID.
+                Exchange exchange = _matcher.ReceiveRequest(request);
+                exchange.EndPoint = this;
+                exchange.Request = request;
+                _coapStack.SendResponse(exchange, response);
+                return;
+            }
+            Fire(SendingResponse, response);
+            if (!response.IsCancelled)
+                _channel.Send(Serialize(response), response.Destination);
         }
 
         private void HandleMalformedDatagram(IMessageDecoder decoder, DataReceivedEventArgs e)
