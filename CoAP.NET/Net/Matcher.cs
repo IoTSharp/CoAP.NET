@@ -151,8 +151,7 @@ namespace CoAP.Net
                 {
                     if (Log.IsEnabled(LogLevel.Debug))
                         Log.LogDebug("Ongoing Block2 completed, cleaning up " + keyUri + " for " + request);
-                    Exchange exc;
-                    _ongoingExchanges.TryRemove(keyUri, out exc);
+                    RemoveIfOwned(_ongoingExchanges, keyUri, exchange);
                 }
             }
 
@@ -246,7 +245,7 @@ namespace CoAP.Net
                             keyId = new Exchange.KeyID(ongoing.CurrentResponse.ID, null);
                             if (Log.IsEnabled(LogLevel.Debug))
                                 Log.LogDebug("Ongoing exchange got new request, cleaning up " + keyId);
-                            _exchangesByID.Remove(keyId);
+                            RemoveIfOwned(_exchangesByID, keyId, ongoing);
                         }
                     }
                     return ongoing;
@@ -318,7 +317,7 @@ namespace CoAP.Net
                     keyId = new Exchange.KeyID(exchange.CurrentRequest.ID, null);
                     if (Log.IsEnabled(LogLevel.Debug))
                         Log.LogDebug("Exchange got response: Cleaning up " + keyId);
-                    _exchangesByID.Remove(keyId);
+                    RemoveIfOwned(_exchangesByID, keyId, exchange);
                 }
 
                 return exchange;
@@ -364,7 +363,7 @@ namespace CoAP.Net
 
                 if (Log.IsEnabled(LogLevel.Debug))
                     Log.LogDebug("Exchange got reply: Cleaning up " + keyID);
-                _exchangesByID.Remove(keyID);
+                RemoveIfOwned(_exchangesByID, keyID, exchange);
                 return exchange;
             }
             else
@@ -392,8 +391,17 @@ namespace CoAP.Net
             {
                 // notifications are local MID namespace
                 Exchange.KeyID keyId = new Exchange.KeyID(previous.ID, null);
-                _exchangesByID.Remove(keyId);
+                RemoveIfOwned(_exchangesByID, keyId, relation.Exchange);
             }
+        }
+
+        private static Boolean RemoveIfOwned<TKey>(IDictionary<TKey, Exchange> mappings, TKey key, Exchange exchange)
+        {
+            // ConcurrentDictionary's ICollection.Remove compares the key and
+            // expected value atomically. A late completion must not remove a
+            // replacement that has reused the same MID, token, or URI.
+            return ((ICollection<KeyValuePair<TKey, Exchange>>)mappings)
+                .Remove(new KeyValuePair<TKey, Exchange>(key, exchange));
         }
 
         private void OnExchangeCompleted(Object sender, EventArgs e)
@@ -416,9 +424,9 @@ namespace CoAP.Net
                 if (Log.IsEnabled(LogLevel.Debug))
                     Log.LogDebug("Exchange completed: Cleaning up " + keyToken);
 
-                _exchangesByToken.Remove(keyToken);
+                RemoveIfOwned(_exchangesByToken, keyToken, exchange);
                 // in case an empty ACK was lost
-                _exchangesByID.Remove(keyID);
+                RemoveIfOwned(_exchangesByID, keyID, exchange);
             }
             else // Origin.Remote
             {
@@ -431,17 +439,17 @@ namespace CoAP.Net
                     Exchange.KeyID midKey = new Exchange.KeyID(response.ID, null);
                     //if (Log.IsEnabled(LogLevel.Debug))
                     //    Log.LogDebug("Remote ongoing completed, cleaning up " + midKey);
-                    _exchangesByID.Remove(midKey);
+                    RemoveIfOwned(_exchangesByID, midKey, exchange);
                 }
 
                 Request request = exchange.CurrentRequest;
-                if (request != null && (request.HasOption(OptionType.Block1) || response.HasOption(OptionType.Block2)))
+                if (request != null && (request.HasOption(OptionType.Block1)
+                    || (response != null && response.HasOption(OptionType.Block2))))
                 {
                     Exchange.KeyUri uriKey = new Exchange.KeyUri(request.URI, request.Source);
                     if (Log.IsEnabled(LogLevel.Debug))
                         Log.LogDebug("Remote ongoing completed, cleaning up " + uriKey);
-                    Exchange exc;
-                    _ongoingExchanges.TryRemove(uriKey, out exc);
+                    RemoveIfOwned(_ongoingExchanges, uriKey, exchange);
                 }
 
                 // Remove all remaining NON-notifications if this exchange is an observe relation

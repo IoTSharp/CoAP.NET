@@ -8,6 +8,8 @@
 - 显式 legacy codec 保留受测 Token 往返并拒绝 raw19 歧义，默认在所有受测旧符号构建下仍为 RFC7252；现代与 Draft18 端点缓存隔离。
 - 新增 endpoint 选项定义/注册，派发前按长度、方向、重复、UTF-8 和语义校验；critical 请求/响应按消息类型拒绝，非法 elective 被忽略，unknown elective 保留。默认不支持代理时返回5.05，真实代理宿主需显式启用 SupportsProxying。
 - 分块状态、计时器、事件登记在成功/错误/取消/超时及 endpoint Clear/Stop/Dispose 时回收，原调用方收到明确终态。终止通知保持锁外且异常清理继续执行；旧排队代次被拒绝，可重入清理不复活传输或丢失新请求。
+- 端点同时退休小请求和非分块观察，释放自有重传/重注册context，旧outbox绑定原始代次。Matcher按expected exchange原子删除Token/MID/URI，避免旧完成删掉replacement映射；远端未发response的清理不再空引用。
+- 四种终态事件（Cancelled/TimedOut/Rejected/Completed）即使较早用户回调抛出也通知后续清理，最后以AggregateException报告全部异常；非终态事件保持原合同。完整多播收集是既有缺口，单独跟踪#37，本批不宣称支持。
 - CoapClient 普通单播成功/失败共同仲裁一次终态，区分实际 Observe 通知、注销与正常 GET fallback。异步客户端回归改为等待实际响应信号，保留原断言并去除固定100ms协调假设。
 - 兼容影响、受测 legacy 范围及未完成的 Token 生成/无符号 getter/大 Max-Age 见[迁移合同](docs/coap-options-compatibility.md)；新包发行、AOT运行、真实peer与现场资格独立验收。
 

@@ -56,7 +56,11 @@ Message result = Spec.Draft12.Decode(bytes);
 
 清理先释放整个快照，再在 exchange 锁外通知。用户回调抛异常时仍处理其余交换并保证子分块取消，最后把同步错误汇总抛出。异步清理通知没有同步调用方，异常通过 ILogger 记录。Dispose 即使通知失败也继续释放传输和 Matcher。
 
-普通单播成功和失败共同仲裁终态；失败后不再交付成功。实际 Observe 通知与 multicast 可有多个响应，注销和没有建立观察的普通 GET fallback 会封口。清理回调可以发起新请求，其 Matcher 登记不会被随后清空。
+端点在始发请求入队前登记同一 exchange，也跟踪小请求与非分块观察，原始代次不会在旧 outbox 回调中被重新绑定。退休时先释放整个旧快照的 Blockwise/Observe/Reliability 自有 context，再发布首个用户通知，不遍历 Dispose 宿主任意附加属性。Matcher 的 Token、MID、URI 清理原子比较当前 owner，旧交换的完成不能删除替代交换的映射。
+
+Cancelled、TimedOut、Rejected 与 Exchange.Completed 会按原注册顺序通知全部订阅者，最后以 AggregateException 报告回调异常；这改变了终态回调异常的外观，保留了内部全部异常。Respond、Responding、Acknowledged 等非终态事件的原异常合同不变。
+
+普通单播成功和失败共同仲裁终态；失败后不再交付成功。实际 Observe 通知可有多个响应，注销和没有建立观察的普通 GET fallback 会封口。回调门禁保留 multicast 扩展分支，但协议栈的有界多端收集尚未完成，不能把这个分支当作完整多播支持。清理回调可以发起新请求，其 Matcher 登记不会被随后清空。
 
 这些确定性代码回归不代替高并发/现场资格、真实 peer、NativeAOT 实物或长期安全验收。
 
@@ -65,4 +69,5 @@ Message result = Spec.Draft12.Decode(bytes);
 - [#33](https://github.com/IoTSharp/CoAP.NET/issues/33)：header Token 随机性、secure context 不安全复用、重传/Observe/Blockwise 的绑定。这与 option19 修复不同；本批没有改 TokenLayer 的生成策略。
 - [#34](https://github.com/IoTSharp/CoAP.NET/issues/34)：Size1/Size2 与 raw typed getter 的完整无符号范围兼容扩展。入站合法 raw UInt32 保真不等于旧 Int32 getter 已修复。
 - [#35](https://github.com/IoTSharp/CoAP.NET/issues/35)：合法大 Max-Age 的 Observe 长 deadline。入站长度正确不代表其 Timer 消费路径已验收。
+- [#37](https://github.com/IoTSharp/CoAP.NET/issues/37)：有界多播收集、两个端点及每端分块状态；当前首个普通响应结束匹配的既有缺口保持开放。
 - [#24](https://github.com/IoTSharp/CoAP.NET/issues/24)、[#25](https://github.com/IoTSharp/CoAP.NET/issues/25)、[#26](https://github.com/IoTSharp/CoAP.NET/issues/26)：常用扩展与双实现互操作矩阵。

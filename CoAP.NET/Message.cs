@@ -395,7 +395,7 @@ namespace CoAP
         /// </summary>
         protected virtual void OnRejected()
         {
-            Fire(Rejected);
+            DispatchTerminalEvent(Rejected, this);
         }
 
         /// <summary>
@@ -403,7 +403,7 @@ namespace CoAP
         /// </summary>
         protected virtual void OnTimedOut()
         {
-            Fire(TimedOut);
+            DispatchTerminalEvent(TimedOut, this);
         }
 
         /// <summary>
@@ -411,7 +411,33 @@ namespace CoAP
         /// </summary>
         protected virtual void OnCanceled()
         {
-            Fire(Cancelled);
+            DispatchTerminalEvent(Cancelled, this);
+        }
+
+        internal static void DispatchTerminalEvent(EventHandler handlers, Object sender)
+        {
+            if (handlers == null)
+                return;
+
+            List<Exception> failures = null;
+            // Preserve the event invocation snapshot and registration order.
+            // A user callback must not prevent later lifecycle owners from cleanup.
+            foreach (EventHandler callback in handlers.GetInvocationList())
+            {
+                try
+                {
+                    callback(sender, EventArgs.Empty);
+                }
+                catch (Exception error)
+                {
+                    if (failures == null)
+                        failures = new List<Exception>();
+                    failures.Add(error);
+                }
+            }
+
+            if (failures != null)
+                throw new AggregateException("A terminal event callback failed.", failures).Flatten();
         }
 
         internal void FireRetransmitting()

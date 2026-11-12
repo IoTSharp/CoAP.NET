@@ -10,7 +10,9 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using CoAP.Channel;
 using CoAP.Codec;
 using Microsoft.Extensions.Logging;
@@ -34,6 +36,9 @@ namespace CoAP.Net
         private Int32 _running;
         private Int32 _disposed;
         private Int64 _lifecycleGeneration;
+        private static readonly Object OwnedExchangeKey = new Object();
+        private readonly Object _ownedSync = new Object();
+        private readonly Dictionary<Exchange, OwnedExchange> _ownedExchanges = new Dictionary<Exchange, OwnedExchange>();
         private System.Net.EndPoint _localEP;
         private IExecutor _executor;
 
@@ -203,9 +208,47 @@ namespace CoAP.Net
         /// <inheritdoc/>
         public void Clear()
         {
-            System.Threading.Interlocked.Increment(ref _lifecycleGeneration);
-            _matcher.Clear();
-            (_coapStack.Get("Blockwise") as BlockwiseLayer)?.Clear();
+            OwnedExchange[] retired;
+            lock (_ownedSync)
+            {
+                System.Threading.Interlocked.Increment(ref _lifecycleGeneration);
+                retired = _ownedExchanges.Values.ToArray();
+                _ownedExchanges.Clear();
+                foreach (OwnedExchange registration in retired)
+                {
+                    System.Threading.Volatile.Write(ref registration.Retired, 1);
+                    DetachOwnedHandlers(registration);
+                }
+                _matcher.Clear();
+            }
+            // Reclaim every old protocol context before publishing callbacks;
+            // callbacks may create replacement exchanges in the new generation.
+            foreach (OwnedExchange registration in retired)
+                ReleaseProtocolContexts(registration.Exchange);
+            EventHandler notifications = null;
+            foreach (OwnedExchange registration in retired)
+            {
+                Exchange exchange = registration.Exchange;
+                Request current = exchange.CurrentRequest;
+                notifications += (sender, args) =>
+                {
+                    if (!exchange.Complete)
+                        exchange.Complete = true;
+                };
+                notifications += (sender, args) =>
+                {
+                    if (!registration.Request.IsCancelled &&
+                        !registration.Request.IsTimedOut && !registration.Request.IsRejected)
+                        registration.Request.Cancel();
+                };
+                notifications += (sender, args) =>
+                {
+                    if (current != null && !Object.ReferenceEquals(current, registration.Request) &&
+                        !current.IsCancelled && !current.IsTimedOut && !current.IsRejected)
+                        current.Cancel();
+                };
+            }
+            Message.DispatchTerminalEvent(notifications, this);
         }
 
         /// <inheritdoc/>
@@ -240,10 +283,16 @@ namespace CoAP.Net
                 request.Cancel();
                 return;
             }
+            Exchange exchange = new Exchange(request, Origin.Local) { EndPoint = this, Request = request };
+            if (!TryOwnExchange(exchange, generation))
+            {
+                request.Cancel();
+                return;
+            }
             _executor.Start(() =>
             {
-                if (IsCurrentGeneration(generation))
-                    _coapStack.SendRequest(request);
+                if (CanUseExchange(exchange))
+                    _coapStack.SendRequest(exchange, request);
                 else
                     request.Cancel();
             });
@@ -253,14 +302,14 @@ namespace CoAP.Net
         public void SendResponse(Exchange exchange, Response response)
         {
             Int64 generation = System.Threading.Volatile.Read(ref _lifecycleGeneration);
-            if (!IsCurrentGeneration(generation))
+            if (!TryOwnExchange(exchange, generation))
             {
                 response.Cancel();
                 return;
             }
             _executor.Start(() =>
             {
-                if (IsCurrentGeneration(generation))
+                if (CanUseExchange(exchange))
                     _coapStack.SendResponse(exchange, response);
                 else
                     response.Cancel();
@@ -271,14 +320,14 @@ namespace CoAP.Net
         public void SendEmptyMessage(Exchange exchange, EmptyMessage message)
         {
             Int64 generation = System.Threading.Volatile.Read(ref _lifecycleGeneration);
-            if (!IsCurrentGeneration(generation))
+            if (exchange != null && !TryOwnExchange(exchange, generation) || !IsCurrentGeneration(generation))
             {
                 message.Cancel();
                 return;
             }
             _executor.Start(() =>
             {
-                if (IsCurrentGeneration(generation))
+                if (IsCurrentGeneration(generation) && (exchange == null || CanUseExchange(exchange)))
                     _coapStack.SendEmptyMessage(exchange, message);
                 else
                     message.Cancel();
@@ -361,6 +410,8 @@ namespace CoAP.Net
                     Exchange exchange = _matcher.ReceiveRequest(request);
                     if (exchange != null)
                     {
+                        if (!TryOwnExchange(exchange, generation))
+                            return;
                         exchange.EndPoint = this;
                         _coapStack.ReceiveRequest(exchange, request);
                     }
@@ -398,6 +449,8 @@ namespace CoAP.Net
                     Exchange exchange = _matcher.ReceiveResponse(response);
                     if (exchange != null)
                     {
+                        if (!CanUseExchange(exchange))
+                            return;
                         response.RTT = (DateTime.Now - exchange.Timestamp).TotalMilliseconds;
                         exchange.EndPoint = this;
                         _coapStack.ReceiveResponse(exchange, response);
@@ -442,6 +495,8 @@ namespace CoAP.Net
                         Exchange exchange = _matcher.ReceiveEmptyMessage(message);
                         if (exchange != null)
                         {
+                            if (!CanUseExchange(exchange))
+                                return;
                             exchange.EndPoint = this;
                             _coapStack.ReceiveEmptyMessage(exchange, message);
                         }
@@ -467,6 +522,8 @@ namespace CoAP.Net
                 // A NON reply uses the local MID namespace and the normal
                 // exchange cleanup instead of echoing the request's MID.
                 Exchange exchange = _matcher.ReceiveRequest(request);
+                if (!TryOwnExchange(exchange, generation))
+                    return;
                 exchange.EndPoint = this;
                 exchange.Request = request;
                 _coapStack.SendResponse(exchange, response);
@@ -579,10 +636,15 @@ namespace CoAP.Net
         void IOutbox.SendRequest(Exchange exchange, Request request)
         {
             Int64 generation = System.Threading.Volatile.Read(ref _lifecycleGeneration);
+            if (!TryOwnExchange(exchange, generation))
+            {
+                request.Cancel();
+                return;
+            }
             Boolean allowed;
             lock (exchange)
             {
-                allowed = IsCurrentGeneration(generation) && CanSendRequest(exchange, request);
+                allowed = CanUseExchange(exchange) && CanSendRequest(exchange, request);
                 if (allowed)
                     _matcher.SendRequest(exchange, request);
             }
@@ -595,7 +657,7 @@ namespace CoAP.Net
 
             Fire(SendingRequest, request);
 
-            if (IsCurrentGeneration(generation) && CanSendRequest(exchange, request))
+            if (CanUseExchange(exchange) && CanSendRequest(exchange, request))
                 _channel.Send(Serialize(request), request.Destination);
             else if (!request.IsCancelled && !request.IsTimedOut && !request.IsRejected)
                 request.Cancel();
@@ -613,7 +675,7 @@ namespace CoAP.Net
         void IOutbox.SendResponse(Exchange exchange, Response response)
         {
             Int64 generation = System.Threading.Volatile.Read(ref _lifecycleGeneration);
-            if (!IsCurrentGeneration(generation))
+            if (!TryOwnExchange(exchange, generation))
             {
                 response.Cancel();
                 return;
@@ -622,14 +684,14 @@ namespace CoAP.Net
 
             Fire(SendingResponse, response);
 
-            if (IsCurrentGeneration(generation) && !response.IsCancelled)
+            if (CanUseExchange(exchange) && !response.IsCancelled)
                 _channel.Send(Serialize(response), response.Destination);
         }
 
         void IOutbox.SendEmptyMessage(Exchange exchange, EmptyMessage message)
         {
             Int64 generation = System.Threading.Volatile.Read(ref _lifecycleGeneration);
-            if (!IsCurrentGeneration(generation))
+            if (!IsCurrentGeneration(generation) || exchange != null && !TryOwnExchange(exchange, generation))
             {
                 message.Cancel();
                 return;
@@ -638,8 +700,89 @@ namespace CoAP.Net
 
             Fire(SendingEmptyMessage, message);
 
-            if (IsCurrentGeneration(generation) && !message.IsCancelled)
+            if (IsCurrentGeneration(generation) && (exchange == null || CanUseExchange(exchange)) && !message.IsCancelled)
                 _channel.Send(Serialize(message), message.Destination);
+        }
+
+        internal static Boolean IsExchangeRetired(Exchange exchange)
+        {
+            OwnedExchange registration = exchange.Get(OwnedExchangeKey) as OwnedExchange;
+            return registration != null && (System.Threading.Volatile.Read(ref registration.Retired) != 0 ||
+                !registration.Owner.IsCurrentGeneration(registration.Generation));
+        }
+
+        private Boolean CanUseExchange(Exchange exchange)
+        {
+            OwnedExchange registration = exchange.Get(OwnedExchangeKey) as OwnedExchange;
+            return registration != null && Object.ReferenceEquals(registration.Owner, this) &&
+                !IsExchangeRetired(exchange);
+        }
+
+        private Boolean TryOwnExchange(Exchange exchange, Int64 generation)
+        {
+            lock (_ownedSync)
+            {
+                if (!IsCurrentGeneration(generation))
+                    return false;
+                OwnedExchange existing = exchange.Get(OwnedExchangeKey) as OwnedExchange;
+                if (existing != null)
+                    return Object.ReferenceEquals(existing.Owner, this) && !IsExchangeRetired(exchange);
+                Request original = exchange.Request ?? exchange.CurrentRequest;
+                OwnedExchange registration = new OwnedExchange(this, exchange, original, generation);
+                existing = exchange.GetOrAdd(OwnedExchangeKey, registration) as OwnedExchange;
+                if (!Object.ReferenceEquals(existing, registration))
+                    return Object.ReferenceEquals(existing.Owner, this) && !IsExchangeRetired(exchange);
+                registration.Completed = (sender, args) => FinishOwnedExchange(registration, false);
+                registration.Terminated = (sender, args) => FinishOwnedExchange(registration, true);
+                exchange.Completed += registration.Completed;
+                original.Cancelled += registration.Terminated;
+                original.TimedOut += registration.Terminated;
+                original.Rejected += registration.Terminated;
+                _ownedExchanges[exchange] = registration;
+                return true;
+            }
+        }
+
+        private void FinishOwnedExchange(OwnedExchange registration, Boolean terminate)
+        {
+            lock (_ownedSync)
+            {
+                _ownedExchanges.Remove(registration.Exchange);
+                DetachOwnedHandlers(registration);
+                if (terminate)
+                    System.Threading.Volatile.Write(ref registration.Retired, 1);
+            }
+            ReleaseProtocolContexts(registration.Exchange);
+            if (terminate && !registration.Exchange.Complete)
+                registration.Exchange.Complete = true;
+        }
+
+        private static void DetachOwnedHandlers(OwnedExchange registration)
+        {
+            registration.Exchange.Completed -= registration.Completed;
+            registration.Request.Cancelled -= registration.Terminated;
+            registration.Request.TimedOut -= registration.Terminated;
+            registration.Request.Rejected -= registration.Terminated;
+        }
+
+        private void ReleaseProtocolContexts(Exchange exchange)
+        {
+            (_coapStack.Get("Blockwise") as BlockwiseLayer)?.ReleaseExchange(exchange);
+            ObserveLayer.ReleaseExchange(exchange);
+            ReliabilityLayer.ReleaseExchange(exchange);
+        }
+
+        private sealed class OwnedExchange
+        {
+            internal OwnedExchange(CoAPEndPoint owner, Exchange exchange, Request request, Int64 generation)
+            { Owner = owner; Exchange = exchange; Request = request; Generation = generation; }
+            internal CoAPEndPoint Owner { get; }
+            internal Exchange Exchange { get; }
+            internal Request Request { get; }
+            internal Int64 Generation { get; }
+            internal Int32 Retired;
+            internal EventHandler Completed { get; set; }
+            internal EventHandler Terminated { get; set; }
         }
     }
 }

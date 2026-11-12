@@ -674,7 +674,8 @@ namespace CoAP.Stack
         private Boolean IsTerminated(Exchange exchange)
         {
             Request original = exchange.Request ?? exchange.CurrentRequest;
-            return System.Threading.Volatile.Read(ref _disposed) != 0 || IsExchangeTerminating(exchange) || exchange.Complete || exchange.TimedOut
+            return System.Threading.Volatile.Read(ref _disposed) != 0 || IsExchangeTerminating(exchange)
+                || CoAPEndPoint.IsExchangeRetired(exchange) || exchange.Complete || exchange.TimedOut
                 || original != null && (original.IsCancelled || original.IsTimedOut || original.IsRejected);
         }
 
@@ -986,6 +987,11 @@ namespace CoAP.Stack
             if (exchange.TimedOut && exchange.Origin == Origin.Local
                 && !original.IsTimedOut && !original.IsCancelled && !original.IsRejected)
                 original.IsTimedOut = true;
+        }
+
+        internal void ReleaseExchange(Exchange exchange)
+        {
+            ReleaseBlockwiseState(exchange, false);
         }
 
         private void ReleaseBlockwiseState(Exchange exchange, Boolean keepObservation)
