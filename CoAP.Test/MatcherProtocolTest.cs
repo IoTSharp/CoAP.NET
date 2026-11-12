@@ -232,6 +232,244 @@ namespace CoAP
             }
         }
 
+        [TestCase(true, MessageType.ACK)]
+        [TestCase(true, MessageType.CON)]
+        [TestCase(true, MessageType.NON)]
+        [TestCase(false, MessageType.ACK)]
+        [TestCase(false, MessageType.CON)]
+        [TestCase(false, MessageType.NON)]
+        public void IPv4MappedResponseMatchesIPv4Peer(Boolean mappedDestination, MessageType type)
+        {
+            object matcher = CreateMatcher();
+            try
+            {
+                Request request = CreateRequest(0x1301, false, CreateIPv4Endpoint(mappedDestination, 5683));
+                Exchange exchange = new Exchange(request, Origin.Local);
+                Invoke(matcher, "SendRequest", exchange, request);
+
+                Response response = CreateResponse(request, type,
+                    type == MessageType.ACK ? request.ID : 0x2301,
+                    CreateIPv4Endpoint(!mappedDestination, 5683));
+
+                Assert.That(ReceiveResponse(matcher, response), Is.SameAs(exchange));
+            }
+            finally
+            {
+                ((IDisposable)matcher).Dispose();
+            }
+        }
+
+        [TestCase(true, MessageType.ACK)]
+        [TestCase(true, MessageType.RST)]
+        [TestCase(false, MessageType.ACK)]
+        [TestCase(false, MessageType.RST)]
+        public void IPv4MappedEmptyMessageMatchesPendingRequest(Boolean mappedDestination, MessageType type)
+        {
+            object matcher = CreateMatcher();
+            try
+            {
+                Request request = CreateRequest(0x1302, false, CreateIPv4Endpoint(mappedDestination, 5683));
+                Exchange exchange = new Exchange(request, Origin.Local);
+                Invoke(matcher, "SendRequest", exchange, request);
+
+                EmptyMessage message = new EmptyMessage(type)
+                {
+                    ID = request.ID,
+                    Source = CreateIPv4Endpoint(!mappedDestination, 5683)
+                };
+
+                Assert.That(Invoke(matcher, "ReceiveEmptyMessage", message), Is.SameAs(exchange));
+            }
+            finally
+            {
+                ((IDisposable)matcher).Dispose();
+            }
+        }
+
+        [TestCase(true, MessageType.ACK)]
+        [TestCase(true, MessageType.RST)]
+        [TestCase(false, MessageType.ACK)]
+        [TestCase(false, MessageType.RST)]
+        public void IPv4MappedEmptyMessageMatchesPendingResponse(Boolean mappedDestination, MessageType type)
+        {
+            object matcher = CreateMatcher();
+            try
+            {
+                Request request = CreateRequest(0x1303, false, LocalEndpoint);
+                request.Source = CreateIPv4Endpoint(mappedDestination, 5683);
+                Exchange exchange = new Exchange(request, Origin.Remote);
+                Response response = CreateResponse(request, MessageType.CON, 0x2303, LocalEndpoint);
+                response.Destination = request.Source;
+                exchange.CurrentResponse = response;
+                Invoke(matcher, "SendResponse", exchange, response);
+
+                EmptyMessage message = new EmptyMessage(type)
+                {
+                    ID = response.ID,
+                    Source = CreateIPv4Endpoint(!mappedDestination, 5683)
+                };
+
+                Assert.That(Invoke(matcher, "ReceiveEmptyMessage", message), Is.SameAs(exchange));
+            }
+            finally
+            {
+                ((IDisposable)matcher).Dispose();
+            }
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void IPv4MappedResponseStillRequiresMatchingPort(Boolean mappedDestination)
+        {
+            object matcher = CreateMatcher();
+            try
+            {
+                Request request = CreateRequest(0x1304, false, CreateIPv4Endpoint(mappedDestination, 5683));
+                Exchange exchange = new Exchange(request, Origin.Local);
+                Invoke(matcher, "SendRequest", exchange, request);
+
+                Response wrong = CreateResponse(request, MessageType.ACK, request.ID,
+                    CreateIPv4Endpoint(!mappedDestination, 5684));
+                Assert.That(ReceiveResponse(matcher, wrong), Is.Null);
+                Response correct = CreateResponse(request, MessageType.ACK, request.ID,
+                    CreateIPv4Endpoint(!mappedDestination, 5683));
+                Assert.That(ReceiveResponse(matcher, correct), Is.SameAs(exchange));
+            }
+            finally
+            {
+                ((IDisposable)matcher).Dispose();
+            }
+        }
+
+        [TestCase(MessageType.ACK)]
+        [TestCase(MessageType.RST)]
+        public void IPv4MappedEmptyMessageStillRequiresMatchingPort(MessageType type)
+        {
+            object matcher = CreateMatcher();
+            try
+            {
+                Request request = CreateRequest(0x1305, false, CreateIPv4Endpoint(true, 5683));
+                Exchange exchange = new Exchange(request, Origin.Local);
+                Invoke(matcher, "SendRequest", exchange, request);
+
+                EmptyMessage message = new EmptyMessage(type)
+                {
+                    ID = request.ID,
+                    Source = CreateIPv4Endpoint(false, 5684)
+                };
+                Assert.That(Invoke(matcher, "ReceiveEmptyMessage", message), Is.Null);
+                message.Source = CreateIPv4Endpoint(false, 5683);
+                Assert.That(Invoke(matcher, "ReceiveEmptyMessage", message), Is.SameAs(exchange));
+            }
+            finally
+            {
+                ((IDisposable)matcher).Dispose();
+            }
+        }
+
+        [Test]
+        public void NativeIPv6ResponseStillRequiresMatchingScopeId()
+        {
+            object matcher = CreateMatcher();
+            try
+            {
+                Request request = CreateRequest(0x1306, false, CreateScopedIPv6Endpoint(7));
+                Exchange exchange = new Exchange(request, Origin.Local);
+                Invoke(matcher, "SendRequest", exchange, request);
+
+                Response wrong = CreateResponse(request, MessageType.ACK, request.ID,
+                    CreateScopedIPv6Endpoint(8));
+                Assert.That(ReceiveResponse(matcher, wrong), Is.Null);
+                Response correct = CreateResponse(request, MessageType.ACK, request.ID,
+                    CreateScopedIPv6Endpoint(7));
+                Assert.That(ReceiveResponse(matcher, correct), Is.SameAs(exchange));
+            }
+            finally
+            {
+                ((IDisposable)matcher).Dispose();
+            }
+        }
+
+        [TestCase(MessageType.ACK)]
+        [TestCase(MessageType.RST)]
+        public void NativeIPv6EmptyMessageStillRequiresMatchingScopeId(MessageType type)
+        {
+            object matcher = CreateMatcher();
+            try
+            {
+                Request request = CreateRequest(0x1307, false, CreateScopedIPv6Endpoint(7));
+                Exchange exchange = new Exchange(request, Origin.Local);
+                Invoke(matcher, "SendRequest", exchange, request);
+
+                EmptyMessage message = new EmptyMessage(type)
+                {
+                    ID = request.ID,
+                    Source = CreateScopedIPv6Endpoint(8)
+                };
+                Assert.That(Invoke(matcher, "ReceiveEmptyMessage", message), Is.Null);
+                message.Source = CreateScopedIPv6Endpoint(7);
+                Assert.That(Invoke(matcher, "ReceiveEmptyMessage", message), Is.SameAs(exchange));
+            }
+            finally
+            {
+                ((IDisposable)matcher).Dispose();
+            }
+        }
+
+        [Test]
+        public void CustomEndpointKeepsItsOwnEqualitySemantics()
+        {
+            object matcher = CreateMatcher();
+            try
+            {
+                Request request = CreateRequest(0x1308, false, new NamedEndPoint("peer"));
+                Exchange exchange = new Exchange(request, Origin.Local);
+                Invoke(matcher, "SendRequest", exchange, request);
+
+                Response wrong = CreateResponse(request, MessageType.ACK, request.ID,
+                    new NamedEndPoint("other"));
+                Assert.That(ReceiveResponse(matcher, wrong), Is.Null);
+                Response correct = CreateResponse(request, MessageType.ACK, request.ID,
+                    new NamedEndPoint("peer"));
+                Assert.That(ReceiveResponse(matcher, correct), Is.SameAs(exchange));
+            }
+            finally
+            {
+                ((IDisposable)matcher).Dispose();
+            }
+        }
+
+        private static IPEndPoint CreateIPv4Endpoint(Boolean mapped, Int32 port)
+        {
+            return new IPEndPoint(mapped ? IPAddress.Loopback.MapToIPv6() : IPAddress.Loopback, port);
+        }
+
+        private static IPEndPoint CreateScopedIPv6Endpoint(Int64 scopeId)
+        {
+            return new IPEndPoint(new IPAddress(IPAddress.Parse("fe80::1234").GetAddressBytes(), scopeId), 5683);
+        }
+
+        private sealed class NamedEndPoint : System.Net.EndPoint
+        {
+            private readonly String _name;
+
+            public NamedEndPoint(String name)
+            {
+                _name = name;
+            }
+
+            public override Boolean Equals(Object obj)
+            {
+                NamedEndPoint other = obj as NamedEndPoint;
+                return other != null && String.Equals(_name, other._name, StringComparison.Ordinal);
+            }
+
+            public override Int32 GetHashCode()
+            {
+                return StringComparer.Ordinal.GetHashCode(_name);
+            }
+        }
+
         private static object CreateMatcher()
         {
             Type matcherType = typeof(CoapClient).Assembly.GetType("CoAP.Net.Matcher", true);
