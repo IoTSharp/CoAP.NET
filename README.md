@@ -12,6 +12,8 @@ transport.
 See [ROADMAP.md](ROADMAP.md) for the CoAP route adapter and low-allocation plan.
 Current protocol gaps, upstream/fork review, and the formal RFC/IANA baseline
 are tracked in the [standards and interoperability roadmap](docs/coap-standards-roadmap.md).
+The approved option19 compatibility change and explicit legacy codec migration
+are described in the [modern option contract](docs/coap-options-compatibility.md).
 The Resource/MVC sample and migration guide are available in
 [CoAP.Example/CoAP.ResourceMvc](CoAP.Example/CoAP.ResourceMvc) and
 [docs/resource-mvc-migration.md](docs/resource-mvc-migration.md). C12 release

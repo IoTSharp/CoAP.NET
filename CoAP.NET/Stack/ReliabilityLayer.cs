@@ -166,6 +166,8 @@ namespace CoAP.Stack
         /// </summary>
         public override void ReceiveResponse(INextLayer nextLayer, Exchange exchange, Response response)
         {
+            if (CoAPEndPoint.IsExchangeRetired(exchange))
+                return;
             TransmissionContext ctx = (TransmissionContext)exchange.Remove(TransmissionContextKey);
             if (ctx != null)
             {
@@ -227,22 +229,36 @@ namespace CoAP.Stack
 
         private void PrepareRetransmission(Exchange exchange, Message msg, Action<TransmissionContext> retransmit)
         {
-            TransmissionContext ctx = exchange.GetOrAdd<TransmissionContext>(
-                TransmissionContextKey, _ => new TransmissionContext(_config, exchange, msg, retransmit));
-            
-            if (ctx.FailedTransmissionCount > 0)
+            lock (exchange)
             {
-                ctx.CurrentTimeout = (Int32)(ctx.CurrentTimeout * _config.AckTimeoutScale);
-            }
-            else if (ctx.CurrentTimeout == 0)
-            {
-                ctx.CurrentTimeout = InitialTimeout(_config.AckTimeout, _config.AckRandomFactor);
-            }
+                if (CoAPEndPoint.IsExchangeRetired(exchange) || exchange.Complete ||
+                    msg.IsCancelled || msg.IsTimedOut || msg.IsRejected)
+                    return;
+                TransmissionContext ctx = exchange.GetOrAdd<TransmissionContext>(
+                    TransmissionContextKey, _ => new TransmissionContext(_config, exchange, msg, retransmit));
 
-            if (Log.IsEnabled(LogLevel.Debug))
-                Log.LogDebug("Send request, failed transmissions: " + ctx.FailedTransmissionCount);
+                if (ctx.FailedTransmissionCount > 0)
+                {
+                    ctx.CurrentTimeout = (Int32)(ctx.CurrentTimeout * _config.AckTimeoutScale);
+                }
+                else if (ctx.CurrentTimeout == 0)
+                {
+                    ctx.CurrentTimeout = InitialTimeout(_config.AckTimeout, _config.AckRandomFactor);
+                }
 
-            ctx.Start();
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("Send request, failed transmissions: " + ctx.FailedTransmissionCount);
+
+                ctx.Start();
+            }
+        }
+
+        internal static void ReleaseExchange(Exchange exchange)
+        {
+            TransmissionContext context;
+            lock (exchange)
+                context = exchange.Remove(TransmissionContextKey) as TransmissionContext;
+            context?.Dispose();
         }
 
         private Int32 InitialTimeout(Int32 initialTimeout, Double factor)
@@ -286,13 +302,19 @@ namespace CoAP.Stack
 
             public void Start()
             {
-                _timer.Stop();
-
-                if (_currentTimeout > 0)
+                System.Timers.Timer timer = _timer;
+                if (timer == null || CoAPEndPoint.IsExchangeRetired(_exchange))
+                    return;
+                try
                 {
-                    _timer.Interval = _currentTimeout;
-                    _timer.Start();
+                    timer.Stop();
+                    if (_currentTimeout > 0)
+                    {
+                        timer.Interval = _currentTimeout;
+                        timer.Start();
+                    }
                 }
+                catch (ObjectDisposedException) { }
             }
 
             public void Cancel()
@@ -330,6 +352,8 @@ namespace CoAP.Stack
 
             void timer_Elapsed(Object sender, ElapsedEventArgs e)
             {
+                if (_timer == null || CoAPEndPoint.IsExchangeRetired(_exchange))
+                    return;
                 /*
 			     * Do not retransmit a message if it has been acknowledged,
 			     * rejected, canceled or already been retransmitted for the maximum
@@ -363,7 +387,7 @@ namespace CoAP.Stack
                     _message.FireRetransmitting();
 
                     // message might have canceled
-                    if (!_message.IsCancelled)
+                    if (!_message.IsCancelled && !CoAPEndPoint.IsExchangeRetired(_exchange))
                         _retransmit(this);
                 }
                 else

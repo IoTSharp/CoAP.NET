@@ -60,11 +60,11 @@ namespace CoAP
         }
 
         [TestMethod]
-        public void TestEmptyToken()
+        public void TestEmptyRawOption()
         {
-            Option t1 = Option.Create(OptionType.Token, new Byte[0]);
-            Option t2 = Option.Create(OptionType.Token, new Byte[0]);
-            Option t3 = Option.Create(OptionType.Token, "full");
+            Option t1 = Option.Create((OptionType)65000, new Byte[0]);
+            Option t2 = Option.Create((OptionType)65000, new Byte[0]);
+            Option t3 = Option.Create((OptionType)65000, "full");
 
             Assert.AreEqual(t1, t2);
             Assert.AreEqual(t1.Length, 0);
@@ -72,11 +72,11 @@ namespace CoAP
         }
 
         [TestMethod]
-        public void Test1ByteToken()
+        public void Test1ByteRawOption()
         {
-            Option t1 = Option.Create(OptionType.Token, 0xCD);
-            Option t2 = Option.Create(OptionType.Token, 0xCD);
-            Option t3 = Option.Create(OptionType.Token, 0xCE);
+            Option t1 = Option.Create((OptionType)65000, 0xCD);
+            Option t2 = Option.Create((OptionType)65000, 0xCD);
+            Option t3 = Option.Create((OptionType)65000, 0xCE);
 
             Assert.AreEqual(t1, t2);
             Assert.AreEqual(t1.Length, 1);
@@ -84,11 +84,11 @@ namespace CoAP
         }
 
         [TestMethod]
-        public void Test2BytesToken()
+        public void Test2BytesRawOption()
         {
-            Option t1 = Option.Create(OptionType.Token, 0xABCD);
-            Option t2 = Option.Create(OptionType.Token, 0xABCD);
-            Option t3 = Option.Create(OptionType.Token, 0xABCE);
+            Option t1 = Option.Create((OptionType)65000, 0xABCD);
+            Option t2 = Option.Create((OptionType)65000, 0xABCD);
+            Option t3 = Option.Create((OptionType)65000, 0xABCE);
 
             Assert.AreEqual(t1, t2);
             Assert.AreEqual(t1.Length, 2);
@@ -96,11 +96,11 @@ namespace CoAP
         }
 
         [TestMethod]
-        public void Test4BytesToken()
+        public void Test4BytesRawOption()
         {
-            Option t1 = Option.Create(OptionType.Token, 0x1234ABCD);
-            Option t2 = Option.Create(OptionType.Token, 0x1234ABCD);
-            Option t3 = Option.Create(OptionType.Token, 0x1234ABCE);
+            Option t1 = Option.Create((OptionType)65000, 0x1234ABCD);
+            Option t2 = Option.Create((OptionType)65000, 0x1234ABCD);
+            Option t3 = Option.Create((OptionType)65000, 0x1234ABCE);
 
             Assert.AreEqual(t1, t2);
             Assert.AreEqual(t1.Length, 4);
@@ -112,7 +112,7 @@ namespace CoAP
         {
             Option option = Option.Create(OptionType.Reserved);
 
-            option.RawValue= new Byte[4];
+            option.RawValue = new Byte[4];
             Assert.IsTrue(option.RawValue.SequenceEqual(new Byte[4]));
 
             option.RawValue = new Byte[] { 69, 152, 35, 55, 152, 116, 35, 152 };
@@ -199,9 +199,7 @@ namespace CoAP
                 Assert.IsTrue(option.RawValue.SequenceEqual(new Byte[] { 152, 35, 116, 152, 55, 35, 152, 69 }));
 
                 option.LongValue = (Int64)0xFFFFFFFFFFFFFFFFL;
-                Assert.IsTrue(option.RawValue.SequenceEqual(new Byte[] {
-                    (Byte) 0xFF, (Byte) 0xFF, (Byte) 0xFF, (Byte) 0xFF,
-			        (Byte) 0xFF, (Byte) 0xFF, (Byte) 0xFF, (Byte) 0xFF}));
+                Assert.IsTrue(option.RawValue.SequenceEqual(new Byte[] { 255, 255, 255, 255, 255, 255, 255, 255 }));
             }
         }
     }

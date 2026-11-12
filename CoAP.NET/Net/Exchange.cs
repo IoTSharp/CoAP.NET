@@ -167,8 +167,7 @@ namespace CoAP.Net
                 if (value)
                 {
                     EventHandler h = Completed;
-                    if (h != null)
-                        h(this, EventArgs.Empty);
+                    Message.DispatchTerminalEvent(h, this);
                 }
             }
         }

@@ -144,8 +144,6 @@ namespace CoAP
                 {
                     case OptionType.MaxAge:
                         return IntValue == CoapConstants.DefaultMaxAge;
-                    case OptionType.Token:
-                        return Length == 0;
                     default:
                         return false;
                 }
@@ -359,8 +357,10 @@ namespace CoAP
                     return "Location-Query";
                 case OptionType.UriPath:
                     return "Uri-Path";
-                case OptionType.Token:
-                    return "Token";
+                case OptionType.QBlock1:
+                    return "Q-Block1";
+                case OptionType.QBlock2:
+                    return "Q-Block2";
                 case OptionType.UriQuery:
                     return "Uri-Query";
                 case OptionType.Observe:
@@ -405,6 +405,8 @@ namespace CoAP
                 case OptionType.Observe:
                 case OptionType.Block2:
                 case OptionType.Block1:
+                case OptionType.QBlock1:
+                case OptionType.QBlock2:
                 case OptionType.Size2:
                 case OptionType.Size1:
                 case OptionType.IfNoneMatch:
@@ -420,7 +422,6 @@ namespace CoAP
                 case OptionType.LocationQuery:
                 case OptionType.ProxyUri:
                 case OptionType.ProxyScheme:
-                case OptionType.Token:
                     return OptionFormat.String;
                 case OptionType.ETag:
                 case OptionType.IfMatch:
@@ -482,6 +483,8 @@ namespace CoAP
                 case OptionType.Observe:
                 case OptionType.Block2:
                 case OptionType.Block1:
+                case OptionType.QBlock1:
+                case OptionType.QBlock2:
                 case OptionType.Accept:
 #pragma warning disable 612, 618
                 case OptionType.FencepostDivisor:
@@ -493,7 +496,6 @@ namespace CoAP
                 case OptionType.LocationPath:
                 case OptionType.LocationQuery:
                 case OptionType.UriPath:
-                case OptionType.Token:
                 case OptionType.UriQuery:
                 case OptionType.IfMatch:
                 case OptionType.IfNoneMatch:

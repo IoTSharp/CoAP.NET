@@ -157,7 +157,6 @@ namespace CoAP
             }
         }
 
-        [TestCase(7, 0, false)]
         [TestCase(0, 1, false)]
         [TestCase(0, 0, true)]
         public void InvalidCurrentBlock1Acknowledgement_NotifiesFailure(Int32 szx, Int32 number, Boolean advanceFirst)

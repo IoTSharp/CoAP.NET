@@ -84,9 +84,13 @@ namespace CoAP
         /// </summary>
         Accept = 17,
         /// <summary>
-        /// C, Sequence of Bytes, 1-2 B, -. NOTE: this option has been replaced with <see cref="Message.Token"/> since draft 13.
-        /// <remarks>draft-ietf-core-coap-03, draft-ietf-core-coap-12</remarks>
+        /// RFC 9177 的 Q-Block1 option number；仅定义 wire registry，不表示已实现 Q-Block 传输。
         /// </summary>
+        QBlock1 = 19,
+        /// <summary>
+        /// 旧草案 Token option 的兼容名称；现行数字 19 表示 Q-Block1，报文头 Token 使用 <see cref="Message.Token"/>。
+        /// </summary>
+        [System.Obsolete("旧草案 Token option 已弃用。请使用 Message.Token 设置报文头 Token；现行 option 19 为 Q-Block1。")]
         Token = 19,
         /// <summary>
         /// E, String, 1-270 B, -
@@ -138,6 +142,10 @@ namespace CoAP
         /// <remarks>draft-ietf-core-block</remarks>
         /// </summary>
         Block1 = 27,
+        /// <summary>
+        /// RFC 9177 的 Q-Block2 option number；仅定义 wire registry，不表示已实现 Q-Block 传输。
+        /// </summary>
+        QBlock2 = 31,
         /// <summary>
         /// <remarks>draft-ietf-core-block</remarks>
         /// </summary>

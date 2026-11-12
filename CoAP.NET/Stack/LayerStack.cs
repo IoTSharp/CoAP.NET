@@ -37,6 +37,11 @@ namespace CoAP.Stack
             Head.Filter.SendRequest(Head.NextFilter, null, request);
         }
 
+        internal void SendRequest(Exchange exchange, Request request)
+        {
+            Head.Filter.SendRequest(Head.NextFilter, exchange, request);
+        }
+
         /// <summary>
         /// Sends a response into the layer stack.
         /// </summary>

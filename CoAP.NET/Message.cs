@@ -395,7 +395,7 @@ namespace CoAP
         /// </summary>
         protected virtual void OnRejected()
         {
-            Fire(Rejected);
+            DispatchTerminalEvent(Rejected, this);
         }
 
         /// <summary>
@@ -403,7 +403,7 @@ namespace CoAP
         /// </summary>
         protected virtual void OnTimedOut()
         {
-            Fire(TimedOut);
+            DispatchTerminalEvent(TimedOut, this);
         }
 
         /// <summary>
@@ -411,7 +411,33 @@ namespace CoAP
         /// </summary>
         protected virtual void OnCanceled()
         {
-            Fire(Cancelled);
+            DispatchTerminalEvent(Cancelled, this);
+        }
+
+        internal static void DispatchTerminalEvent(EventHandler handlers, Object sender)
+        {
+            if (handlers == null)
+                return;
+
+            List<Exception> failures = null;
+            // Preserve the event invocation snapshot and registration order.
+            // A user callback must not prevent later lifecycle owners from cleanup.
+            foreach (EventHandler callback in handlers.GetInvocationList())
+            {
+                try
+                {
+                    callback(sender, EventArgs.Empty);
+                }
+                catch (Exception error)
+                {
+                    if (failures == null)
+                        failures = new List<Exception>();
+                    failures.Add(error);
+                }
+            }
+
+            if (failures != null)
+                throw new AggregateException("A terminal event callback failed.", failures).Flatten();
         }
 
         internal void FireRetransmitting()
@@ -1063,20 +1089,13 @@ namespace CoAP
         }
 
         /// <summary>
-        /// Adds an option to the list of options of this CoAP message.
+        /// 按现行 CoAP option number 添加选项；报文头 Token 只能通过 <see cref="Token"/> 设置。
         /// </summary>
-        /// <param name="option">the option to add</param>
+        /// <param name="option">要添加的原始协议选项。</param>
         public Message AddOption(Option option)
         {
             if (option == null)
                 throw new ArgumentNullException("opt");
-
-            if (option.Type == OptionType.Token)
-            {
-                // be compatible with draft 13-
-                Token = option.RawValue;
-                return this;
-            }
 
             LinkedList<Option> list;
             if (!_optionMap.TryGetValue(option.Type, out list))

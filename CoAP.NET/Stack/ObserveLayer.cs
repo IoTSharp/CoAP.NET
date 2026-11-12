@@ -124,6 +124,8 @@ namespace CoAP.Stack
         /// <inheritdoc/>
         public override void ReceiveResponse(INextLayer nextLayer, Exchange exchange, Response response)
         {
+            if (CoAPEndPoint.IsExchangeRetired(exchange))
+                return;
             if (response.HasOption(OptionType.Observe))
             {
                 if (exchange.Request.IsCancelled)
@@ -236,14 +238,28 @@ namespace CoAP.Stack
 
         private void PrepareReregistration(Exchange exchange, Response response, Action<Request> reregister)
         {
-            Int64 timeout = response.MaxAge * 1000 + _backoff;
-            ReregistrationContext ctx = exchange.GetOrAdd<ReregistrationContext>(
-                ReregistrationContextKey, _ => new ReregistrationContext(exchange, timeout, reregister));
+            lock (exchange)
+            {
+                if (CoAPEndPoint.IsExchangeRetired(exchange) || exchange.Complete ||
+                    exchange.Request.IsCancelled || exchange.Request.IsTimedOut || exchange.Request.IsRejected)
+                    return;
+                Int64 timeout = response.MaxAge * 1000 + _backoff;
+                ReregistrationContext ctx = exchange.GetOrAdd<ReregistrationContext>(
+                    ReregistrationContextKey, _ => new ReregistrationContext(exchange, timeout, reregister));
 
-            if (Log.IsEnabled(LogLevel.Debug))
-                Log.LogDebug("Scheduling re-registration in " + timeout + "ms for " + exchange.Request);
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("Scheduling re-registration in " + timeout + "ms for " + exchange.Request);
 
-            ctx.Restart();
+                ctx.Restart();
+            }
+        }
+
+        internal static void ReleaseExchange(Exchange exchange)
+        {
+            ReregistrationContext context;
+            lock (exchange)
+                context = exchange.Remove(ReregistrationContextKey) as ReregistrationContext;
+            context?.Dispose();
         }
 
         class ReregistrationContext : IDisposable
@@ -251,6 +267,7 @@ namespace CoAP.Stack
             private Exchange _exchange;
             private Action<Request> _reregister;
             private System.Timers.Timer _timer;
+            private Int32 _disposed;
 
             public ReregistrationContext(Exchange exchange, Int64 timeout, Action<Request> reregister)
             {
@@ -263,30 +280,40 @@ namespace CoAP.Stack
 
             public void Start()
             {
-                _timer.Start();
+                Restart();
             }
 
             public void Restart()
             {
-                _timer.Stop();
-                _timer.Start();
+                System.Timers.Timer timer = _timer;
+                if (timer == null || System.Threading.Volatile.Read(ref _disposed) != 0)
+                    return;
+                try { timer.Stop(); timer.Start(); }
+                catch (ObjectDisposedException) { }
             }
 
             public void Cancel()
             {
-                _timer.Stop();
                 Dispose();
             }
 
             public void Dispose()
             {
-                _timer.Dispose();
+                System.Threading.Interlocked.Exchange(ref _disposed, 1);
+                System.Timers.Timer timer = System.Threading.Interlocked.Exchange(ref _timer, null);
+                if (timer != null)
+                {
+                    timer.Stop();
+                    timer.Dispose();
+                }
             }
 
             void timer_Elapsed(Object sender, ElapsedEventArgs e)
             {
                 Request request = _exchange.Request;
-                if (!request.IsCancelled)
+                if (System.Threading.Volatile.Read(ref _disposed) == 0 &&
+                    !CoAPEndPoint.IsExchangeRetired(_exchange) && !_exchange.Complete &&
+                    !request.IsCancelled && !request.IsTimedOut && !request.IsRejected)
                 {
                     Request refresh = Request.NewGet();
                     refresh.SetOptions(request.GetOptions());
@@ -299,7 +326,10 @@ namespace CoAP.Stack
                     if (Log.IsEnabled(LogLevel.Debug))
                         Log.LogDebug("Re-registering for " + request);
                     request.FireReregister(refresh);
-                    _reregister(refresh);
+                    if (System.Threading.Volatile.Read(ref _disposed) == 0 &&
+                        !CoAPEndPoint.IsExchangeRetired(_exchange) && !_exchange.Complete &&
+                        !request.IsCancelled && !request.IsTimedOut && !request.IsRejected)
+                        _reregister(refresh);
                 }
                 else
                 {

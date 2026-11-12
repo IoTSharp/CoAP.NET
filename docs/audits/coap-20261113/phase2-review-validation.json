@@ -1,0 +1,324 @@
+{
+  "date": "2026-11-13",
+  "timezone": "Asia/Shanghai",
+  "baseline": "aefaf5a38bd49dabd6c7413febcbff8f6a5ac0af",
+  "pullRequest": 36,
+  "findings": [
+    {
+      "comment": 4556553113,
+      "status": "FIXED_WITH_REGRESSION",
+      "scope": "endpoint-owned exchange retirement, generation and concrete protocol timer contexts"
+    },
+    {
+      "comment": 4556553185,
+      "status": "FIXED_WITH_REGRESSION",
+      "scope": "all terminal subscribers run before aggregated callback errors"
+    },
+    {
+      "comment": 4556553236,
+      "status": "FIXED_WITH_REGRESSION",
+      "scope": "atomic compare-owner token/MID/URI removals"
+    },
+    {
+      "comment": 4556553291,
+      "status": "DEFERRED_PREEXISTING_CAPABILITY",
+      "issue": 37,
+      "scope": "multicast collection, per-peer blocks, actual network membership; claims removed"
+    }
+  ],
+  "baselines": [
+    {
+      "scope": "smallGET/ordinaryObserve ownership",
+      "failed": 5
+    },
+    {
+      "scope": "terminal events",
+      "failed": 12,
+      "passed": 2
+    },
+    {
+      "scope": "matcher ownership",
+      "failed": 9,
+      "passed": 1
+    },
+    {
+      "scope": "pending server request response-null",
+      "failed": 1
+    },
+    {
+      "scope": "all Blockwise contexts released before first public completion callback",
+      "failed": 1,
+      "passed": 0,
+      "fixVerification": {
+        "passed": 1,
+        "failed": 0
+      },
+      "fixtureNote": "Two distinct pending server resource URIs. An earlier same-URI fixture hit a separate pre-existing Matcher.ReceiveRequest null-response path; it is not counted as this lifecycle baseline."
+    }
+  ],
+  "gates": {
+    "defaultRelease": {
+      "status": "PASS",
+      "passed": 404,
+      "failed": 0,
+      "skipped": 0,
+      "trx": "TestResults/OptionsLifecycle/options-lifecycle-review-final-20261113.trx",
+      "treatWarningsAsErrors": true
+    },
+    "ownedFormat": {
+      "status": "PASS",
+      "severity": "warn",
+      "files": [
+        "CoAP.NET/CoapClient.cs",
+        "CoAP.NET/Message.cs",
+        "CoAP.NET/Net/CoAPEndPoint.cs",
+        "CoAP.NET/Net/CoapOptionDefinition.cs",
+        "CoAP.NET/Net/CoapOptionRegistry.cs",
+        "CoAP.NET/Net/Exchange.cs",
+        "CoAP.NET/Net/Matcher.cs",
+        "CoAP.NET/Option.cs",
+        "CoAP.NET/OptionType.cs",
+        "CoAP.NET/Spec.cs",
+        "CoAP.NET/Stack/BlockwiseLayer.cs",
+        "CoAP.NET/Stack/LayerStack.cs",
+        "CoAP.NET/Stack/ObserveLayer.cs",
+        "CoAP.NET/Stack/ReliabilityLayer.cs",
+        "CoAP.Test/BlockwiseLifecycleTest.cs",
+        "CoAP.Test/CoapClientProtocolFailureTest.cs",
+        "CoAP.Test/CoapClientTest.cs",
+        "CoAP.Test/EndpointBlockwiseLifecycleTest.cs",
+        "CoAP.Test/LegacyCodecOptionTest.cs",
+        "CoAP.Test/LegacyEndpointIsolationTest.cs",
+        "CoAP.Test/OptionPolicyTest.cs",
+        "CoAP.Test/OptionSemanticRegressionTest.cs",
+        "CoAP.Test/OptionTest.cs",
+        "CoAP.Test/RegistryOptionTest.cs",
+        "CoAP.Test/EndpointOwnedExchangeTest.cs",
+        "CoAP.Test/MatcherOwnershipTest.cs",
+        "CoAP.Test/TerminalEventDispatchTest.cs"
+      ]
+    },
+    "githubCi": "PENDING_NEW_HEAD",
+    "whitespace": "git -c core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol diff --cached --check",
+    "legacyFinal": {
+      "status": "PASS",
+      "symbol": "COAPALL",
+      "passed": 23,
+      "failed": 0,
+      "skipped": 0,
+      "trx": "TestResults/OptionsLifecycle/options-lifecycle-review-COAPALL-final-20261113.trx",
+      "scope": "RegistryOptionTest, LegacyCodecOptionTest and LegacyEndpointIsolationTest",
+      "priorIndividualBuilds": "COAP03/08/12/13 each 15 PASS on aefaf5a; retained in phase2-validation.json",
+      "evidence": "Final TRX counters independently read back after execution; invocation result was not retained by the orchestration cell."
+    },
+    "defaultSampleBuild": {
+      "status": "PASS",
+      "warnings": 0,
+      "errors": 0,
+      "defaultLibraryOutputRestored": true
+    }
+  },
+  "sourceFiles": [
+    {
+      "path": "CoAP.NET/CoapClient.cs",
+      "sha256": "0e331adfb528a9755ec32f1db789be9f2dad31360363253d0fc63f1974489084",
+      "bytes": 19947
+    },
+    {
+      "path": "CoAP.NET/Message.cs",
+      "sha256": "9351738fae7112a1dc1c9882bfcb659705f09c975c613c498ec6702672cee20c",
+      "bytes": 38340
+    },
+    {
+      "path": "CoAP.NET/Net/CoAPEndPoint.cs",
+      "sha256": "4dc15cd5d88cacf92bf26e8f50ff8c41d82a0379b11b664571b79fd1d8cde06c",
+      "bytes": 30235
+    },
+    {
+      "path": "CoAP.NET/Net/CoapOptionDefinition.cs",
+      "sha256": "89e85fefb4bcf7f62ba5b893d85c94cd6962ea0dc691c0413c16e714b7b93ab0",
+      "bytes": 4764
+    },
+    {
+      "path": "CoAP.NET/Net/CoapOptionRegistry.cs",
+      "sha256": "a03f050e73e86f6b24e3fac9353b4fe11a3d50f14bceb969d951315a4902d64d",
+      "bytes": 6898
+    },
+    {
+      "path": "CoAP.NET/Net/Exchange.cs",
+      "sha256": "7ba7e2b8e65f9ae7c27727dbab6e1f068eac4a31f403439ed3309b8008311852",
+      "bytes": 11110
+    },
+    {
+      "path": "CoAP.NET/Net/Matcher.cs",
+      "sha256": "5aacbc65ddda3f81bac4fa046aece75dad2fb0d1a7970aa8f918fcf34623580a",
+      "bytes": 23314
+    },
+    {
+      "path": "CoAP.NET/Option.cs",
+      "sha256": "e10126ea8d4f501aeb04c9dab29f0eaf45f4e9f1df969de36ec15326c595bdac",
+      "bytes": 20343
+    },
+    {
+      "path": "CoAP.NET/OptionType.cs",
+      "sha256": "e6c892b5a359dd6be0c6f074362af964fda6031ddbc345ec020c67c7791917e7",
+      "bytes": 4949
+    },
+    {
+      "path": "CoAP.NET/Spec.cs",
+      "sha256": "9a52c295d591096aaa57424688f51bce2c7800ae4ff5b2a613d39f4acaa76488",
+      "bytes": 69522
+    },
+    {
+      "path": "CoAP.NET/Stack/BlockwiseLayer.cs",
+      "sha256": "b7275ebd95229196fddc820b21cc1f88267fe3d9a94838308f47735c4b03e811",
+      "bytes": 47637
+    },
+    {
+      "path": "CoAP.NET/Stack/LayerStack.cs",
+      "sha256": "66d141259dc0af5076cf982f8447f77ef8e14a21397e6a075502702bc36c40a3",
+      "bytes": 7231
+    },
+    {
+      "path": "CoAP.NET/Stack/ObserveLayer.cs",
+      "sha256": "7088191d2603075eeb0454bb6eae5a999521f4e419f6334d425723fcb93df309",
+      "bytes": 14567
+    },
+    {
+      "path": "CoAP.NET/Stack/ReliabilityLayer.cs",
+      "sha256": "e0294080e38ce638ce1c6206631ab3766476558d54d331b3694ac5e9e212f26b",
+      "bytes": 16171
+    },
+    {
+      "path": "CoAP.Test/BlockwiseLifecycleTest.cs",
+      "sha256": "896d05280d748c1251e4172cf4f7e425f9508617bfadde21a0a1c4ce27b5665a",
+      "bytes": 26184
+    },
+    {
+      "path": "CoAP.Test/CoapClientProtocolFailureTest.cs",
+      "sha256": "160c543a7ff55be40cbe3602584f21110c30c72729a3699a284a2853f24cbf91",
+      "bytes": 16031
+    },
+    {
+      "path": "CoAP.Test/CoapClientTest.cs",
+      "sha256": "bee0eaf59480d2b0033cce508d8380115445009e8500b887b85bb9236bb977ce",
+      "bytes": 12065
+    },
+    {
+      "path": "CoAP.Test/EndpointBlockwiseLifecycleTest.cs",
+      "sha256": "a7361028477412bbedfb814f86a8d8853c421f0beff077fdd91f4555e7f30242",
+      "bytes": 18414
+    },
+    {
+      "path": "CoAP.Test/LegacyCodecOptionTest.cs",
+      "sha256": "8faf7ae47657bae8079b829420897daf6733286e5791bee51db1bd061006482c",
+      "bytes": 2483
+    },
+    {
+      "path": "CoAP.Test/LegacyEndpointIsolationTest.cs",
+      "sha256": "52c463a7a659049694c967c99b93f592163d7142dc97b14168dc22670d1dc2de",
+      "bytes": 4246
+    },
+    {
+      "path": "CoAP.Test/OptionPolicyTest.cs",
+      "sha256": "8cf750e34053e3cbf159e4393fe942c1cd4b3e1af2c3128f42fdb0102c666653",
+      "bytes": 24246
+    },
+    {
+      "path": "CoAP.Test/OptionSemanticRegressionTest.cs",
+      "sha256": "5c6cba8160ae650cbdc546f8bf85edb5d5e44e144d5e6b4eaea498a793a3185c",
+      "bytes": 5692
+    },
+    {
+      "path": "CoAP.Test/OptionTest.cs",
+      "sha256": "3d8660abfe54a161b6f02fbd3b5291bc2f943a1b49fd95b8c308e2af67c5bbba",
+      "bytes": 7154
+    },
+    {
+      "path": "CoAP.Test/RegistryOptionTest.cs",
+      "sha256": "3376fe746caefd1f84bc039c5a6335610513b5f508ee33230b27e99cdd80f4c5",
+      "bytes": 4909
+    },
+    {
+      "path": "CoAP.Test/EndpointOwnedExchangeTest.cs",
+      "sha256": "370e7de0994896f2882cec6bf76b5fd950c841794d3d4a56f31f3eb5e3d52882",
+      "bytes": 11171
+    },
+    {
+      "path": "CoAP.Test/MatcherOwnershipTest.cs",
+      "sha256": "4e62f8d26fda1b633380ff2ccb42d72e2f784ff515154573d3c69418f300ab91",
+      "bytes": 14639
+    },
+    {
+      "path": "CoAP.Test/TerminalEventDispatchTest.cs",
+      "sha256": "e34d8c926ca31883bd09c80e195f717f50a97e11b37c57401019e381812295c6",
+      "bytes": 7896
+    }
+  ],
+  "boundaries": {
+    "peerInterop": "NOT_RUN",
+    "nativeAotExecution": "NOT_RUN",
+    "newPackagePublicationConsumption": "NOT_RUN",
+    "deviceFieldSoak": "NOT_RUN",
+    "fullMulticastCollection": "NOT_IMPLEMENTED"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Final pure Blockwise release hook, full snapshot release before public callbacks, retired timer handling",
+    "agent": "upstream_audit",
+    "mode": "read-only; no additional test run",
+    "blockingFindings": 0
+  },
+  "resourceEvidence": {
+    "persistentServicesStarted": false,
+    "toolsInstalled": false,
+    "boundedExecution": true,
+    "completedDefaultTestInvocation": {
+      "status": "completed",
+      "process_status": "completed",
+      "exit_code": 0,
+      "pid": 76036,
+      "cleanup_complete": true,
+      "active_processes_before_cleanup": 0,
+      "active_processes_after_cleanup": 0,
+      "stdout": "  CoAP.NET -> C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET\\bin\\Release\\net10.0\\CoAP.NET.dll\r\n  CoAP.NET.AspNetCore -> C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET.AspNetCore\\bin\\Release\\net10.0\\CoAP.NET.AspNetCore.dll\r\n  CoAP.NET.SourceGeneration -> C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET.SourceGeneration\\bin\\Release\\netstandard2.0\\CoAP.NET.SourceGeneration.dll\r\n  CoAP.Test -> C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.Test\\bin\\Release\\net10.0\\CoAP.Test.dll\r\nC:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.Test\\bin\\Release\\net10.0\\CoAP.Test.dll (.NETCoreApp,Version=v10.0)的测试运行\r\n总共 1 个测试文件与指定模式相匹配。\r\n结果文件: C:\\Users\\mysti\\.codex\\coap-repos\\integration\\TestResults\\OptionsLifecycle\\options-lifecycle-review-final-20261113.trx\r\n\r\n已通过! - 失败:     0，通过:   404，已跳过:     0，总计:   404，持续时间: 11 s - CoAP.Test.dll (net10.0)\r\n",
+      "stderr": "",
+      "output_truncated": false,
+      "elapsed_ms": 14141,
+      "output_encoding": "utf-8",
+      "win32_error": 0
+    },
+    "completedFormatInvocation": {
+      "status": "completed",
+      "process_status": "completed",
+      "exit_code": 0,
+      "pid": 45652,
+      "cleanup_complete": true,
+      "active_processes_before_cleanup": 0,
+      "active_processes_after_cleanup": 0,
+      "stdout": "",
+      "stderr": "",
+      "output_truncated": false,
+      "elapsed_ms": 8985,
+      "output_encoding": "utf-8",
+      "win32_error": 0
+    },
+    "completedDefaultSampleBuildInvocation": {
+      "status": "completed",
+      "process_status": "completed",
+      "exit_code": 0,
+      "pid": 51244,
+      "cleanup_complete": true,
+      "active_processes_before_cleanup": 0,
+      "active_processes_after_cleanup": 0,
+      "stdout": "  CoAP.NET -> C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET\\bin\\Release\\net10.0\\CoAP.NET.dll\r\n  CoAP.NET.SourceGeneration -> C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET.SourceGeneration\\bin\\Release\\netstandard2.0\\CoAP.NET.SourceGeneration.dll\r\n  CoAP.ResourceMvc -> C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.Example\\CoAP.ResourceMvc\\bin\\Release\\net10.0\\CoAP.ResourceMvc.dll\r\n\r\n已成功生成。\r\n    0 个警告\r\n    0 个错误\r\n\r\n已用时间 00:00:07.09\r\n",
+      "stderr": "",
+      "output_truncated": false,
+      "elapsed_ms": 7343,
+      "output_encoding": "utf-8",
+      "win32_error": 0
+    },
+    "hashRetries": "6 read-only requests returned queue_full/request_started=false; only those were retried once with at most 6 simultaneous requests.",
+    "originalSonnetDbCheckoutModified": false
+  }
+}

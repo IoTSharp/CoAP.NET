@@ -4,6 +4,8 @@
 
 ## 结论与范围
 
+后续增量已按用户选择 A 实施：[现代 option 合同与 legacy 迁移](coap-options-compatibility.md) 记录 header Token/raw19 分离、显式 legacy codec、endpoint 选项校验及分块生命周期。下表与 fork 清单仍绑定原始审计基线，不能把历史缺口描述当作最新候选的源码状态。Token 生成策略与数值/长 deadline 另由 #33～#35 跟踪。
+
 当前库具备 UDP、DTLS 1.2 PSK、四种基础方法、Resource/发现、Observe、Block1/Block2、现代 .NET 宿主与 AOT 分析入口。但已有入口不等于完整规范合规。第一轮发现并复现了报文截断补零、错误版本被接受、响应来源/标识匹配不完整以及 Block1 错误续传。它们应先于增加协议数量收口。
 
 本轮不是“全 GitHub 已穷尽”的声明。GitHub fork API 返回 75 个可见条目；GraphQL 能读取其中 73 个仓库的 301 个分支引用，去重后 47 个 head；两个历史仓库无法解析，保留 UNKNOWN。18 个 head 已是基线祖先。对 23 个有价值的非祖先候选做了比较；旧草案、站点和两条 2021 年 Dependabot 分支不作为现代功能候选。大型 compare 的文件列表最多返回 300 项，提交摘要最多读取 30 项，不能把这些视作大分支逐文件审计完成。
