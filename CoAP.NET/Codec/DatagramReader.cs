@@ -41,6 +41,12 @@ namespace CoAP.Codec
         /// <returns>An integer containing the bits read</returns>
         public Int32 Read(Int32 numBits)
         {
+            if (numBits < 0 || numBits > 32)
+                throw new ArgumentOutOfRangeException("numBits", "The number of bits must be between 0 and 32.");
+
+            if ((long)numBits > RemainingBits)
+                throw new EndOfStreamException("The datagram ended before the requested bits were available.");
+
             Int32 bits = 0; // initialize all bits to zero
             for (Int32 i = numBits - 1; i >= 0; i--)
             {
@@ -74,6 +80,9 @@ namespace CoAP.Codec
             // for negative count values, read all bytes left
             if (count < 0)
                 count = (Int32)(_stream.Length - _stream.Position);
+
+            if (count > 0 && (long)count * 8L > RemainingBits)
+                throw new EndOfStreamException("The datagram ended before the requested bytes were available.");
 
             Byte[] bytes = new Byte[count];
 
@@ -125,11 +134,21 @@ namespace CoAP.Codec
             if (val >= 0)
                 _currentByte = (Byte)val;
             else
-                // EOF
-                _currentByte = 0;
+                throw new EndOfStreamException("The datagram ended while reading a byte.");
 
             // reset current bit index
             _currentBitIndex = 7;
+        }
+
+        private long RemainingBits
+        {
+            get
+            {
+                long remaining = (_stream.Length - _stream.Position) * 8L;
+                if (_currentBitIndex >= 0)
+                    remaining += _currentBitIndex + 1L;
+                return remaining;
+            }
         }
     }
 }

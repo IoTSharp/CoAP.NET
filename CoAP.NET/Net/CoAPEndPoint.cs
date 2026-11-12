@@ -10,6 +10,7 @@
  */
 
 using System;
+using System.IO;
 using CoAP.Channel;
 using CoAP.Codec;
 using Microsoft.Extensions.Logging;
@@ -232,7 +233,28 @@ namespace CoAP.Net
 
         private void ReceiveData(DataReceivedEventArgs e)
         {
-            IMessageDecoder decoder = Spec.NewMessageDecoder(e.Data);
+            IMessageDecoder decoder;
+            try
+            {
+                decoder = Spec.NewMessageDecoder(e.Data);
+            }
+            catch (Exception ex) when (IsMessageFormatException(ex))
+            {
+                // A datagram without a complete fixed header does not provide
+                // enough information to construct a safe reply. Drop it.
+                if (Log.IsEnabled(LogLevel.Warning))
+                    Log.LogWarning("Ignoring malformed CoAP datagram from " + e.EndPoint);
+                return;
+            }
+
+            if (!decoder.IsWellFormed)
+            {
+                if (Log.IsEnabled(LogLevel.Warning))
+                    Log.LogWarning("Ignoring malformed CoAP header from " + e.EndPoint);
+                HandleMalformedDatagram(decoder, e);
+                return;
+            }
+
             if (decoder.IsRequest)
             {
                 Request request;
@@ -240,27 +262,9 @@ namespace CoAP.Net
                 {
                     request = decoder.DecodeRequest();
                 }
-                catch (Exception)
+                catch (Exception ex) when (IsMessageFormatException(ex))
                 {
-                    if (decoder.IsReply)
-                    {
-                        if (Log.IsEnabled(LogLevel.Warning))
-                            Log.LogWarning("Message format error caused by " + e.EndPoint);
-                    }
-                    else
-                    {
-                        // manually build RST from raw information
-                        EmptyMessage rst = new EmptyMessage(MessageType.RST);
-                        rst.Destination = e.EndPoint;
-                        rst.ID = decoder.ID;
-
-                        Fire(SendingEmptyMessage, rst);
-
-                        _channel.Send(Serialize(rst), rst.Destination);
-
-                        if (Log.IsEnabled(LogLevel.Warning))
-                            Log.LogWarning("Message format error caused by " + e.EndPoint + " and reseted.");
-                    }
+                    HandleMalformedDatagram(decoder, e);
                     return;
                 }
 
@@ -280,7 +284,18 @@ namespace CoAP.Net
             }
             else if (decoder.IsResponse)
             {
-                Response response = decoder.DecodeResponse();
+                Response response;
+                try
+                {
+                    response = decoder.DecodeResponse();
+                }
+                catch (Exception ex) when (IsMessageFormatException(ex))
+                {
+                    // Reject a malformed CON with RST, while ACK/RST and NON
+                    // are silently discarded without reaching the matcher.
+                    HandleMalformedDatagram(decoder, e);
+                    return;
+                }
                 response.Source = e.EndPoint;
 
                 Fire(ReceivingResponse, response);
@@ -304,7 +319,18 @@ namespace CoAP.Net
             }
             else if (decoder.IsEmpty)
             {
-                EmptyMessage message = decoder.DecodeEmptyMessage();
+                EmptyMessage message;
+                try
+                {
+                    message = decoder.DecodeEmptyMessage();
+                }
+                catch (Exception ex) when (IsMessageFormatException(ex))
+                {
+                    // Empty messages must contain no token, options, or
+                    // payload. Apply the same message-format error handling.
+                    HandleMalformedDatagram(decoder, e);
+                    return;
+                }
                 message.Source = e.EndPoint;
 
                 Fire(ReceivingEmptyMessage, message);
@@ -333,6 +359,36 @@ namespace CoAP.Net
             {
                 Log.LogDebug("Silently ignoring non-CoAP message from " + e.EndPoint);
             }
+        }
+
+        private void HandleMalformedDatagram(IMessageDecoder decoder, DataReceivedEventArgs e)
+        {
+            if (Log.IsEnabled(LogLevel.Warning))
+                Log.LogWarning("Message format error caused by " + e.EndPoint);
+
+            // RFC 7252 section 4.2 requires a reset for a malformed
+            // Confirmable message when its version, type, and message ID are
+            // known. Never reflect a reset to NON, ACK, RST, or an invalid
+            // fixed header.
+            if (e.Data == null || e.Data.Length < 4 || decoder.Version != 1 ||
+                ((e.Data[0] >> 4) & 0x03) != (Int32)MessageType.CON)
+                return;
+
+            EmptyMessage rst = new EmptyMessage(MessageType.RST)
+            {
+                Destination = e.EndPoint,
+                ID = decoder.ID
+            };
+
+            Fire(SendingEmptyMessage, rst);
+            if (!rst.IsCancelled)
+                _channel.Send(Serialize(rst), rst.Destination);
+        }
+
+        private static Boolean IsMessageFormatException(Exception exception)
+        {
+            return exception is ArgumentException || exception is FormatException ||
+                exception is InvalidOperationException || exception is EndOfStreamException;
         }
 
         private void Reject(Message message)
