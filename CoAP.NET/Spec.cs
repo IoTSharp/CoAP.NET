@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using CoAP.Codec;
 using Microsoft.Extensions.Logging;
 using CoAP.Util;
@@ -1654,15 +1655,35 @@ namespace CoAP
 
         class MessageDecoder18 : MessageDecoder
         {
+            private Boolean _headerComplete;
+
             public MessageDecoder18(Byte[] data)
                 : base(data)
             {
-                ReadProtocol();
+                try
+                {
+                    ReadProtocol();
+                    _headerComplete = true;
+                }
+                catch (EndOfStreamException)
+                {
+                    // A truncated fixed header is not a decodable message. Keep
+                    // the decoder object available so the endpoint can silently
+                    // discard it without reflecting an RST to an unknown peer.
+                    _headerComplete = false;
+                }
             }
 
             public override Boolean IsWellFormed
             {
-                get { return m_version == Version; }
+                // MessageDecoder.Version is an inherited property, so an
+                // unqualified Version here would compare m_version to itself.
+                get
+                {
+                    Int32 codeClass = m_code >> 5;
+                    return _headerComplete && m_version == 1 && m_tokenLength <= 8 &&
+                        (codeClass == 0 || codeClass == 2 || codeClass == 4 || codeClass == 5);
+                }
             }
 
             protected override void ReadProtocol()
@@ -1677,6 +1698,23 @@ namespace CoAP
 
             protected override void ParseMessage(Message msg)
             {
+                if (!IsWellFormed)
+                    throw new FormatException("The CoAP message header is malformed.");
+
+                if (m_type == MessageType.RST && m_code != Code.Empty ||
+                    m_type == MessageType.ACK && IsRequest)
+                    throw new FormatException("The CoAP message type does not allow its code.");
+
+                if (m_code == Code.Empty)
+                {
+                    if (m_type == MessageType.NON)
+                        throw new FormatException("A non-confirmable CoAP message must contain a request or response.");
+                    if (m_tokenLength != 0 || m_reader.BytesAvailable)
+                        throw new FormatException("An empty CoAP message must not contain a token, options, or payload.");
+                    msg.Token = CoapConstants.EmptyToken;
+                    return;
+                }
+
                 // read token
                 if (m_tokenLength > 0)
                     msg.Token = m_reader.ReadBytes(m_tokenLength);

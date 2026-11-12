@@ -1,0 +1,522 @@
+[
+  {
+    "number": 82,
+    "title": "Anyone know if this code can be changed to work over serial?",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/82",
+    "upstreamState": "closed",
+    "category": "非当前宿主/历史平台",
+    "decision": "串口、Unity、WCF、Compact Framework 不进入本轮 .NET10 UDP/DTLS 默认合同；有实际消费者再单独评估。"
+  },
+  {
+    "number": 79,
+    "title": "client not reply ACK ，server repeat send data. help me. thanks",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/79",
+    "upstreamState": "open",
+    "category": "可靠性、Observe 与异步生命周期",
+    "decision": "按当前源码重现并纳入 #20/#21/#22/#26；旧 issue 的开放/关闭状态不能证明当前版本通过。"
+  },
+  {
+    "number": 78,
+    "title": " Request obs = Request.NewGet();       obs.URI = new Uri(\"coap://127.0.0.1/time\");       obs.MarkObserve();   Observe fail. ???",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/78",
+    "upstreamState": "open",
+    "category": "可靠性、Observe 与异步生命周期",
+    "decision": "按当前源码重现并纳入 #20/#21/#22/#26；旧 issue 的开放/关闭状态不能证明当前版本通过。"
+  },
+  {
+    "number": 77,
+    "title": "How to save CoAP server observable state in central memory for multiple server instances",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/77",
+    "upstreamState": "open",
+    "category": "宿主横向扩容",
+    "decision": "集中Observe状态涉及通知所有权、会话与恢复合同；不能在协议库内直接写死Redis或宿主业务集群。"
+  },
+  {
+    "number": 76,
+    "title": "CoAP.NET available documentation",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/76",
+    "upstreamState": "open",
+    "category": "使用说明、日志、包身份",
+    "decision": "以当前 README/Resource API/ILogger 与包来源补文档；不照搬旧构建项目或未经复现的示例问题。"
+  },
+  {
+    "number": 75,
+    "title": "Mark and Sweep question",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/75",
+    "upstreamState": "open",
+    "category": "使用说明、日志、包身份",
+    "decision": "以当前 README/Resource API/ILogger 与包来源补文档；不照搬旧构建项目或未经复现的示例问题。"
+  },
+  {
+    "number": 74,
+    "title": "hello，Just getting started with C#, I want to ask",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/74",
+    "upstreamState": "open",
+    "category": "使用说明、日志、包身份",
+    "decision": "以当前 README/Resource API/ILogger 与包来源补文档；不照搬旧构建项目或未经复现的示例问题。"
+  },
+  {
+    "number": 73,
+    "title": "Disable well-known",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/73",
+    "upstreamState": "open",
+    "category": "发现、资源树、代理与查询",
+    "decision": "已有框架入口和宿主扩展点；公开发现策略由宿主配置，代理语义与 option 校验仍需独立回归。"
+  },
+  {
+    "number": 72,
+    "title": "CoAP server download progress",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/72",
+    "upstreamState": "open",
+    "category": "Blockwise 与传输进度",
+    "decision": "分块错误/重复确认纳入 #22；进度 API、长传输取消和状态回收单独深化。"
+  },
+  {
+    "number": 71,
+    "title": "Docker Linux Container Support",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/71",
+    "upstreamState": "open",
+    "category": "平台与 Socket 边界",
+    "decision": "核对现代 .NET10/Linux/IPv4/IPv6 实现及 CI，避免复用旧平台特例；真实平台验收仍需实测。"
+  },
+  {
+    "number": 70,
+    "title": "Is Multicast implemented for server ?",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/70",
+    "upstreamState": "open",
+    "category": "组播与网络接口",
+    "decision": "保留组播匹配例外；接口选择、多响应收集和组播服务端属于独立能力，不直接移植广播 Socket 配置。"
+  },
+  {
+    "number": 69,
+    "title": "Unity Integration",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/69",
+    "upstreamState": "open",
+    "category": "非当前宿主/历史平台",
+    "decision": "串口、Unity、WCF、Compact Framework 不进入本轮 .NET10 UDP/DTLS 默认合同；有实际消费者再单独评估。"
+  },
+  {
+    "number": 68,
+    "title": "Can we have source code of nuget CoAP.NET.Core",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/68",
+    "upstreamState": "open",
+    "category": "使用说明、日志、包身份",
+    "decision": "以当前 README/Resource API/ILogger 与包来源补文档；不照搬旧构建项目或未经复现的示例问题。"
+  },
+  {
+    "number": 67,
+    "title": "CoapServer Crashes after some works",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/67",
+    "upstreamState": "open",
+    "category": "可靠性、Observe 与异步生命周期",
+    "decision": "按当前源码重现并纳入 #20/#21/#22/#26；旧 issue 的开放/关闭状态不能证明当前版本通过。"
+  },
+  {
+    "number": 66,
+    "title": "Discover not Multicast Ready",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/66",
+    "upstreamState": "open",
+    "category": "组播与网络接口",
+    "decision": "保留组播匹配例外；接口选择、多响应收集和组播服务端属于独立能力，不直接移植广播 Socket 配置。"
+  },
+  {
+    "number": 65,
+    "title": "Multicast not working on the specified interface/IP",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/65",
+    "upstreamState": "open",
+    "category": "组播与网络接口",
+    "decision": "保留组播匹配例外；接口选择、多响应收集和组播服务端属于独立能力，不直接移植广播 Socket 配置。"
+  },
+  {
+    "number": 63,
+    "title": "Setting MaxRetransmit in config has no effect",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/63",
+    "upstreamState": "closed",
+    "category": "可靠性、Observe 与异步生命周期",
+    "decision": "按当前源码重现并纳入 #20/#21/#22/#26；旧 issue 的开放/关闭状态不能证明当前版本通过。"
+  },
+  {
+    "number": 62,
+    "title": "Identity and Key",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/62",
+    "upstreamState": "open",
+    "category": "安全与 DTLS",
+    "decision": "已有 PSK/DTLS1.2 底座；互操作走 #26，证书/RPK/DTLS1.3 走 #27，OSCORE/EDHOC 另立合同。"
+  },
+  {
+    "number": 61,
+    "title": "Reject an exchange doesn't generate a RST paquet",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/61",
+    "upstreamState": "open",
+    "category": "可靠性、Observe 与异步生命周期",
+    "decision": "按当前源码重现并纳入 #20/#21/#22/#26；旧 issue 的开放/关闭状态不能证明当前版本通过。"
+  },
+  {
+    "number": 60,
+    "title": "Question on Root Resource",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/60",
+    "upstreamState": "open",
+    "category": "发现、资源树、代理与查询",
+    "decision": "已有框架入口和宿主扩展点；公开发现策略由宿主配置，代理语义与 option 校验仍需独立回归。"
+  },
+  {
+    "number": 59,
+    "title": "Unable to send acknowledgement from CoAP server to CoAP client",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/59",
+    "upstreamState": "closed",
+    "category": "可靠性、Observe 与异步生命周期",
+    "decision": "按当前源码重现并纳入 #20/#21/#22/#26；旧 issue 的开放/关闭状态不能证明当前版本通过。"
+  },
+  {
+    "number": 58,
+    "title": "response with request",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/58",
+    "upstreamState": "open",
+    "category": "可靠性、Observe 与异步生命周期",
+    "decision": "按当前源码重现并纳入 #20/#21/#22/#26；旧 issue 的开放/关闭状态不能证明当前版本通过。"
+  },
+  {
+    "number": 57,
+    "title": "CoAP.NET.Core memory leak",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/57",
+    "upstreamState": "closed",
+    "category": "可靠性、Observe 与异步生命周期",
+    "decision": "按当前源码重现并纳入 #20/#21/#22/#26；旧 issue 的开放/关闭状态不能证明当前版本通过。"
+  },
+  {
+    "number": 56,
+    "title": "CoAP over TCP",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/56",
+    "upstreamState": "open",
+    "category": "TCP 传输",
+    "decision": "参考正式 RFC8323；没有现有传输实现，列为后续独立扩展。"
+  },
+  {
+    "number": 55,
+    "title": "PSK?",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/55",
+    "upstreamState": "open",
+    "category": "安全与 DTLS",
+    "decision": "已有 PSK/DTLS1.2 底座；互操作走 #26，证书/RPK/DTLS1.3 走 #27，OSCORE/EDHOC 另立合同。"
+  },
+  {
+    "number": 54,
+    "title": "Observe timeout",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/54",
+    "upstreamState": "open",
+    "category": "可靠性、Observe 与异步生命周期",
+    "decision": "按当前源码重现并纳入 #20/#21/#22/#26；旧 issue 的开放/关闭状态不能证明当前版本通过。"
+  },
+  {
+    "number": 52,
+    "title": "Can't get response from broadcast/multicast address endpoint",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/52",
+    "upstreamState": "open",
+    "category": "组播与网络接口",
+    "decision": "保留组播匹配例外；接口选择、多响应收集和组播服务端属于独立能力，不直接移植广播 Socket 配置。"
+  },
+  {
+    "number": 51,
+    "title": "Server can not bind to port 5683",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/51",
+    "upstreamState": "closed",
+    "category": "平台与 Socket 边界",
+    "decision": "核对现代 .NET10/Linux/IPv4/IPv6 实现及 CI，避免复用旧平台特例；真实平台验收仍需实测。"
+  },
+  {
+    "number": 49,
+    "title": "How can I implement CoAP in a WCF service? ",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/49",
+    "upstreamState": "open",
+    "category": "非当前宿主/历史平台",
+    "decision": "串口、Unity、WCF、Compact Framework 不进入本轮 .NET10 UDP/DTLS 默认合同；有实际消费者再单独评估。"
+  },
+  {
+    "number": 48,
+    "title": "CoAP Cancel Observe Option",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/48",
+    "upstreamState": "open",
+    "category": "可靠性、Observe 与异步生命周期",
+    "decision": "按当前源码重现并纳入 #20/#21/#22/#26；旧 issue 的开放/关闭状态不能证明当前版本通过。"
+  },
+  {
+    "number": 47,
+    "title": "CoAP Observe Option",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/47",
+    "upstreamState": "open",
+    "category": "可靠性、Observe 与异步生命周期",
+    "decision": "按当前源码重现并纳入 #20/#21/#22/#26；旧 issue 的开放/关闭状态不能证明当前版本通过。"
+  },
+  {
+    "number": 46,
+    "title": "CoAP.net logging",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/46",
+    "upstreamState": "closed",
+    "category": "使用说明、日志、包身份",
+    "decision": "以当前 README/Resource API/ILogger 与包来源补文档；不照搬旧构建项目或未经复现的示例问题。"
+  },
+  {
+    "number": 44,
+    "title": "Invalid getter for ProxyUri and ProxyScheme?",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/44",
+    "upstreamState": "closed",
+    "category": "发现、资源树、代理与查询",
+    "decision": "已有框架入口和宿主扩展点；公开发现策略由宿主配置，代理语义与 option 校验仍需独立回归。"
+  },
+  {
+    "number": 41,
+    "title": "CoAP Blockwise transfer",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/41",
+    "upstreamState": "open",
+    "category": "Blockwise 与传输进度",
+    "decision": "分块错误/重复确认纳入 #22；进度 API、长传输取消和状态回收单独深化。"
+  },
+  {
+    "number": 40,
+    "title": "CoAP client through mobile hotspot",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/40",
+    "upstreamState": "open",
+    "category": "可靠性、Observe 与异步生命周期",
+    "decision": "按当前源码重现并纳入 #20/#21/#22/#26；旧 issue 的开放/关闭状态不能证明当前版本通过。"
+  },
+  {
+    "number": 39,
+    "title": "Queries on Coap .NET features",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/39",
+    "upstreamState": "open",
+    "category": "安全与 DTLS",
+    "decision": "已有 PSK/DTLS1.2 底座；互操作走 #26，证书/RPK/DTLS1.3 走 #27，OSCORE/EDHOC 另立合同。"
+  },
+  {
+    "number": 38,
+    "title": "Question on observed resource",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/38",
+    "upstreamState": "open",
+    "category": "可靠性、Observe 与异步生命周期",
+    "decision": "按当前源码重现并纳入 #20/#21/#22/#26；旧 issue 的开放/关闭状态不能证明当前版本通过。"
+  },
+  {
+    "number": 37,
+    "title": "Stack overflow on some OS when UDP channel begins receiving on .NET 4",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/37",
+    "upstreamState": "closed",
+    "category": "平台与 Socket 边界",
+    "decision": "核对现代 .NET10/Linux/IPv4/IPv6 实现及 CI，避免复用旧平台特例；真实平台验收仍需实测。"
+  },
+  {
+    "number": 32,
+    "title": "For Observe subsequent \"Notify\" response ignored as duplicate",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/32",
+    "upstreamState": "open",
+    "category": "可靠性、Observe 与异步生命周期",
+    "decision": "按当前源码重现并纳入 #20/#21/#22/#26；旧 issue 的开放/关闭状态不能证明当前版本通过。"
+  },
+  {
+    "number": 31,
+    "title": "F# Interactive client with 4.05 status",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/31",
+    "upstreamState": "closed",
+    "category": "使用说明、日志、包身份",
+    "decision": "以当前 README/Resource API/ILogger 与包来源补文档；不照搬旧构建项目或未经复现的示例问题。"
+  },
+  {
+    "number": 30,
+    "title": "CoAP Client Request and Response",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/30",
+    "upstreamState": "open",
+    "category": "使用说明、日志、包身份",
+    "decision": "以当前 README/Resource API/ILogger 与包来源补文档；不照搬旧构建项目或未经复现的示例问题。"
+  },
+  {
+    "number": 29,
+    "title": "CoAP.NET-master Client and Server issue",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/29",
+    "upstreamState": "open",
+    "category": "安全与 DTLS",
+    "decision": "已有 PSK/DTLS1.2 底座；互操作走 #26，证书/RPK/DTLS1.3 走 #27，OSCORE/EDHOC 另立合同。"
+  },
+  {
+    "number": 28,
+    "title": "CoAP.NET-master Client and Server issue",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/28",
+    "upstreamState": "open",
+    "category": "使用说明、日志、包身份",
+    "decision": "以当前 README/Resource API/ILogger 与包来源补文档；不照搬旧构建项目或未经复现的示例问题。"
+  },
+  {
+    "number": 27,
+    "title": "COAP.net",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/27",
+    "upstreamState": "open",
+    "category": "安全与 DTLS",
+    "decision": "已有 PSK/DTLS1.2 底座；互操作走 #26，证书/RPK/DTLS1.3 走 #27，OSCORE/EDHOC 另立合同。"
+  },
+  {
+    "number": 26,
+    "title": "Coap.Net",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/26",
+    "upstreamState": "closed",
+    "category": "使用说明、日志、包身份",
+    "decision": "以当前 README/Resource API/ILogger 与包来源补文档；不照搬旧构建项目或未经复现的示例问题。"
+  },
+  {
+    "number": 25,
+    "title": "coap.net",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/25",
+    "upstreamState": "closed",
+    "category": "安全与 DTLS",
+    "decision": "已有 PSK/DTLS1.2 底座；互操作走 #26，证书/RPK/DTLS1.3 走 #27，OSCORE/EDHOC 另立合同。"
+  },
+  {
+    "number": 23,
+    "title": "CoAP.NET-master Client and Server issue",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/23",
+    "upstreamState": "closed",
+    "category": "发现、资源树、代理与查询",
+    "decision": "已有框架入口和宿主扩展点；公开发现策略由宿主配置，代理语义与 option 校验仍需独立回归。"
+  },
+  {
+    "number": 22,
+    "title": "CoAP.NET-master Client and Server issue",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/22",
+    "upstreamState": "open",
+    "category": "非当前宿主/历史平台",
+    "decision": "串口、Unity、WCF、Compact Framework 不进入本轮 .NET10 UDP/DTLS 默认合同；有实际消费者再单独评估。"
+  },
+  {
+    "number": 21,
+    "title": "CoAP.NET-master Client and Server issue",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/21",
+    "upstreamState": "closed",
+    "category": "可靠性、Observe 与异步生命周期",
+    "decision": "按当前源码重现并纳入 #20/#21/#22/#26；旧 issue 的开放/关闭状态不能证明当前版本通过。"
+  },
+  {
+    "number": 20,
+    "title": "CoAP.NET-master Client and Server issue",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/20",
+    "upstreamState": "closed",
+    "category": "可靠性、Observe 与异步生命周期",
+    "decision": "按当前源码重现并纳入 #20/#21/#22/#26；旧 issue 的开放/关闭状态不能证明当前版本通过。"
+  },
+  {
+    "number": 19,
+    "title": "CoAP.NET-master Client and Server issue",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/19",
+    "upstreamState": "closed",
+    "category": "使用说明、日志、包身份",
+    "decision": "以当前 README/Resource API/ILogger 与包来源补文档；不照搬旧构建项目或未经复现的示例问题。"
+  },
+  {
+    "number": 18,
+    "title": "CoAP.NET-master Client and Server issue",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/18",
+    "upstreamState": "closed",
+    "category": "使用说明、日志、包身份",
+    "decision": "以当前 README/Resource API/ILogger 与包来源补文档；不照搬旧构建项目或未经复现的示例问题。"
+  },
+  {
+    "number": 17,
+    "title": "Nuget package out of date.",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/17",
+    "upstreamState": "closed",
+    "category": "使用说明、日志、包身份",
+    "decision": "以当前 README/Resource API/ILogger 与包来源补文档；不照搬旧构建项目或未经复现的示例问题。"
+  },
+  {
+    "number": 16,
+    "title": "The sample app dosn't handle client error not found",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/16",
+    "upstreamState": "closed",
+    "category": "可靠性、Observe 与异步生命周期",
+    "decision": "按当前源码重现并纳入 #20/#21/#22/#26；旧 issue 的开放/关闭状态不能证明当前版本通过。"
+  },
+  {
+    "number": 15,
+    "title": "Implementing / Porting Scandium ",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/15",
+    "upstreamState": "open",
+    "category": "安全与 DTLS",
+    "decision": "已有 PSK/DTLS1.2 底座；互操作走 #26，证书/RPK/DTLS1.3 走 #27，OSCORE/EDHOC 另立合同。"
+  },
+  {
+    "number": 13,
+    "title": "GetNextResponseBlock() crashed if receiving a out-of-scope block number",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/13",
+    "upstreamState": "closed",
+    "category": "Blockwise 与传输进度",
+    "decision": "分块错误/重复确认纳入 #22；进度 API、长传输取消和状态回收单独深化。"
+  },
+  {
+    "number": 12,
+    "title": "CoAP.NET over compact Net Framework 3.5",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/12",
+    "upstreamState": "open",
+    "category": "非当前宿主/历史平台",
+    "decision": "串口、Unity、WCF、Compact Framework 不进入本轮 .NET10 UDP/DTLS 默认合同；有实际消费者再单独评估。"
+  },
+  {
+    "number": 11,
+    "title": "Unexpected SocketException of AddressFamilyNotSupported if IPv6 is not supported by the OS",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/11",
+    "upstreamState": "closed",
+    "category": "平台与 Socket 边界",
+    "decision": "核对现代 .NET10/Linux/IPv4/IPv6 实现及 CI，避免复用旧平台特例；真实平台验收仍需实测。"
+  },
+  {
+    "number": 10,
+    "title": "MapToIPv4 fails for some IP Addresses",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/10",
+    "upstreamState": "closed",
+    "category": "平台与 Socket 边界",
+    "decision": "核对现代 .NET10/Linux/IPv4/IPv6 实现及 CI，避免复用旧平台特例；真实平台验收仍需实测。"
+  },
+  {
+    "number": 9,
+    "title": "server keeps throwing SocketException after a observe client disconnects",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/9",
+    "upstreamState": "closed",
+    "category": "可靠性、Observe 与异步生命周期",
+    "decision": "按当前源码重现并纳入 #20/#21/#22/#26；旧 issue 的开放/关闭状态不能证明当前版本通过。"
+  },
+  {
+    "number": 8,
+    "title": "Add ability to override overall timeout in TokenLayer",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/8",
+    "upstreamState": "closed",
+    "category": "可靠性、Observe 与异步生命周期",
+    "decision": "按当前源码重现并纳入 #20/#21/#22/#26；旧 issue 的开放/关闭状态不能证明当前版本通过。"
+  },
+  {
+    "number": 6,
+    "title": "Please update binaries",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/6",
+    "upstreamState": "closed",
+    "category": "使用说明、日志、包身份",
+    "decision": "以当前 README/Resource API/ILogger 与包来源补文档；不照搬旧构建项目或未经复现的示例问题。"
+  },
+  {
+    "number": 5,
+    "title": "How do you set the log level?",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/5",
+    "upstreamState": "closed",
+    "category": "使用说明、日志、包身份",
+    "decision": "以当前 README/Resource API/ILogger 与包来源补文档；不照搬旧构建项目或未经复现的示例问题。"
+  },
+  {
+    "number": 3,
+    "title": "Blockwise transfer for PUT requests",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/3",
+    "upstreamState": "closed",
+    "category": "Blockwise 与传输进度",
+    "decision": "分块错误/重复确认纳入 #22；进度 API、长传输取消和状态回收单独深化。"
+  },
+  {
+    "number": 2,
+    "title": "Ability to specify timeout time and retries",
+    "url": "https://github.com/smeshlink/CoAP.NET/issues/2",
+    "upstreamState": "closed",
+    "category": "可靠性、Observe 与异步生命周期",
+    "decision": "按当前源码重现并纳入 #20/#21/#22/#26；旧 issue 的开放/关闭状态不能证明当前版本通过。"
+  }
+]

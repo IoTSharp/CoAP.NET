@@ -1,0 +1,386 @@
+{
+  "date": "2026-11-13",
+  "timezone": "Asia/Shanghai",
+  "baseline": "1abe69a0edaf55147ad6bccaa4e012aea87a8252",
+  "integratedCommits": [
+    "4138aef8183eba9c118038da9b7e7b8ee8ad212f",
+    "ff9e76392c4dd4a5f764c652e9501fe036379c65",
+    "d299b483401d93b14df2869320cb16e5976f18c7",
+    "7aa0fcb37a6344199aa1420d7ab1531f1c372042"
+  ],
+  "scope": "First UDP interoperability slices; later standards issues stay open",
+  "verification": [
+    {
+      "gate": "CoAP.Test Release",
+      "status": "PASS",
+      "passed": 207,
+      "failed": 0,
+      "skipped": 0,
+      "command": "dotnet test CoAP.Test/CoAP.Test.csproj -c Release --no-restore -m:1 -nodeReuse:false -p:UseSharedCompilation=false --logger trx;LogFileName=integration-20261113.trx --results-directory TestResults/Integration",
+      "trx": "TestResults/Integration/integration-20261113.trx"
+    },
+    {
+      "gate": "Owned source formatting",
+      "status": "PASS",
+      "exit": 0,
+      "command": "dotnet format CoAP.Test/CoAP.Test.csproj --verify-no-changes --no-restore --severity warn --include CoAP.NET/CoapClient.cs CoAP.NET/Codec/DatagramReader.cs CoAP.NET/Codec/MessageDecoder.cs CoAP.NET/Net/CoAPEndPoint.cs CoAP.NET/Net/Matcher.cs CoAP.NET/Server/CoapServer.cs CoAP.NET/Spec.cs CoAP.NET/Stack/BlockwiseLayer.cs CoAP.Test/BlockwiseProtocolRegressionTest.cs CoAP.Test/CoapClientTest.cs CoAP.Test/CoapClientProtocolFailureTest.cs CoAP.Test/DecoderFailureStateTest.cs CoAP.Test/MalformedDatagramTest.cs CoAP.Test/MatcherProtocolTest.cs"
+    },
+    {
+      "gate": "ResourceMvc restore/build",
+      "status": "PASS",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "gate": "git diff --check",
+      "status": "PASS"
+    },
+    {
+      "gate": "Cross-implementation peer interoperability",
+      "status": "NOT_RUN",
+      "issue": 26
+    },
+    {
+      "gate": "NativeAOT publish/run",
+      "status": "NOT_RUN"
+    },
+    {
+      "gate": "NuGet publication/consumption",
+      "status": "NOT_RUN"
+    },
+    {
+      "gate": "Device/field/soak",
+      "status": "NOT_RUN"
+    }
+  ],
+  "baselineFailures": [
+    {
+      "slice": "parser",
+      "status": "FAIL_EXPECTED",
+      "failed": 3,
+      "description": "Original code accepts wrong version, truncated option, Empty payload"
+    },
+    {
+      "slice": "matcher",
+      "status": "FAIL_EXPECTED",
+      "failed": 2,
+      "passed": 2
+    },
+    {
+      "slice": "Block1 initial",
+      "status": "FAIL_EXPECTED",
+      "failed": 3,
+      "passed": 1
+    },
+    {
+      "slice": "Block1 review correction",
+      "status": "FAIL_EXPECTED",
+      "failed": 6
+    },
+    {
+      "slice": "decoder retry",
+      "status": "FAIL_EXPECTED",
+      "failed": 4
+    },
+    {
+      "slice": "async cancellation mapping",
+      "status": "FAIL_EXPECTED",
+      "failed": 2,
+      "passed": 2
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "CoAP.NET/CoapClient.cs",
+      "result": {
+        "status": "ok",
+        "operation": "hash_file",
+        "source": "C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET\\CoapClient.cs",
+        "destination": null,
+        "written_to_disk": false,
+        "source_removed": false,
+        "file_changed": false,
+        "cleanup_complete": true,
+        "metadata_checked": false,
+        "metadata_preserved": false,
+        "size_bytes": 19360,
+        "bytes_processed": 19360,
+        "sha256": "d091feca4adc7d6d0069f9ecd74c4dfd14dcc331160fb7c710b9b4aa8dab2b3d",
+        "native_error": 0,
+        "elapsed_ms": 0
+      }
+    },
+    {
+      "path": "CoAP.NET/Codec/DatagramReader.cs",
+      "result": {
+        "status": "ok",
+        "operation": "hash_file",
+        "source": "C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET\\Codec\\DatagramReader.cs",
+        "destination": null,
+        "written_to_disk": false,
+        "source_removed": false,
+        "file_changed": false,
+        "cleanup_complete": true,
+        "metadata_checked": false,
+        "metadata_preserved": false,
+        "size_bytes": 4740,
+        "bytes_processed": 4740,
+        "sha256": "a37a21745272b4c8d96b7bae9e649a5b104136de6c84c4d4442021420529bcb1",
+        "native_error": 0,
+        "elapsed_ms": 0
+      }
+    },
+    {
+      "path": "CoAP.NET/Codec/MessageDecoder.cs",
+      "result": {
+        "status": "ok",
+        "operation": "hash_file",
+        "source": "C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET\\Codec\\MessageDecoder.cs",
+        "destination": null,
+        "written_to_disk": false,
+        "source_removed": false,
+        "file_changed": false,
+        "cleanup_complete": true,
+        "metadata_checked": false,
+        "metadata_preserved": false,
+        "size_bytes": 5408,
+        "bytes_processed": 5408,
+        "sha256": "1db0581c529f2ee593a307a5a2372a71ff389a93eccd2bb7d8e68a9957d94c50",
+        "native_error": 0,
+        "elapsed_ms": 0
+      }
+    },
+    {
+      "path": "CoAP.NET/Net/CoAPEndPoint.cs",
+      "result": {
+        "status": "ok",
+        "operation": "hash_file",
+        "source": "C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET\\Net\\CoAPEndPoint.cs",
+        "destination": null,
+        "written_to_disk": false,
+        "source_removed": false,
+        "file_changed": false,
+        "cleanup_complete": true,
+        "metadata_checked": false,
+        "metadata_preserved": false,
+        "size_bytes": 16148,
+        "bytes_processed": 16148,
+        "sha256": "679a30aadbda8d9d70967b124f8ecf1e26d4808b13fb493087b6ef4ab7ce73c7",
+        "native_error": 0,
+        "elapsed_ms": 0
+      }
+    },
+    {
+      "path": "CoAP.NET/Net/Matcher.cs",
+      "result": {
+        "status": "ok",
+        "operation": "hash_file",
+        "source": "C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET\\Net\\Matcher.cs",
+        "destination": null,
+        "written_to_disk": false,
+        "source_removed": false,
+        "file_changed": false,
+        "cleanup_complete": true,
+        "metadata_checked": false,
+        "metadata_preserved": false,
+        "size_bytes": 21920,
+        "bytes_processed": 21920,
+        "sha256": "b872903b610c26c03278731a5ad0bb628b0e53ffd7e16524083ca98eb2ddb07c",
+        "native_error": 0,
+        "elapsed_ms": 0
+      }
+    },
+    {
+      "path": "CoAP.NET/Server/CoapServer.cs",
+      "result": {
+        "status": "ok",
+        "operation": "hash_file",
+        "source": "C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET\\Server\\CoapServer.cs",
+        "destination": null,
+        "written_to_disk": false,
+        "source_removed": false,
+        "file_changed": false,
+        "cleanup_complete": true,
+        "metadata_checked": false,
+        "metadata_preserved": false,
+        "size_bytes": 6447,
+        "bytes_processed": 6447,
+        "sha256": "592c3e10cd6a627bc59903b45e0a4360bea66b63d0faaf0d5d741f09887f35c8",
+        "native_error": 0,
+        "elapsed_ms": 0
+      }
+    },
+    {
+      "path": "CoAP.NET/Spec.cs",
+      "result": {
+        "status": "ok",
+        "operation": "hash_file",
+        "source": "C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET\\Spec.cs",
+        "destination": null,
+        "written_to_disk": false,
+        "source_removed": false,
+        "file_changed": false,
+        "cleanup_complete": true,
+        "metadata_checked": false,
+        "metadata_preserved": false,
+        "size_bytes": 67095,
+        "bytes_processed": 67095,
+        "sha256": "855e5eae1e20ab91e06414eda180cc4c590e332d8f63e53c90b7ea530925c88c",
+        "native_error": 0,
+        "elapsed_ms": 0
+      }
+    },
+    {
+      "path": "CoAP.NET/Stack/BlockwiseLayer.cs",
+      "result": {
+        "status": "ok",
+        "operation": "hash_file",
+        "source": "C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET\\Stack\\BlockwiseLayer.cs",
+        "destination": null,
+        "written_to_disk": false,
+        "source_removed": false,
+        "file_changed": false,
+        "cleanup_complete": true,
+        "metadata_checked": false,
+        "metadata_preserved": false,
+        "size_bytes": 30571,
+        "bytes_processed": 30571,
+        "sha256": "e76a07188404f53cbcff550a87db5e28ed2defe014d51021e1e2bd35c07d0fcf",
+        "native_error": 0,
+        "elapsed_ms": 0
+      }
+    },
+    {
+      "path": "CoAP.Test/BlockwiseProtocolRegressionTest.cs",
+      "result": {
+        "status": "ok",
+        "operation": "hash_file",
+        "source": "C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.Test\\BlockwiseProtocolRegressionTest.cs",
+        "destination": null,
+        "written_to_disk": false,
+        "source_removed": false,
+        "file_changed": false,
+        "cleanup_complete": true,
+        "metadata_checked": false,
+        "metadata_preserved": false,
+        "size_bytes": 19433,
+        "bytes_processed": 19433,
+        "sha256": "e77b8780a613fd452d76464fe3db3a0e3213d5468dffdeae8ab253b54e6a1f0d",
+        "native_error": 0,
+        "elapsed_ms": 0
+      }
+    },
+    {
+      "path": "CoAP.Test/CoapClientTest.cs",
+      "result": {
+        "status": "ok",
+        "operation": "hash_file",
+        "source": "C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.Test\\CoapClientTest.cs",
+        "destination": null,
+        "written_to_disk": false,
+        "source_removed": false,
+        "file_changed": false,
+        "cleanup_complete": true,
+        "metadata_checked": false,
+        "metadata_preserved": false,
+        "size_bytes": 8637,
+        "bytes_processed": 8637,
+        "sha256": "475466f7b291ae78033752e8e77a36ede3a744caee1ed73d1beb9ba5f39aa53a",
+        "native_error": 0,
+        "elapsed_ms": 0
+      }
+    },
+    {
+      "path": "CoAP.Test/CoapClientProtocolFailureTest.cs",
+      "result": {
+        "status": "ok",
+        "operation": "hash_file",
+        "source": "C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.Test\\CoapClientProtocolFailureTest.cs",
+        "destination": null,
+        "written_to_disk": false,
+        "source_removed": false,
+        "file_changed": false,
+        "cleanup_complete": true,
+        "metadata_checked": false,
+        "metadata_preserved": false,
+        "size_bytes": 6378,
+        "bytes_processed": 6378,
+        "sha256": "22e6888a393d39d812dc8f94b7adbdcadae26ee3753587ff7dbc19e8d0adc683",
+        "native_error": 0,
+        "elapsed_ms": 0
+      }
+    },
+    {
+      "path": "CoAP.Test/DecoderFailureStateTest.cs",
+      "result": {
+        "status": "ok",
+        "operation": "hash_file",
+        "source": "C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.Test\\DecoderFailureStateTest.cs",
+        "destination": null,
+        "written_to_disk": false,
+        "source_removed": false,
+        "file_changed": false,
+        "cleanup_complete": true,
+        "metadata_checked": false,
+        "metadata_preserved": false,
+        "size_bytes": 1538,
+        "bytes_processed": 1538,
+        "sha256": "d4924c1846a119e3c7cc75714e876bfdad450eee90420f4ec8ad354f9b667d9d",
+        "native_error": 0,
+        "elapsed_ms": 0
+      }
+    },
+    {
+      "path": "CoAP.Test/MalformedDatagramTest.cs",
+      "result": {
+        "status": "ok",
+        "operation": "hash_file",
+        "source": "C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.Test\\MalformedDatagramTest.cs",
+        "destination": null,
+        "written_to_disk": false,
+        "source_removed": false,
+        "file_changed": false,
+        "cleanup_complete": true,
+        "metadata_checked": false,
+        "metadata_preserved": false,
+        "size_bytes": 10333,
+        "bytes_processed": 10333,
+        "sha256": "4f54dd1c3ee8472437659262a3026ad358030ff392a3606f45ea1d102e9a6ef8",
+        "native_error": 0,
+        "elapsed_ms": 0
+      }
+    },
+    {
+      "path": "CoAP.Test/MatcherProtocolTest.cs",
+      "result": {
+        "status": "ok",
+        "operation": "hash_file",
+        "source": "C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.Test\\MatcherProtocolTest.cs",
+        "destination": null,
+        "written_to_disk": false,
+        "source_removed": false,
+        "file_changed": false,
+        "cleanup_complete": true,
+        "metadata_checked": false,
+        "metadata_preserved": false,
+        "size_bytes": 10512,
+        "bytes_processed": 10512,
+        "sha256": "40d0173ab9184727ee80b383236fd6bd2fa6855d667486dda2eaccc2d02706e3",
+        "native_error": 0,
+        "elapsed_ms": 0
+      }
+    }
+  ],
+  "resourceBoundary": "All validation commands use bounded Cordonix process groups. No persistent service was started. Inaccessible entries in global process snapshots remain UNKNOWN rather than evidence of zero unrelated processes.",
+  "remainingIssues": [
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31
+  ]
+}
