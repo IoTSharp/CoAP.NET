@@ -8,8 +8,8 @@
     <Product>CoAP.NET</Product>
     <Description>A modernized CoAP framework for .NET 10, including client, server, blockwise, observe, and optional DTLS PSK transport.</Description>
     <Copyright>Copyright © SmeshLink 2011-2015; IoTSharp 2026</Copyright>
-    <RepositoryUrl>https://github.com/IoTSharp/IoTSharp.CoAP.NET</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/IoTSharp/IoTSharp.CoAP.NET</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/IoTSharp/CoAP.NET</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/IoTSharp/CoAP.NET</PackageProjectUrl>
     <RepositoryType>Git</RepositoryType>
     <VersionPrefix>3.0.1</VersionPrefix>
     <Version>3.0.1</Version>

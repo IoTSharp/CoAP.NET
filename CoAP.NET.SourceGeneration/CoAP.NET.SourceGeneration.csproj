@@ -8,8 +8,8 @@
     <Product>CoAP.NET</Product>
     <Description>Source generators for CoAP.NET resource endpoint factories.</Description>
     <Copyright>Copyright © IoTSharp 2026</Copyright>
-    <RepositoryUrl>https://github.com/IoTSharp/IoTSharp.CoAP.NET</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/IoTSharp/IoTSharp.CoAP.NET</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/IoTSharp/CoAP.NET</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/IoTSharp/CoAP.NET</PackageProjectUrl>
     <RepositoryType>Git</RepositoryType>
     <VersionPrefix>3.0.1</VersionPrefix>
     <Version>3.0.1</Version>
