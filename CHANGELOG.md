@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Modern option semantics and lifecycle — 2026-11-13
+
+- 按用户批准的兼容选择，默认 AddOption/codec 不再把 wire number 19 转成消息头 Token；旧 Token 名称保留并弃用，迁移到 Message.Token。QBlock1/2 仅登记现行名称/格式，默认未启用其处理器。
+- 显式 legacy codec 保留受测 Token 往返并拒绝 raw19 歧义，默认在所有受测旧符号构建下仍为 RFC7252；现代与 Draft18 端点缓存隔离。
+- 新增 endpoint 选项定义/注册，派发前按长度、方向、重复、UTF-8 和语义校验；critical 请求/响应按消息类型拒绝，非法 elective 被忽略，unknown elective 保留。默认不支持代理时返回5.05，真实代理宿主需显式启用 SupportsProxying。
+- 分块状态、计时器、事件登记在成功/错误/取消/超时及 endpoint Clear/Stop/Dispose 时回收，原调用方收到明确终态。终止通知保持锁外且异常清理继续执行；旧排队代次被拒绝，可重入清理不复活传输或丢失新请求。
+- CoapClient 普通单播成功/失败共同仲裁一次终态，区分实际 Observe 通知、注销与正常 GET fallback。异步客户端回归改为等待实际响应信号，保留原断言并去除固定100ms协调假设。
+- 兼容影响、受测 legacy 范围及未完成的 Token 生成/无符号 getter/大 Max-Age 见[迁移合同](docs/coap-options-compatibility.md)；新包发行、AOT运行、真实peer与现场资格独立验收。
+
 ### Fixed — UDP interoperability audit (2026-11-13)
 
 - 按 RFC 7252 严格拒绝截断头、Token、option、无 payload 的 marker 和非法 Empty/type/code 组合；修复版本自比较，格式失败后的 decoder 保持失败状态。可辨识的畸形 CON 使用匹配 MID 的 RST，ACK/RST、未知版本和短头不反射回复。

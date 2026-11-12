@@ -1,5 +1,16 @@
 # CoAP.NET engineering handoff
 
+## 2026-11-13 (Asia/Shanghai): approved modern option semantics and lifecycle
+
+- Baseline master@557b31a89ce803cbde8b3bef7a1d3754c206ba03. User explicitly selected A: modern option19 semantics by default, deprecated old Token name retained, header Token via Message.Token, legacy only by explicit codec. Commit/push/PR/merge authorization continues; no tag, new package publication or deployment is authorized.
+- Three isolated implementation commits: bc8fc6c6 (modern/raw/legacy), 75af5de6 (endpoint option policy), 712d1506 (Blockwise lifecycle). Primary integration adds independent-review corrections, real endpoint Stop/Clear/Dispose and queued-generation gates, callback-safe cleanup and single unicast terminal reporting.
+- Migration: docs/coap-options-compatibility.md. Registry metadata is not protocol-handler support. QBlock1/2 names exist but default handlers remain absent; Proxying needs explicit SupportsProxying and a real host deliverer. Token generation strategy was not changed by the option19 migration.
+- Final local gates: default Release370/370 (0 fail/skip), COAP03/08/12/13 targeted15 each, COAPALL targeted23, owned-source format exit0, default/library/sample builds0 warnings0 errors. Exact source hashes and original FAIL/UNKNOWN boundaries: docs/audits/coap-20261113/phase2-validation.json.
+- Original intermediate full run353/355 is retained: one asynchronous client coordination failure remained root-cause UNKNOWN after two unchanged reruns passed; fixed100ms waits were replaced by real signals. The other test was extended to finish an upload before Dispose, preserving its failure checks. Invalid critical SZX ACK now follows pre-matcher ignore rules and actual deadline/recovery tests.
+- Remaining confirmed/source-audit work: #33 secure/unsecured token generation/binding, #34 unsigned typed getter range, #35 long Observe Max-Age timer. #23 remains an umbrella until remaining token work is complete. #28/#29 closure requires final candidate CI and merge readback, not local PASS alone.
+- Resources: no persistent services or installs. Task-created invocation groups are bounded and cleaned; source clones and necessary failure receipts are retained. Original SonnetDB source and parent submodule pointer are outside this delivery. Four unusable managed-worktree attachments remain preserved after ownership rejection; use this ordinary integration clone.
+- Next: push reviewed candidate, read CI and all review threads, merge only the matching head after checks, independently read master/issue states. Peer interoperability, NativeAOT execution, public package and field/soak gates remain NOT_RUN.
+
 ## 2026-11-13 (Asia/Shanghai): standards and UDP interoperability
 
 - Baseline: master@1abe69a0edaf55147ad6bccaa4e012aea87a8252 (v3.0.1). The original SonnetDB submodule remains unchanged, including its existing parent gitlink difference.

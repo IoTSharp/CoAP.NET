@@ -1063,20 +1063,13 @@ namespace CoAP
         }
 
         /// <summary>
-        /// Adds an option to the list of options of this CoAP message.
+        /// 按现行 CoAP option number 添加选项；报文头 Token 只能通过 <see cref="Token"/> 设置。
         /// </summary>
-        /// <param name="option">the option to add</param>
+        /// <param name="option">要添加的原始协议选项。</param>
         public Message AddOption(Option option)
         {
             if (option == null)
                 throw new ArgumentNullException("opt");
-
-            if (option.Type == OptionType.Token)
-            {
-                // be compatible with draft 13-
-                Token = option.RawValue;
-                return this;
-            }
 
             LinkedList<Option> list;
             if (!_optionMap.TryGetValue(option.Type, out list))

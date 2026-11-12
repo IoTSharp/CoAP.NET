@@ -391,15 +391,25 @@ namespace CoAP
 
         public void SendAsync(Request request, Action<Response> done = null, Action<FailReason> fail = null)
         {
-            Int32 cancellationReported = 0;
-            request.Respond += (o, e) => Deliver(done, e);
-            request.Rejected += (o, e) => Fail(fail, FailReason.Rejected);
-            request.TimedOut += (o, e) => Fail(fail, FailReason.TimedOut);
-            request.Cancelled += (o, e) =>
+            Int32 terminalReported = 0;
+            Boolean multicast = request.Multicast;
+            Boolean observeRegistration = request.Method == Method.GET && request.Observe == 0;
+            Action<FailReason> reportFailure = reason =>
             {
-                if (System.Threading.Interlocked.Exchange(ref cancellationReported, 1) == 0)
-                    Fail(fail, FailReason.Cancelled);
+                if (System.Threading.Interlocked.Exchange(ref terminalReported, 1) == 0)
+                    Fail(fail, reason);
             };
+            request.Respond += (o, e) =>
+            {
+                Boolean ongoing = multicast || (observeRegistration && e.Response.HasOption(OptionType.Observe));
+                if (ongoing
+                    ? System.Threading.Volatile.Read(ref terminalReported) == 0
+                    : System.Threading.Interlocked.Exchange(ref terminalReported, 1) == 0)
+                    Deliver(done, e);
+            };
+            request.Rejected += (o, e) => reportFailure(FailReason.Rejected);
+            request.TimedOut += (o, e) => reportFailure(FailReason.TimedOut);
+            request.Cancelled += (o, e) => reportFailure(FailReason.Cancelled);
             
             Prepare(request).Send();
         }

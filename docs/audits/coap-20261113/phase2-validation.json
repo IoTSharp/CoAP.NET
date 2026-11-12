@@ -1,0 +1,243 @@
+{
+  "date": "2026-11-13",
+  "timezone": "Asia/Shanghai",
+  "baseline": "557b31a89ce803cbde8b3bef7a1d3754c206ba03",
+  "approvedDecision": "Modern option semantics by default; deprecated Token alias retained; explicit legacy codecs only",
+  "sourceCommits": [
+    "bc8fc6c6b062889b4fefe17f848b14cf9df678c0",
+    "75af5de6fa0bcbed147548affd2ef53870dc1946",
+    "712d1506dbf22a7510b0a422fb6c9c14fca12b6e"
+  ],
+  "gates": {
+    "defaultRelease": {
+      "status": "PASS",
+      "passed": 370,
+      "failed": 0,
+      "skipped": 0,
+      "trx": "TestResults/OptionsLifecycle/options-lifecycle-verified-20261113.trx"
+    },
+    "legacy": {
+      "COAP03": 15,
+      "COAP08": 15,
+      "COAP12": 15,
+      "COAP13": 15,
+      "COAPALL": 23,
+      "status": "PASS",
+      "scope": "registry/explicit legacy codec/isolation targeted tests; not all historical suites"
+    },
+    "ownedFormat": {
+      "status": "PASS",
+      "severity": "warn",
+      "whitespaceCommand": "git -c core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol diff --cached --check",
+      "eolNote": "Existing mixed CRLF/LF retained. Standard diff --check treated new CRLF carriage returns as trailing whitespace; the final check retains all default whitespace checks and recognizes CR at EOL.",
+      "paths": [
+        "CoAP.NET/CoapClient.cs",
+        "CoAP.NET/Message.cs",
+        "CoAP.NET/Net/CoAPEndPoint.cs",
+        "CoAP.NET/Net/CoapOptionDefinition.cs",
+        "CoAP.NET/Net/CoapOptionRegistry.cs",
+        "CoAP.NET/Option.cs",
+        "CoAP.NET/OptionType.cs",
+        "CoAP.NET/Spec.cs",
+        "CoAP.NET/Stack/BlockwiseLayer.cs",
+        "CoAP.Test/BlockwiseLifecycleTest.cs",
+        "CoAP.Test/CoapClientProtocolFailureTest.cs",
+        "CoAP.Test/CoapClientTest.cs",
+        "CoAP.Test/LegacyCodecOptionTest.cs",
+        "CoAP.Test/OptionPolicyTest.cs",
+        "CoAP.Test/OptionTest.cs",
+        "CoAP.Test/RegistryOptionTest.cs",
+        "CoAP.Test/EndpointBlockwiseLifecycleTest.cs",
+        "CoAP.Test/LegacyEndpointIsolationTest.cs",
+        "CoAP.Test/OptionSemanticRegressionTest.cs"
+      ]
+    },
+    "defaultBuild": {
+      "status": "PASS",
+      "warnings": 0,
+      "errors": 0
+    },
+    "resourceMvcBuild": {
+      "status": "PASS",
+      "warnings": 0,
+      "errors": 0
+    }
+  },
+  "failureHistory": [
+    {
+      "scope": "modern registry baseline",
+      "failed": 6,
+      "passed": 7
+    },
+    {
+      "scope": "option policy baseline",
+      "failed": 14,
+      "passed": 2
+    },
+    {
+      "scope": "lifecycle baseline",
+      "failed": 7
+    },
+    {
+      "scope": "legacy review baseline",
+      "failed": 3,
+      "passed": 7
+    },
+    {
+      "scope": "condition/location semantic review",
+      "failed": 4,
+      "passed": 5
+    },
+    {
+      "scope": "endpoint lifecycle and terminal failures",
+      "failed": 9
+    },
+    {
+      "scope": "queued after Stop/Dispose",
+      "failed": 2
+    },
+    {
+      "scope": "Responding/late cancellation",
+      "failed": 7
+    },
+    {
+      "scope": "Clear/Stop-Start queue generations and Observe fallback",
+      "failed": 4
+    },
+    {
+      "scope": "Clear failure callback recovery",
+      "failed": 1
+    },
+    {
+      "scope": "Dispose callback fault transport release",
+      "failed": 1
+    },
+    {
+      "scope": "full intermediate run",
+      "failed": 2,
+      "passed": 353,
+      "total": 355,
+      "note": "Client async timing failure root cause UNKNOWN; unchanged assembly repeated twice PASS. Fixed signal coordination without deleting assertions. Other failure was active test upload intentionally unfinished at Dispose; test now completes upload."
+    }
+  ],
+  "semanticAdjustment": "Reserved-SZX critical ACK is rejected before Matcher and preserves pending state. Replaced old immediate-cancel assumption with recovery and real deadline failure assertions.",
+  "sourceFiles": [
+    {
+      "path": "CoAP.NET/CoapClient.cs",
+      "sha256": "0e331adfb528a9755ec32f1db789be9f2dad31360363253d0fc63f1974489084",
+      "bytes": 19947
+    },
+    {
+      "path": "CoAP.NET/Message.cs",
+      "sha256": "e07b9c5da6a811a2db91f57cc6cb796a944528011da39d73ec5920e753333d09",
+      "bytes": 37324
+    },
+    {
+      "path": "CoAP.NET/Net/CoAPEndPoint.cs",
+      "sha256": "ffd46aa2bfb6cca1690651ef7896478c5e1ecbb9c41692529f92da7ac7d24da1",
+      "bytes": 23187
+    },
+    {
+      "path": "CoAP.NET/Net/CoapOptionDefinition.cs",
+      "sha256": "89e85fefb4bcf7f62ba5b893d85c94cd6962ea0dc691c0413c16e714b7b93ab0",
+      "bytes": 4764
+    },
+    {
+      "path": "CoAP.NET/Net/CoapOptionRegistry.cs",
+      "sha256": "a03f050e73e86f6b24e3fac9353b4fe11a3d50f14bceb969d951315a4902d64d",
+      "bytes": 6898
+    },
+    {
+      "path": "CoAP.NET/Option.cs",
+      "sha256": "e10126ea8d4f501aeb04c9dab29f0eaf45f4e9f1df969de36ec15326c595bdac",
+      "bytes": 20343
+    },
+    {
+      "path": "CoAP.NET/OptionType.cs",
+      "sha256": "e6c892b5a359dd6be0c6f074362af964fda6031ddbc345ec020c67c7791917e7",
+      "bytes": 4949
+    },
+    {
+      "path": "CoAP.NET/Spec.cs",
+      "sha256": "9a52c295d591096aaa57424688f51bce2c7800ae4ff5b2a613d39f4acaa76488",
+      "bytes": 69522
+    },
+    {
+      "path": "CoAP.NET/Stack/BlockwiseLayer.cs",
+      "sha256": "a313f791d5bd131433c85aee9a6421ce10880ba4bb4d8b6939738784ddf85131",
+      "bytes": 47447
+    },
+    {
+      "path": "CoAP.Test/BlockwiseLifecycleTest.cs",
+      "sha256": "896d05280d748c1251e4172cf4f7e425f9508617bfadde21a0a1c4ce27b5665a",
+      "bytes": 26184
+    },
+    {
+      "path": "CoAP.Test/CoapClientProtocolFailureTest.cs",
+      "sha256": "160c543a7ff55be40cbe3602584f21110c30c72729a3699a284a2853f24cbf91",
+      "bytes": 16031
+    },
+    {
+      "path": "CoAP.Test/CoapClientTest.cs",
+      "sha256": "bee0eaf59480d2b0033cce508d8380115445009e8500b887b85bb9236bb977ce",
+      "bytes": 12065
+    },
+    {
+      "path": "CoAP.Test/LegacyCodecOptionTest.cs",
+      "sha256": "8faf7ae47657bae8079b829420897daf6733286e5791bee51db1bd061006482c",
+      "bytes": 2483
+    },
+    {
+      "path": "CoAP.Test/OptionPolicyTest.cs",
+      "sha256": "8cf750e34053e3cbf159e4393fe942c1cd4b3e1af2c3128f42fdb0102c666653",
+      "bytes": 24246
+    },
+    {
+      "path": "CoAP.Test/OptionTest.cs",
+      "sha256": "3d8660abfe54a161b6f02fbd3b5291bc2f943a1b49fd95b8c308e2af67c5bbba",
+      "bytes": 7154
+    },
+    {
+      "path": "CoAP.Test/RegistryOptionTest.cs",
+      "sha256": "3376fe746caefd1f84bc039c5a6335610513b5f508ee33230b27e99cdd80f4c5",
+      "bytes": 4909
+    },
+    {
+      "path": "CoAP.Test/EndpointBlockwiseLifecycleTest.cs",
+      "sha256": "a7361028477412bbedfb814f86a8d8853c421f0beff077fdd91f4555e7f30242",
+      "bytes": 18414
+    },
+    {
+      "path": "CoAP.Test/LegacyEndpointIsolationTest.cs",
+      "sha256": "52c463a7a659049694c967c99b93f592163d7142dc97b14168dc22670d1dc2de",
+      "bytes": 4246
+    },
+    {
+      "path": "CoAP.Test/OptionSemanticRegressionTest.cs",
+      "sha256": "5c6cba8160ae650cbdc546f8bf85edb5d5e44e144d5e6b4eaea498a793a3185c",
+      "bytes": 5692
+    }
+  ],
+  "independentGates": {
+    "githubCi": "PENDING_BEFORE_PUSH",
+    "peerInterop": "NOT_RUN",
+    "nativeAotPublishRun": "NOT_RUN",
+    "newPackagePublicationConsumption": "NOT_RUN",
+    "deviceFieldSoak": "NOT_RUN"
+  },
+  "remaining": [
+    {
+      "issue": 33,
+      "scope": "token generation/security binding"
+    },
+    {
+      "issue": 34,
+      "scope": "full unsigned typed getters"
+    },
+    {
+      "issue": 35,
+      "scope": "large Observe Max-Age deadline"
+    }
+  ],
+  "resourceEvidence": "Cordonix calls bounded by deadlines; owned descendants cleaned. No service or tool installation. Global process snapshot may remain partial."
+}

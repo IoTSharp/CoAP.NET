@@ -10,25 +10,32 @@
  */
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Timers;
 using Microsoft.Extensions.Logging;
 using CoAP.Net;
 
 namespace CoAP.Stack
 {
-    public class BlockwiseLayer : AbstractLayer
+    public class BlockwiseLayer : AbstractLayer, IDisposable
     {
         static readonly ILogger Log = CoapLogging.CreateLogger(typeof(BlockwiseLayer));
+        private static readonly Object TerminatingKey = new Object();
 
         private Int32 _maxMessageSize;
         private Int32 _defaultBlockSize;
         private Int32 _blockTimeout;
+        private readonly ICoapConfig _config;
+        private readonly ConcurrentDictionary<Exchange, CleanupRegistration> _activeExchanges = new ConcurrentDictionary<Exchange, CleanupRegistration>();
+        private Int32 _disposed;
 
         /// <summary>
         /// Constructs a new blockwise layer.
         /// </summary>
         public BlockwiseLayer(ICoapConfig config)
         {
+            _config = config;
             _maxMessageSize = config.MaxMessageSize;
             _defaultBlockSize = config.DefaultBlockSize;
             _blockTimeout = config.BlockwiseStatusLifetime;
@@ -52,6 +59,8 @@ namespace CoAP.Stack
         /// <inheritdoc/>
         public override void SendRequest(INextLayer nextLayer, Exchange exchange, Request request)
         {
+            if (IsTerminated(exchange))
+                return;
             if (request.HasOption(OptionType.Block2) && request.Block2.NUM > 0)
             {
                 // This is the case if the user has explicitly added a block option
@@ -61,35 +70,61 @@ namespace CoAP.Stack
                 // size negotiation but actually wants to receive all blocks.
                 if (Log.IsEnabled(LogLevel.Debug))
                     Log.LogDebug("Request carries explicit defined block2 option: create random access blockwise status");
-                BlockwiseStatus status = new BlockwiseStatus(request.ContentFormat);
-                BlockOption block2 = request.Block2;
-                status.CurrentSZX = block2.SZX;
-                status.CurrentNUM = block2.NUM;
-                status.IsRandomAccess = true;
-                exchange.ResponseBlockStatus = status;
-                base.SendRequest(nextLayer, exchange, request);
+                lock (exchange)
+                {
+                    if (IsTerminated(exchange))
+                        return;
+                    BlockwiseStatus status = new BlockwiseStatus(request.ContentFormat);
+                    BlockOption block2 = request.Block2;
+                    status.CurrentSZX = block2.SZX;
+                    status.CurrentNUM = block2.NUM;
+                    status.IsRandomAccess = true;
+                    exchange.ResponseBlockStatus = status;
+                    PrepareBlockCleanup(exchange);
+                    if (IsTerminated(exchange))
+                    {
+                        ReleaseBlockwiseState(exchange, false);
+                        return;
+                    }
+                }
+                if (!IsTerminated(exchange))
+                    base.SendRequest(nextLayer, exchange, request);
             }
             else if (RequiresBlockwise(request))
             {
                 // This must be a large POST or PUT request
                 if (Log.IsEnabled(LogLevel.Debug))
                     Log.LogDebug("Request payload " + request.PayloadSize + "/" + _maxMessageSize + " requires Blockwise.");
-                BlockwiseStatus status = FindRequestBlockStatus(exchange, request);
-                Request block = GetNextRequestBlock(request, status);
-                exchange.RequestBlockStatus = status;
-                exchange.CurrentRequest = block;
-                base.SendRequest(nextLayer, exchange, block);
+                Request block;
+                lock (exchange)
+                {
+                    BlockwiseStatus status = FindRequestBlockStatus(exchange, request);
+                    if (status == null)
+                        return;
+                    block = GetNextRequestBlock(request, status);
+                    exchange.CurrentRequest = block;
+                }
+                if (!IsTerminated(exchange))
+                    base.SendRequest(nextLayer, exchange, block);
             }
             else
             {
-                exchange.CurrentRequest = request;
-                base.SendRequest(nextLayer, exchange, request);
+                lock (exchange)
+                {
+                    if (IsTerminated(exchange))
+                        return;
+                    exchange.CurrentRequest = request;
+                }
+                if (!IsTerminated(exchange))
+                    base.SendRequest(nextLayer, exchange, request);
             }
         }
 
         /// <inheritdoc/>
         public override void ReceiveRequest(INextLayer nextLayer, Exchange exchange, Request request)
         {
+            if (IsTerminated(exchange))
+                return;
             if (request.HasOption(OptionType.Block1))
             {
                 // This must be a large POST or PUT request
@@ -98,20 +133,32 @@ namespace CoAP.Stack
                     Log.LogDebug("Request contains block1 option " + block1);
 
                 BlockwiseStatus status = FindRequestBlockStatus(exchange, request);
-                if (block1.NUM == 0 && status.CurrentNUM > 0)
+                if (status == null)
+                    return;
+                lock (exchange)
                 {
-                    // reset the blockwise transfer
-                    if (Log.IsEnabled(LogLevel.Debug))
-                        Log.LogDebug("Block1 num is 0, the client has restarted the blockwise transfer. Reset status.");
-                    status = new BlockwiseStatus(request.ContentType);
-                    exchange.RequestBlockStatus = status;
+                    if (IsTerminated(exchange) || !Object.ReferenceEquals(status, exchange.RequestBlockStatus))
+                        return;
+                    if (block1.NUM == 0 && status.CurrentNUM > 0)
+                    {
+                        // reset the blockwise transfer
+                        if (Log.IsEnabled(LogLevel.Debug))
+                            Log.LogDebug("Block1 num is 0, the client has restarted the blockwise transfer. Reset status.");
+                        status = new BlockwiseStatus(request.ContentType);
+                        exchange.RequestBlockStatus = status;
+                    }
                 }
 
                 if (block1.NUM == status.CurrentNUM)
                 {
                     if (request.ContentType == status.ContentFormat)
                     {
-                        status.AddBlock(request.Payload);
+                        lock (exchange)
+                        {
+                            if (IsTerminated(exchange) || !Object.ReferenceEquals(status, exchange.RequestBlockStatus))
+                                return;
+                            status.AddBlock(request.Payload);
+                        }
                     }
                     else
                     {
@@ -154,8 +201,14 @@ namespace CoAP.Stack
                         Request assembled = new Request(request.Method);
                         AssembleMessage(status, assembled, request);
 
-                        exchange.Request = assembled;
-                        base.ReceiveRequest(nextLayer, exchange, assembled);
+                        lock (exchange)
+                        {
+                            if (IsTerminated(exchange))
+                                return;
+                            exchange.Request = assembled;
+                        }
+                        if (!IsTerminated(exchange))
+                            base.ReceiveRequest(nextLayer, exchange, assembled);
                     }
                 }
                 else
@@ -177,6 +230,8 @@ namespace CoAP.Stack
                 BlockOption block2 = request.Block2;
                 Response response = exchange.Response;
                 BlockwiseStatus status = FindResponseBlockStatus(exchange, response);
+                if (status == null)
+                    return;
                 status.CurrentNUM = block2.NUM;
                 status.CurrentSZX = block2.SZX;
 
@@ -189,8 +244,7 @@ namespace CoAP.Stack
                     // clean up blockwise status
                     if (Log.IsEnabled(LogLevel.Debug))
                         Log.LogDebug("Ongoing is complete " + status);
-                    exchange.ResponseBlockStatus = null;
-                    ClearBlockCleanup(exchange);
+                    ReleaseBlockwiseState(exchange, response.HasOption(OptionType.Observe) && Code.IsSuccess(response.Code));
                 }
                 else
                 {
@@ -214,6 +268,8 @@ namespace CoAP.Stack
         /// <inheritdoc/>
         public override void SendResponse(INextLayer nextLayer, Exchange exchange, Response response)
         {
+            if (IsTerminated(exchange))
+                return;
             BlockOption block1 = exchange.Block1ToAck;
             if (block1 != null)
                 exchange.Block1ToAck = null;
@@ -224,6 +280,8 @@ namespace CoAP.Stack
                     Log.LogDebug("Response payload " + response.PayloadSize + "/" + _maxMessageSize + " requires Blockwise");
 
                 BlockwiseStatus status = FindResponseBlockStatus(exchange, response);
+                if (status == null)
+                    return;
 
                 Response block = GetNextResponseBlock(response, status);
 
@@ -237,8 +295,7 @@ namespace CoAP.Stack
                     // clean up blockwise status
                     if (Log.IsEnabled(LogLevel.Debug))
                         Log.LogDebug("Ongoing finished on first block " + status);
-                    exchange.ResponseBlockStatus = null;
-                    ClearBlockCleanup(exchange);
+                    ReleaseBlockwiseState(exchange, response.HasOption(OptionType.Observe) && Code.IsSuccess(response.Code));
                 }
                 else
                 {
@@ -255,7 +312,7 @@ namespace CoAP.Stack
                     response.SetOption(block1);
                 exchange.CurrentResponse = response;
                 // Block1 transfer completed
-                ClearBlockCleanup(exchange);
+                ReleaseBlockwiseState(exchange, response.HasOption(OptionType.Observe) && Code.IsSuccess(response.Code));
                 base.SendResponse(nextLayer, exchange, response);
             }
         }
@@ -283,11 +340,13 @@ namespace CoAP.Stack
                 return;
             }
 
+            if (exchange.Complete || exchange.Request.IsTimedOut || exchange.Request.IsRejected)
+                return;
+
             if (!response.HasOption(OptionType.Block1) && !response.HasOption(OptionType.Block2))
             {
                 // There is no block1 or block2 option, therefore it is a normal response
-                exchange.Response = response;
-                base.ReceiveResponse(nextLayer, exchange, response);
+                DeliverResponse(nextLayer, exchange, response);
                 return;
             }
 
@@ -357,8 +416,7 @@ namespace CoAP.Stack
                     ClearBlockCleanup(exchange);
                     if (!response.HasOption(OptionType.Block2))
                     {
-                        exchange.Response = response;
-                        base.ReceiveResponse(nextLayer, exchange, response);
+                        DeliverResponse(nextLayer, exchange, response);
                         return;
                     }
                     // A final response can combine a Block1 acknowledgement
@@ -378,8 +436,14 @@ namespace CoAP.Stack
                     Request nextBlock = GetNextRequestBlock(exchange.Request, status);
                     if (nextBlock.Token == null)
                         nextBlock.Token = response.Token; // reuse same token
-                    exchange.CurrentRequest = nextBlock;
-                    base.SendRequest(nextLayer, exchange, nextBlock);
+                    lock (exchange)
+                    {
+                        if (IsTerminated(exchange))
+                            return;
+                        exchange.CurrentRequest = nextBlock;
+                    }
+                    if (!IsTerminated(exchange))
+                        base.SendRequest(nextLayer, exchange, nextBlock);
                     // The high-level operation returns the final upload result.
                     // An optional intermediate per-block response body must not
                     // start Block2 retrieval alongside the next Block1 request.
@@ -391,23 +455,31 @@ namespace CoAP.Stack
             if (block2 != null)
             {
                 BlockwiseStatus status = FindResponseBlockStatus(exchange, response);
+                if (status == null)
+                    return;
 
                 if (block2.NUM == status.CurrentNUM)
                 {
                     // We got the block we expected :-)
-                    status.AddBlock(response.Payload);
-                    Int32? obs = response.Observe;
-                    if (obs.HasValue)
-                        status.Observe = obs.Value;
+                    lock (exchange)
+                    {
+                        if (IsTerminated(exchange) || !Object.ReferenceEquals(status, exchange.ResponseBlockStatus))
+                            return;
+                        status.AddBlock(response.Payload);
+                        Int32? obs = response.Observe;
+                        if (obs.HasValue)
+                            status.Observe = obs.Value;
+                    }
 
                     // notify blocking progress
                     exchange.Request.FireResponding(response);
+                    if (IsTerminated(exchange))
+                        return;
 
                     if (status.IsRandomAccess)
                     {
                         // The client has requested this specifc block and we deliver it
-                        exchange.Response = response;
-                        base.ReceiveResponse(nextLayer, exchange, response);
+                        DeliverResponse(nextLayer, exchange, response);
                     }
                     else if (block2.M)
                     {
@@ -432,15 +504,26 @@ namespace CoAP.Stack
 
                         status.CurrentNUM = num;
 
-                        exchange.CurrentRequest = block;
-                        base.SendRequest(nextLayer, exchange, block);
+                        lock (exchange)
+                        {
+                            if (IsTerminated(exchange) || !Object.ReferenceEquals(status, exchange.ResponseBlockStatus))
+                                return;
+                            exchange.CurrentRequest = block;
+                        }
+                        if (!IsTerminated(exchange))
+                            base.SendRequest(nextLayer, exchange, block);
                     }
                     else
                     {
                         if (Log.IsEnabled(LogLevel.Debug))
                             Log.LogDebug("We have received all " + status.BlockCount + " blocks of the response. Assemble and deliver.");
                         Response assembled = new Response(response.StatusCode);
-                        AssembleMessage(status, assembled, response);
+                        lock (exchange)
+                        {
+                            if (IsTerminated(exchange) || !Object.ReferenceEquals(status, exchange.ResponseBlockStatus))
+                                return;
+                            AssembleMessage(status, assembled, response);
+                        }
                         assembled.Type = response.Type;
 
                         // set overall transfer RTT
@@ -458,8 +541,7 @@ namespace CoAP.Stack
 
                         if (Log.IsEnabled(LogLevel.Debug))
                             Log.LogDebug("Assembled response: " + assembled);
-                        exchange.Response = assembled;
-                        base.ReceiveResponse(nextLayer, exchange, assembled);
+                        DeliverResponse(nextLayer, exchange, assembled);
                     }
 
                 }
@@ -475,18 +557,24 @@ namespace CoAP.Stack
                         EmptyMessage rst = EmptyMessage.NewRST(response);
                         base.SendEmptyMessage(nextLayer, exchange, rst);
                     }
-                    exchange.Request.IsCancelled = true;
+                    CancelBlockwiseUpload(exchange);
                 }
             }
         }
 
         private void CancelBlockwiseUpload(Exchange exchange)
         {
-            exchange.RequestBlockStatus = null;
-            exchange.ResponseBlockStatus = null;
-            ClearBlockCleanup(exchange);
-            exchange.Complete = true;
-            exchange.Request.Cancel();
+            Request original;
+            Request current;
+            lock (exchange)
+            {
+                if (!TryMarkTerminating(exchange))
+                    return;
+                original = exchange.Request ?? exchange.CurrentRequest;
+                current = exchange.CurrentRequest;
+                ReleaseBlockwiseState(exchange, false);
+            }
+            PublishTermination(exchange, original, current, false, true);
         }
 
         private void EarlyBlock2Negotiation(Exchange exchange, Request request)
@@ -495,11 +583,19 @@ namespace CoAP.Stack
             // been sent in one piece without blockwise).
             if (request.HasOption(OptionType.Block2))
             {
-                BlockOption block2 = request.Block2;
-                BlockwiseStatus status2 = new BlockwiseStatus(request.ContentType, block2.NUM, block2.SZX);
-                if (Log.IsEnabled(LogLevel.Debug))
-                    Log.LogDebug("Request with early block negotiation " + block2 + ". Create and set new Block2 status: " + status2);
-                exchange.ResponseBlockStatus = status2;
+                lock (exchange)
+                {
+                    if (IsTerminated(exchange))
+                        return;
+                    BlockOption block2 = request.Block2;
+                    BlockwiseStatus status2 = new BlockwiseStatus(request.ContentType, block2.NUM, block2.SZX);
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Request with early block negotiation " + block2 + ". Create and set new Block2 status: " + status2);
+                    exchange.ResponseBlockStatus = status2;
+                    PrepareBlockCleanup(exchange);
+                    if (IsTerminated(exchange))
+                        ReleaseBlockwiseState(exchange, false);
+                }
             }
         }
 
@@ -510,23 +606,33 @@ namespace CoAP.Stack
         /// </summary>
         private BlockwiseStatus FindRequestBlockStatus(Exchange exchange, Request request)
         {
-            BlockwiseStatus status = exchange.RequestBlockStatus;
-            if (status == null)
+            lock (exchange)
             {
-                status = new BlockwiseStatus(request.ContentType);
-                status.CurrentSZX = BlockOption.EncodeSZX(_defaultBlockSize);
-                exchange.RequestBlockStatus = status;
-                if (Log.IsEnabled(LogLevel.Debug))
-                    Log.LogDebug("There is no assembler status yet. Create and set new Block1 status: " + status);
+                if (IsTerminated(exchange))
+                    return null;
+                BlockwiseStatus status = exchange.RequestBlockStatus;
+                if (status == null)
+                {
+                    status = new BlockwiseStatus(request.ContentType);
+                    status.CurrentSZX = BlockOption.EncodeSZX(_defaultBlockSize);
+                    exchange.RequestBlockStatus = status;
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("There is no assembler status yet. Create and set new Block1 status: " + status);
+                }
+                else
+                {
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Current Block1 status: " + status);
+                }
+                // sets a timeout to complete exchange
+                PrepareBlockCleanup(exchange);
+                if (IsTerminated(exchange))
+                {
+                    ReleaseBlockwiseState(exchange, false);
+                    return null;
+                }
+                return status;
             }
-            else
-            {
-                if (Log.IsEnabled(LogLevel.Debug))
-                    Log.LogDebug("Current Block1 status: " + status);
-            }
-            // sets a timeout to complete exchange
-            PrepareBlockCleanup(exchange);
-            return status;
         }
 
         /// <summary>
@@ -536,23 +642,122 @@ namespace CoAP.Stack
         /// </summary>
         private BlockwiseStatus FindResponseBlockStatus(Exchange exchange, Response response)
         {
-            BlockwiseStatus status = exchange.ResponseBlockStatus;
-            if (status == null)
+            lock (exchange)
             {
-                status = new BlockwiseStatus(response.ContentType);
-                status.CurrentSZX = BlockOption.EncodeSZX(_defaultBlockSize);
-                exchange.ResponseBlockStatus = status;
-                if (Log.IsEnabled(LogLevel.Debug))
-                    Log.LogDebug("There is no blockwise status yet. Create and set new Block2 status: " + status);
+                if (IsTerminated(exchange))
+                    return null;
+                BlockwiseStatus status = exchange.ResponseBlockStatus;
+                if (status == null)
+                {
+                    status = new BlockwiseStatus(response.ContentType);
+                    status.CurrentSZX = BlockOption.EncodeSZX(_defaultBlockSize);
+                    exchange.ResponseBlockStatus = status;
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("There is no blockwise status yet. Create and set new Block2 status: " + status);
+                }
+                else
+                {
+                    if (Log.IsEnabled(LogLevel.Debug))
+                        Log.LogDebug("Current Block2 status: " + status);
+                }
+                // sets a timeout to complete exchange
+                PrepareBlockCleanup(exchange);
+                if (IsTerminated(exchange))
+                {
+                    ReleaseBlockwiseState(exchange, false);
+                    return null;
+                }
+                return status;
             }
-            else
+        }
+
+        private Boolean IsTerminated(Exchange exchange)
+        {
+            Request original = exchange.Request ?? exchange.CurrentRequest;
+            return System.Threading.Volatile.Read(ref _disposed) != 0 || IsExchangeTerminating(exchange) || exchange.Complete || exchange.TimedOut
+                || original != null && (original.IsCancelled || original.IsTimedOut || original.IsRejected);
+        }
+
+        internal static Boolean IsExchangeTerminating(Exchange exchange)
+        {
+            return exchange != null && exchange.Get(TerminatingKey) != null;
+        }
+
+        private static Boolean TryMarkTerminating(Exchange exchange)
+        {
+            if (IsExchangeTerminating(exchange))
+                return false;
+            exchange.Set(TerminatingKey, true);
+            return true;
+        }
+
+        private static void PublishTermination(Exchange exchange, Request original, Request current,
+            Boolean timedOut, Boolean cancelOriginal)
+        {
+            List<Exception> failures = new List<Exception>();
+            try
             {
-                if (Log.IsEnabled(LogLevel.Debug))
-                    Log.LogDebug("Current Block2 status: " + status);
+                if (timedOut && !exchange.TimedOut)
+                    exchange.TimedOut = true;
+                else if (!exchange.Complete)
+                    exchange.Complete = true;
             }
-            // sets a timeout to complete exchange
-            PrepareBlockCleanup(exchange);
-            return status;
+            catch (Exception error)
+            {
+                failures.Add(error);
+            }
+            try
+            {
+                if (exchange.Origin == Origin.Local && original != null
+                    && !original.IsCancelled && !original.IsRejected && !original.IsTimedOut)
+                {
+                    if (timedOut)
+                        original.IsTimedOut = true;
+                    else if (cancelOriginal)
+                        original.Cancel();
+                }
+            }
+            catch (Exception error)
+            {
+                failures.Add(error);
+            }
+            finally
+            {
+                try
+                {
+                    if (current != null && !Object.ReferenceEquals(current, original) && !current.IsCancelled)
+                        current.Cancel();
+                }
+                catch (Exception error)
+                {
+                    failures.Add(error);
+                }
+            }
+            if (failures.Count > 0)
+                throw new AggregateException("Blockwise terminal callback failed.", failures).Flatten();
+        }
+
+        private void DeliverResponse(INextLayer nextLayer, Exchange exchange, Response response)
+        {
+            lock (exchange)
+            {
+                if (IsTerminated(exchange))
+                    return;
+                // Retain terminal registration until delivery finishes, so Clear
+                // can still cancel an exchange waiting to enter the caller.
+                ReleaseBlockwiseState(exchange, true);
+                exchange.Response = response;
+            }
+            try
+            {
+                if (!IsTerminated(exchange))
+                    base.ReceiveResponse(nextLayer, exchange, response);
+            }
+            finally
+            {
+                ReleaseBlockwiseState(exchange, !IsTerminated(exchange)
+                    && response.HasOption(OptionType.Observe) && Code.IsSuccess(response.Code));
+            }
         }
 
         private Request GetNextRequestBlock(Request request, BlockwiseStatus status)
@@ -674,26 +879,40 @@ namespace CoAP.Stack
         /// </summary>
         protected void PrepareBlockCleanup(Exchange exchange)
         {
-            System.Timers.Timer timer = new System.Timers.Timer();
-            timer.AutoReset = false;
-            timer.Interval = _blockTimeout;
-            timer.Elapsed += (o, e) => BlockwiseTimeout(exchange);
-
-            System.Timers.Timer old = exchange.Set("BlockCleanupTimer", timer) as System.Timers.Timer;
-            if (old != null)
+            lock (exchange)
             {
-                try
+                if (IsTerminated(exchange))
                 {
-                    old.Stop();
-                    old.Dispose();
+                    if (System.Threading.Volatile.Read(ref _disposed) != 0)
+                        QueueDisposedTermination(exchange);
+                    return;
                 }
-                catch (ObjectDisposedException)
+                CleanupRegistration registration;
+                if (!_activeExchanges.TryGetValue(exchange, out registration))
                 {
-                    // ignore
+                    Request original = exchange.Request ?? exchange.CurrentRequest;
+                    registration = new CleanupRegistration(original);
+                    registration.Terminated = (sender, e) => OnRequestTerminated(exchange, original);
+                    registration.Completed = (sender, e) => OnExchangeCompleted(exchange, original);
+                    _activeExchanges[exchange] = registration;
+                    original.Cancelled += registration.Terminated;
+                    original.TimedOut += registration.Terminated;
+                    original.Rejected += registration.Terminated;
+                    exchange.Completed += registration.Completed;
                 }
-            }
 
-            timer.Start();
+                if (System.Threading.Volatile.Read(ref _disposed) != 0)
+                {
+                    QueueDisposedTermination(exchange);
+                    return;
+                }
+
+                ClearBlockCleanup(exchange);
+                System.Timers.Timer timer = new System.Timers.Timer(_blockTimeout) { AutoReset = false };
+                timer.Elapsed += (sender, e) => BlockwiseTimeout(exchange, timer);
+                exchange.Set("BlockCleanupTimer", timer);
+                timer.Start();
+            }
         }
 
         /// <summary>
@@ -716,19 +935,167 @@ namespace CoAP.Stack
             }
         }
 
-        private void BlockwiseTimeout(Exchange exchange)
+        private void BlockwiseTimeout(Exchange exchange, System.Timers.Timer timer)
         {
-            if (exchange.Request == null)
+            Request original;
+            Request current;
+            lock (exchange)
             {
-                if (Log.IsEnabled(LogLevel.Information))
-                    Log.LogInformation("Block1 transfer timed out: " + exchange.CurrentRequest);
+                CleanupRegistration registration;
+                if (!_activeExchanges.TryGetValue(exchange, out registration)
+                    || !Object.ReferenceEquals(exchange.Get("BlockCleanupTimer"), timer))
+                    return;
+                original = registration.Request;
+                if (exchange.Complete || original.IsCancelled || original.IsRejected || original.IsTimedOut)
+                {
+                    ReleaseBlockwiseState(exchange, false);
+                    return;
+                }
+                if (!TryMarkTerminating(exchange))
+                    return;
+                current = exchange.CurrentRequest;
+                ReleaseBlockwiseState(exchange, false);
             }
-            else
+
+            PublishTermination(exchange, original, current, true, false);
+        }
+
+        private void OnRequestTerminated(Exchange exchange, Request original)
+        {
+            Request current;
+            lock (exchange)
             {
-                if (Log.IsEnabled(LogLevel.Information))
-                    Log.LogInformation("Block2 transfer timed out: " + exchange.Request);
+                if (!TryMarkTerminating(exchange))
+                    return;
+                current = exchange.CurrentRequest;
+                ReleaseBlockwiseState(exchange, false);
             }
-            exchange.Complete = true;
+            PublishTermination(exchange, original, current, original.IsTimedOut, false);
+        }
+
+        private void OnExchangeCompleted(Exchange exchange, Request original)
+        {
+            lock (exchange)
+            {
+                // Matcher may complete a successful server exchange before its
+                // final ACK is sent. Only cancellation/timeout uses the tombstone.
+                if (exchange.TimedOut && !TryMarkTerminating(exchange))
+                    return;
+                ReleaseBlockwiseState(exchange, false);
+            }
+            if (exchange.TimedOut && exchange.Origin == Origin.Local
+                && !original.IsTimedOut && !original.IsCancelled && !original.IsRejected)
+                original.IsTimedOut = true;
+        }
+
+        private void ReleaseBlockwiseState(Exchange exchange, Boolean keepObservation)
+        {
+            lock (exchange)
+            {
+                exchange.RequestBlockStatus = null;
+                exchange.ResponseBlockStatus = null;
+                exchange.Block1ToAck = null;
+                ClearBlockCleanup(exchange);
+                if (keepObservation)
+                    return;
+                CleanupRegistration registration;
+                if (_activeExchanges.TryRemove(exchange, out registration))
+                {
+                    registration.Request.Cancelled -= registration.Terminated;
+                    registration.Request.TimedOut -= registration.Terminated;
+                    registration.Request.Rejected -= registration.Terminated;
+                    exchange.Completed -= registration.Completed;
+                }
+            }
+        }
+
+        /// <summary>取消当前分块交换并释放其状态和计时器，允许随后重新开始交换。</summary>
+        public void Clear()
+        {
+            List<(Exchange Exchange, Request Original, Request Current)> notifications =
+                new List<(Exchange, Request, Request)>();
+            foreach (var entry in _activeExchanges.ToArray())
+            {
+                Exchange exchange = entry.Key;
+                Request original = entry.Value.Request;
+                Request current;
+                lock (exchange)
+                {
+                    CleanupRegistration currentRegistration;
+                    if (!_activeExchanges.TryGetValue(exchange, out currentRegistration)
+                        || !Object.ReferenceEquals(currentRegistration, entry.Value))
+                        continue;
+                    if (!TryMarkTerminating(exchange))
+                        continue;
+                    current = exchange.CurrentRequest;
+                    ReleaseBlockwiseState(exchange, false);
+                }
+                notifications.Add((exchange, original, current));
+            }
+
+            // Finish releasing the whole snapshot before entering any user
+            // callback. One failing callback must not strand later exchanges.
+            List<Exception> failures = new List<Exception>();
+            foreach (var notification in notifications)
+            {
+                try
+                {
+                    PublishTermination(notification.Exchange, notification.Original, notification.Current, false, true);
+                }
+                catch (Exception error)
+                {
+                    failures.Add(error);
+                }
+            }
+            if (failures.Count > 0)
+                throw new AggregateException("Blockwise cleanup callback failed.", failures).Flatten();
+        }
+
+        private void QueueDisposedTermination(Exchange exchange)
+        {
+            if (!TryMarkTerminating(exchange))
+                return;
+            Request original = exchange.Request ?? exchange.CurrentRequest;
+            Request current = exchange.CurrentRequest;
+            ReleaseBlockwiseState(exchange, false);
+            // Prepare can be called under a caller's exchange lock. Publish on
+            // the pool only for this disposal race, after reserving sole ownership.
+            System.Threading.ThreadPool.QueueUserWorkItem(_ =>
+            {
+                try
+                {
+                    PublishTermination(exchange, original, current, false, true);
+                }
+                catch (Exception error)
+                {
+                    // There is no synchronous caller for this disposal race.
+                    // Keep callback failures visible without terminating the pool.
+                    Log.LogError(error, "Blockwise disposal callback failed after asynchronous cleanup.");
+                }
+            });
+        }
+
+        /// <summary>取消所有分块交换并解除配置订阅。</summary>
+        public void Dispose()
+        {
+            if (System.Threading.Interlocked.Exchange(ref _disposed, 1) != 0)
+                return;
+            try
+            {
+                Clear();
+            }
+            finally
+            {
+                _config.PropertyChanged -= ConfigChanged;
+            }
+        }
+
+        private sealed class CleanupRegistration
+        {
+            public CleanupRegistration(Request request) { Request = request; }
+            public Request Request { get; }
+            public EventHandler Terminated { get; set; }
+            public EventHandler Completed { get; set; }
         }
     }
 }

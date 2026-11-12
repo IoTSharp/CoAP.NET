@@ -32,6 +32,8 @@ namespace CoAP.Net
         private IMessageDeliverer _deliverer;
         private IMatcher _matcher;
         private Int32 _running;
+        private Int32 _disposed;
+        private Int64 _lifecycleGeneration;
         private System.Net.EndPoint _localEP;
         private IExecutor _executor;
 
@@ -112,6 +114,12 @@ namespace CoAP.Net
             get { return _config; }
         }
 
+        /// <summary>获取此端点实际支持的选项定义及自定义选项注册入口。</summary>
+        public CoapOptionRegistry OptionRegistry { get; } = new CoapOptionRegistry();
+
+        /// <summary>是否允许代理请求。仅在宿主提供实际代理消息分发器时启用；默认关闭。</summary>
+        public Boolean SupportsProxying { get; set; }
+
         public IExecutor Executor
         {
             get { return _executor; }
@@ -149,12 +157,13 @@ namespace CoAP.Net
         /// <inheritdoc/>
         public Boolean Running
         {
-            get { return _running > 0; }
+            get { return System.Threading.Volatile.Read(ref _running) > 0; }
         }
 
         /// <inheritdoc/>
         public void Start()
         {
+            ObjectDisposedException.ThrowIf(System.Threading.Volatile.Read(ref _disposed) != 0, this);
             if (System.Threading.Interlocked.CompareExchange(ref _running, 1, 0) > 0)
                 return;
 
@@ -188,51 +197,111 @@ namespace CoAP.Net
                 Log.LogDebug("Stopping endpoint bound to " + _localEP);
             _channel.Stop();
             _matcher.Stop();
-            _matcher.Clear();
+            Clear();
         }
 
         /// <inheritdoc/>
         public void Clear()
         {
+            System.Threading.Interlocked.Increment(ref _lifecycleGeneration);
             _matcher.Clear();
+            (_coapStack.Get("Blockwise") as BlockwiseLayer)?.Clear();
         }
 
         /// <inheritdoc/>
         public void Dispose()
         {
-            if (Running)
+            if (System.Threading.Interlocked.Exchange(ref _disposed, 1) != 0)
+                return;
+            try
+            {
                 Stop();
-            _channel.Dispose();
-            IDisposable d = _matcher as IDisposable;
-            if (d != null)
-                d.Dispose();
+            }
+            finally
+            {
+                try
+                {
+                    (_coapStack.Get("Blockwise") as IDisposable)?.Dispose();
+                }
+                finally
+                {
+                    try { _channel.Dispose(); }
+                    finally { (_matcher as IDisposable)?.Dispose(); }
+                }
+            }
         }
 
         /// <inheritdoc/>
         public void SendRequest(Request request)
         {
-            _executor.Start(() => _coapStack.SendRequest(request));
+            Int64 generation = System.Threading.Volatile.Read(ref _lifecycleGeneration);
+            if (!IsCurrentGeneration(generation))
+            {
+                request.Cancel();
+                return;
+            }
+            _executor.Start(() =>
+            {
+                if (IsCurrentGeneration(generation))
+                    _coapStack.SendRequest(request);
+                else
+                    request.Cancel();
+            });
         }
 
         /// <inheritdoc/>
         public void SendResponse(Exchange exchange, Response response)
         {
-            _executor.Start(() => _coapStack.SendResponse(exchange, response));
+            Int64 generation = System.Threading.Volatile.Read(ref _lifecycleGeneration);
+            if (!IsCurrentGeneration(generation))
+            {
+                response.Cancel();
+                return;
+            }
+            _executor.Start(() =>
+            {
+                if (IsCurrentGeneration(generation))
+                    _coapStack.SendResponse(exchange, response);
+                else
+                    response.Cancel();
+            });
         }
 
         /// <inheritdoc/>
         public void SendEmptyMessage(Exchange exchange, EmptyMessage message)
         {
-            _executor.Start(() => _coapStack.SendEmptyMessage(exchange, message));
+            Int64 generation = System.Threading.Volatile.Read(ref _lifecycleGeneration);
+            if (!IsCurrentGeneration(generation))
+            {
+                message.Cancel();
+                return;
+            }
+            _executor.Start(() =>
+            {
+                if (IsCurrentGeneration(generation))
+                    _coapStack.SendEmptyMessage(exchange, message);
+                else
+                    message.Cancel();
+            });
         }
 
         private void ReceiveData(Object sender, DataReceivedEventArgs e)
         {
-            _executor.Start(() => ReceiveData(e));
+            Int64 generation = System.Threading.Volatile.Read(ref _lifecycleGeneration);
+            if (IsCurrentGeneration(generation))
+                _executor.Start(() => ReceiveData(e, generation));
         }
 
-        private void ReceiveData(DataReceivedEventArgs e)
+        private Boolean IsCurrentGeneration(Int64 generation)
         {
+            return Running && System.Threading.Volatile.Read(ref _disposed) == 0
+                && generation == System.Threading.Volatile.Read(ref _lifecycleGeneration);
+        }
+
+        private void ReceiveData(DataReceivedEventArgs e, Int64 generation)
+        {
+            if (!IsCurrentGeneration(generation))
+                return;
             IMessageDecoder decoder;
             try
             {
@@ -270,9 +339,24 @@ namespace CoAP.Net
 
                 request.Source = e.EndPoint;
 
+                if (!OptionRegistry.ValidateAndFilter(request, out String diagnostic))
+                {
+                    if (IsCurrentGeneration(generation) && request.Type == MessageType.CON)
+                        SendOptionError(request, StatusCode.BadOption, diagnostic);
+                    return;
+                }
+                if (!IsCurrentGeneration(generation))
+                    return;
+                if (!SupportsProxying && (request.HasOption(OptionType.ProxyUri) ||
+                    request.HasOption(OptionType.ProxyScheme)))
+                {
+                    SendOptionError(request, StatusCode.ProxyingNotSupported, null);
+                    return;
+                }
+
                 Fire(ReceivingRequest, request);
 
-                if (!request.IsCancelled)
+                if (IsCurrentGeneration(generation) && !request.IsCancelled)
                 {
                     Exchange exchange = _matcher.ReceiveRequest(request);
                     if (exchange != null)
@@ -298,9 +382,18 @@ namespace CoAP.Net
                 }
                 response.Source = e.EndPoint;
 
+                if (!OptionRegistry.ValidateAndFilter(response, out _))
+                {
+                    if (IsCurrentGeneration(generation) && response.Type == MessageType.CON)
+                        Reject(response);
+                    return;
+                }
+                if (!IsCurrentGeneration(generation))
+                    return;
+
                 Fire(ReceivingResponse, response);
 
-                if (!response.IsCancelled)
+                if (IsCurrentGeneration(generation) && !response.IsCancelled)
                 {
                     Exchange exchange = _matcher.ReceiveResponse(response);
                     if (exchange != null)
@@ -335,7 +428,7 @@ namespace CoAP.Net
 
                 Fire(ReceivingEmptyMessage, message);
 
-                if (!message.IsCancelled)
+                if (IsCurrentGeneration(generation) && !message.IsCancelled)
                 {
                     // CoAP Ping
                     if (message.Type == MessageType.CON || message.Type == MessageType.NON)
@@ -361,8 +454,32 @@ namespace CoAP.Net
             }
         }
 
+        private void SendOptionError(Request request, StatusCode status, String diagnostic)
+        {
+            Int64 generation = System.Threading.Volatile.Read(ref _lifecycleGeneration);
+            Response response = Response.CreateResponse(request, status);
+            response.Type = request.Type == MessageType.CON ? MessageType.ACK : MessageType.NON;
+            response.ID = request.Type == MessageType.CON ? request.ID : Message.None;
+            if (diagnostic != null)
+                response.Payload = System.Text.Encoding.UTF8.GetBytes(diagnostic);
+            if (request.Type == MessageType.NON)
+            {
+                // A NON reply uses the local MID namespace and the normal
+                // exchange cleanup instead of echoing the request's MID.
+                Exchange exchange = _matcher.ReceiveRequest(request);
+                exchange.EndPoint = this;
+                exchange.Request = request;
+                _coapStack.SendResponse(exchange, response);
+                return;
+            }
+            Fire(SendingResponse, response);
+            if (IsCurrentGeneration(generation) && !response.IsCancelled)
+                _channel.Send(Serialize(response), response.Destination);
+        }
+
         private void HandleMalformedDatagram(IMessageDecoder decoder, DataReceivedEventArgs e)
         {
+            Int64 generation = System.Threading.Volatile.Read(ref _lifecycleGeneration);
             if (Log.IsEnabled(LogLevel.Warning))
                 Log.LogWarning("Message format error caused by " + e.EndPoint);
 
@@ -381,7 +498,7 @@ namespace CoAP.Net
             };
 
             Fire(SendingEmptyMessage, rst);
-            if (!rst.IsCancelled)
+            if (IsCurrentGeneration(generation) && !rst.IsCancelled)
                 _channel.Send(Serialize(rst), rst.Destination);
         }
 
@@ -393,11 +510,12 @@ namespace CoAP.Net
 
         private void Reject(Message message)
         {
+            Int64 generation = System.Threading.Volatile.Read(ref _lifecycleGeneration);
             EmptyMessage rst = EmptyMessage.NewRST(message);
 
             Fire(SendingEmptyMessage, rst);
 
-            if (!rst.IsCancelled)
+            if (IsCurrentGeneration(generation) && !rst.IsCancelled)
                 _channel.Send(Serialize(rst), rst.Destination);
         }
 
@@ -460,31 +578,67 @@ namespace CoAP.Net
 
         void IOutbox.SendRequest(Exchange exchange, Request request)
         {
-            _matcher.SendRequest(exchange, request);
+            Int64 generation = System.Threading.Volatile.Read(ref _lifecycleGeneration);
+            Boolean allowed;
+            lock (exchange)
+            {
+                allowed = IsCurrentGeneration(generation) && CanSendRequest(exchange, request);
+                if (allowed)
+                    _matcher.SendRequest(exchange, request);
+            }
+            if (!allowed)
+            {
+                if (!request.IsCancelled && !request.IsTimedOut && !request.IsRejected)
+                    request.Cancel();
+                return;
+            }
 
             Fire(SendingRequest, request);
 
-            if (!request.IsCancelled)
+            if (IsCurrentGeneration(generation) && CanSendRequest(exchange, request))
                 _channel.Send(Serialize(request), request.Destination);
+            else if (!request.IsCancelled && !request.IsTimedOut && !request.IsRejected)
+                request.Cancel();
+        }
+
+        private Boolean CanSendRequest(Exchange exchange, Request request)
+        {
+            Request original = exchange.Request ?? request;
+            return Running && !exchange.Complete
+                && !BlockwiseLayer.IsExchangeTerminating(exchange)
+                && !request.IsCancelled && !request.IsTimedOut && !request.IsRejected
+                && !original.IsCancelled && !original.IsTimedOut && !original.IsRejected;
         }
 
         void IOutbox.SendResponse(Exchange exchange, Response response)
         {
+            Int64 generation = System.Threading.Volatile.Read(ref _lifecycleGeneration);
+            if (!IsCurrentGeneration(generation))
+            {
+                response.Cancel();
+                return;
+            }
             _matcher.SendResponse(exchange, response);
 
             Fire(SendingResponse, response);
 
-            if (!response.IsCancelled)
+            if (IsCurrentGeneration(generation) && !response.IsCancelled)
                 _channel.Send(Serialize(response), response.Destination);
         }
 
         void IOutbox.SendEmptyMessage(Exchange exchange, EmptyMessage message)
         {
+            Int64 generation = System.Threading.Volatile.Read(ref _lifecycleGeneration);
+            if (!IsCurrentGeneration(generation))
+            {
+                message.Cancel();
+                return;
+            }
             _matcher.SendEmptyMessage(exchange, message);
 
             Fire(SendingEmptyMessage, message);
 
-            if (!message.IsCancelled)
+            if (IsCurrentGeneration(generation) && !message.IsCancelled)
                 _channel.Send(Serialize(message), message.Destination);
         }
     }
