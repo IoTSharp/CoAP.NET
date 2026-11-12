@@ -263,6 +263,11 @@ namespace CoAP.Stack
         /// <inheritdoc/>
         public override void ReceiveResponse(INextLayer nextLayer, Exchange exchange, Response response)
         {
+            // The matcher/reliability layers normally consume duplicates before
+            // this layer. Never let an explicitly marked duplicate end an upload.
+            if (response.Duplicate)
+                return;
+
             // do not continue fetching blocks if canceled
             if (exchange.Request.IsCancelled)
             {
@@ -295,21 +300,35 @@ namespace CoAP.Stack
                 BlockwiseStatus status = exchange.RequestBlockStatus;
                 if (status != null && block1.SZX == 7)
                 {
-                    // SZX 7 is reserved for the UDP blockwise protocol. Ignore
-                    // this invalid acknowledgement without advancing upload.
+                    // Reliability has already acknowledged this current response;
+                    // abandoning it without a terminal signal would strand upload.
                     if (Log.IsEnabled(LogLevel.Warning))
-                        Log.LogWarning("Ignoring Block1 response with reserved SZX 7.");
+                        Log.LogWarning("Cancelling upload after Block1 response with reserved SZX 7.");
+                    CancelBlockwiseUpload(exchange);
                     return;
                 }
 
-                // Match the acknowledgement even when the final request block
-                // has been sent: an earlier Continue must not finish that upload.
+                // Old message IDs and duplicates are filtered below this layer.
+                // A response matched to the outstanding message but acknowledging
+                // a different block is a protocol error, not a pending response.
                 if (status != null && Code.IsSuccess(response.Code)
                     && block1.NUM != status.CurrentNUM)
                 {
                     if (Log.IsEnabled(LogLevel.Warning))
-                        Log.LogWarning("Ignoring Block1 response for block " + block1.NUM
+                        Log.LogWarning("Cancelling upload after Block1 response for block " + block1.NUM
                             + "; expected " + status.CurrentNUM + ".");
+                    CancelBlockwiseUpload(exchange);
+                    return;
+                }
+
+                // A normal request cannot complete with an unsolicited non-final
+                // Block1 success. Explicit Block1 requests are managed by callers;
+                // error responses such as 4.13 with a size hint remain deliverable.
+                if (status == null && !exchange.Request.HasOption(OptionType.Block1)
+                    && Code.IsSuccess(response.Code)
+                    && (response.StatusCode == StatusCode.Continue || block1.M))
+                {
+                    CancelBlockwiseUpload(exchange);
                     return;
                 }
 
@@ -325,10 +344,7 @@ namespace CoAP.Stack
                     if (Log.IsEnabled(LogLevel.Warning))
                         Log.LogWarning("Cancelling upload after an invalid Block1 response: "
                             + response.CodeString + " " + block1);
-                    exchange.RequestBlockStatus = null;
-                    ClearBlockCleanup(exchange);
-                    exchange.Complete = true;
-                    exchange.Request.Cancel();
+                    CancelBlockwiseUpload(exchange);
                     return;
                 }
 
@@ -364,7 +380,10 @@ namespace CoAP.Stack
                         nextBlock.Token = response.Token; // reuse same token
                     exchange.CurrentRequest = nextBlock;
                     base.SendRequest(nextLayer, exchange, nextBlock);
-                    // do not deliver response
+                    // The high-level operation returns the final upload result.
+                    // An optional intermediate per-block response body must not
+                    // start Block2 retrieval alongside the next Block1 request.
+                    return;
                 }
             }
 
@@ -459,6 +478,15 @@ namespace CoAP.Stack
                     exchange.Request.IsCancelled = true;
                 }
             }
+        }
+
+        private void CancelBlockwiseUpload(Exchange exchange)
+        {
+            exchange.RequestBlockStatus = null;
+            exchange.ResponseBlockStatus = null;
+            ClearBlockCleanup(exchange);
+            exchange.Complete = true;
+            exchange.Request.Cancel();
         }
 
         private void EarlyBlock2Negotiation(Exchange exchange, Request request)

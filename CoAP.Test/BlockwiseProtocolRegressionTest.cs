@@ -9,9 +9,10 @@ namespace CoAP
     public sealed class BlockwiseProtocolRegressionTest
     {
         [Test]
-        public void Block1ResponseWithoutRequestStatus_IsForwarded()
+        public void ManuallyManagedBlock1ResponseWithoutRequestStatus_IsForwarded()
         {
             Request request = Request.NewPost();
+            request.AddOption(new BlockOption(OptionType.Block1, 0, 0, true));
             Exchange exchange = new Exchange(request, Origin.Local)
             {
                 Request = request
@@ -25,6 +26,46 @@ namespace CoAP
             Assert.DoesNotThrow(() => layer.ReceiveResponse(next, exchange, response));
             Assert.That(next.ReceivedResponses, Is.EqualTo(1));
             Assert.That(next.SentRequests, Is.EqualTo(0));
+            Assert.That(request.IsCancelled, Is.False);
+        }
+
+        [TestCase(StatusCode.Continue, false)]
+        [TestCase(StatusCode.Continue, true)]
+        [TestCase(StatusCode.Changed, true)]
+        public void UnsolicitedNonFinalBlock1SuccessForOrdinaryGet_CancelsWithoutReportingSuccess(StatusCode code, bool more)
+        {
+            Request request = Request.NewGet();
+            Exchange exchange = new Exchange(request, Origin.Local) { Request = request };
+            Response response = Response.CreateResponse(request, code);
+            response.AddOption(new BlockOption(OptionType.Block1, 0, 0, more));
+            RecordingLayer next = new RecordingLayer();
+            BlockwiseLayer layer = new BlockwiseLayer(new CoapConfig());
+
+            layer.ReceiveResponse(next, exchange, response);
+
+            Assert.That(next.ReceivedResponses, Is.EqualTo(0));
+            Assert.That(next.SentRequests, Is.EqualTo(0));
+            Assert.That(request.IsCancelled, Is.True);
+            Assert.That(exchange.Complete, Is.True);
+        }
+
+        [Test]
+        public void InitialRequestEntityTooLargeWithBlock1Hint_IsDelivered()
+        {
+            Request request = Request.NewPut();
+            request.SetPayload("payload", MediaType.TextPlain);
+            Exchange exchange = new Exchange(request, Origin.Local) { Request = request };
+            Response response = Response.CreateResponse(request, StatusCode.RequestEntityTooLarge);
+            response.AddOption(new BlockOption(OptionType.Block1, 0, 0, false));
+            RecordingLayer next = new RecordingLayer();
+            BlockwiseLayer layer = new BlockwiseLayer(new CoapConfig());
+
+            layer.ReceiveResponse(next, exchange, response);
+
+            Assert.That(next.ReceivedResponses, Is.EqualTo(1));
+            Assert.That(next.LastResponse, Is.SameAs(response));
+            Assert.That(next.SentRequests, Is.EqualTo(0));
+            Assert.That(request.IsCancelled, Is.False);
         }
 
         [TestCase(StatusCode.BadRequest)]
@@ -60,8 +101,10 @@ namespace CoAP
             Assert.That(exchange.RequestBlockStatus, Is.Null);
         }
 
-        [Test]
-        public void DuplicateOrOutOfOrderBlock1Response_DoesNotAdvanceUpload()
+        [TestCase(1, 0)]
+        [TestCase(2, 0)]
+        [TestCase(0, 7)]
+        public void InvalidBlock1Acknowledgement_CancelsUpload(int number, int szx)
         {
             Request request = Request.NewPost();
             request.SetPayload(new byte[48], MediaType.ApplicationOctetStream);
@@ -81,19 +124,16 @@ namespace CoAP
             Assert.That(status, Is.Not.Null);
             Assert.That(status.CurrentNUM, Is.EqualTo(0));
 
-            Response duplicate = Response.CreateResponse(request, StatusCode.Continue);
-            duplicate.AddOption(new BlockOption(OptionType.Block1, 1, 0, true));
-            layer.ReceiveResponse(next, exchange, duplicate);
+            Response response = Response.CreateResponse(request, StatusCode.Continue);
+            response.AddOption(new BlockOption(OptionType.Block1, number, szx, true));
+            layer.ReceiveResponse(next, exchange, response);
 
             Assert.That(next.SentRequests, Is.EqualTo(1));
             Assert.That(status.CurrentNUM, Is.EqualTo(0));
-
-            Response outOfOrder = Response.CreateResponse(request, StatusCode.Continue);
-            outOfOrder.AddOption(new BlockOption(OptionType.Block1, 2, 0, true));
-            layer.ReceiveResponse(next, exchange, outOfOrder);
-
-            Assert.That(next.SentRequests, Is.EqualTo(1));
-            Assert.That(status.CurrentNUM, Is.EqualTo(0));
+            Assert.That(next.ReceivedResponses, Is.EqualTo(0));
+            Assert.That(request.IsCancelled, Is.True);
+            Assert.That(exchange.Complete, Is.True);
+            Assert.That(exchange.RequestBlockStatus, Is.Null);
         }
 
         [Test]
@@ -146,6 +186,36 @@ namespace CoAP
             Assert.That(next.SentRequests, Is.EqualTo(2));
             Assert.That(next.LastRequest.Block1.NUM, Is.EqualTo(1));
             Assert.That(next.ReceivedResponses, Is.EqualTo(0));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void IntermediateBlock2Body_DoesNotAdvanceOrCompleteTheUpload(bool more)
+        {
+            Request request = Request.NewPost();
+            request.SetPayload(new byte[48], MediaType.ApplicationOctetStream);
+            Exchange exchange = new Exchange(request, Origin.Local) { Request = request };
+            RecordingLayer next = new RecordingLayer();
+            BlockwiseLayer layer = new BlockwiseLayer(new CoapConfig
+            {
+                MaxMessageSize = 16,
+                DefaultBlockSize = 16
+            });
+            layer.SendRequest(next, exchange, request);
+            Response response = Response.CreateResponse(request, StatusCode.Changed);
+            response.SetPayload("0123456789abcdef", MediaType.TextPlain);
+            response.AddOption(new BlockOption(OptionType.Block1, 0, 0, false));
+            response.AddOption(new BlockOption(OptionType.Block2, 0, 0, more));
+
+            layer.ReceiveResponse(next, exchange, response);
+
+            Assert.That(next.SentRequests, Is.EqualTo(2));
+            Assert.That(next.LastRequest.Block1, Is.Not.Null);
+            Assert.That(next.LastRequest.Block1.NUM, Is.EqualTo(1));
+            Assert.That(exchange.CurrentRequest, Is.SameAs(next.LastRequest));
+            Assert.That(exchange.ResponseBlockStatus, Is.Null);
+            Assert.That(next.ReceivedResponses, Is.EqualTo(0));
+            Assert.That(request.IsCancelled, Is.False);
         }
 
         [TestCase(StatusCode.Created)]
@@ -205,7 +275,7 @@ namespace CoAP
         }
 
         [Test]
-        public void ContinueWithReservedBlockSize_DoesNotAdvanceUpload()
+        public void ContinueWithReservedBlockSize_CancelsUpload()
         {
             Request request = Request.NewPost();
             request.SetPayload(new byte[48], MediaType.ApplicationOctetStream);
@@ -223,7 +293,9 @@ namespace CoAP
             layer.ReceiveResponse(next, exchange, response);
 
             Assert.That(next.SentRequests, Is.EqualTo(1));
-            Assert.That(exchange.RequestBlockStatus.CurrentNUM, Is.EqualTo(0));
+            Assert.That(exchange.RequestBlockStatus, Is.Null);
+            Assert.That(request.IsCancelled, Is.True);
+            Assert.That(exchange.Complete, Is.True);
             Assert.That(next.ReceivedResponses, Is.EqualTo(0));
         }
 
@@ -244,6 +316,7 @@ namespace CoAP
             first.AddOption(new BlockOption(OptionType.Block1, 0, 0, true));
             layer.ReceiveResponse(next, exchange, first);
 
+            first.Duplicate = true;
             layer.ReceiveResponse(next, exchange, first);
 
             Assert.That(next.SentRequests, Is.EqualTo(2));
@@ -270,6 +343,7 @@ namespace CoAP
             BlockwiseStatus status = exchange.RequestBlockStatus;
             Assert.That(status.Complete, Is.True);
 
+            first.Duplicate = true;
             layer.ReceiveResponse(next, exchange, first);
 
             Assert.That(next.SentRequests, Is.EqualTo(2));
