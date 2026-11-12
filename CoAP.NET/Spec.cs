@@ -22,6 +22,13 @@ using CoAP.Util;
 
 namespace CoAP
 {
+#if DRAFT
+    internal static class LegacyOptionNumbers
+    {
+        internal const OptionType Token = (OptionType)19;
+    }
+#endif
+
     #region CoAP 03
 #if COAPALL || COAP03
     static partial class Spec
@@ -123,7 +130,7 @@ namespace CoAP
                     return 8;
                 case OptionType.UriPath:
                     return 9;
-                case OptionType.Token:
+                case LegacyOptionNumbers.Token:
                     return 11;
                 case OptionType.UriQuery:
                     return 15;
@@ -165,7 +172,7 @@ namespace CoAP
                 case 9:
                     return OptionType.UriPath;
                 case 11:
-                    return OptionType.Token;
+                    return LegacyOptionNumbers.Token;
                 case 15:
                     return OptionType.UriQuery;
                 case 10:
@@ -254,8 +261,10 @@ namespace CoAP
 
                 IEnumerable<Option> opts = msg.GetOptions();
                 IList<Option> options = opts as IList<Option> ?? new List<Option>(opts);
-                if (msg.Token != null && msg.Token.Length > 0 && !msg.HasOption(OptionType.Token))
-                    options.Add(Option.Create(OptionType.Token, msg.Token));
+                if (msg.HasOption(LegacyOptionNumbers.Token))
+                    throw new InvalidOperationException("A legacy codec cannot encode the current wire option 19; use Message.Token for the legacy token.");
+                if (msg.Token != null && msg.Token.Length > 0)
+                    options.Add(Option.Create(LegacyOptionNumbers.Token, msg.Token));
                 Utils.InsertionSort(options, delegate(Option o1, Option o2)
                 {
                     return GetOptionNumber(o1.Type).CompareTo(GetOptionNumber(o2.Type));
@@ -417,7 +426,10 @@ namespace CoAP
                                 opt = Option.Create(currentOptionType, ct2);
                         }
 
-                        msg.AddOption(opt);
+                        if (currentOptionType == LegacyOptionNumbers.Token)
+                            msg.Token = opt.RawValue;
+                        else
+                            msg.AddOption(opt);
                     }
                 }
 
@@ -532,7 +544,7 @@ namespace CoAP
                     return 8;
                 case OptionType.UriPath:
                     return 9;
-                case OptionType.Token:
+                case LegacyOptionNumbers.Token:
                     return 11;
                 case OptionType.UriQuery:
                     return 15;
@@ -582,7 +594,7 @@ namespace CoAP
                 case 9:
                     return OptionType.UriPath;
                 case 11:
-                    return OptionType.Token;
+                    return LegacyOptionNumbers.Token;
                 case 15:
                     return OptionType.UriQuery;
                 case 10:
@@ -637,8 +649,10 @@ namespace CoAP
 
                 IEnumerable<Option> opts = msg.GetOptions();
                 IList<Option> options = opts as IList<Option> ?? new List<Option>(opts);
-                if (msg.Token != null && msg.Token.Length > 0 && !msg.HasOption(OptionType.Token))
-                    options.Add(Option.Create(OptionType.Token, msg.Token));
+                if (msg.HasOption(LegacyOptionNumbers.Token))
+                    throw new InvalidOperationException("A legacy codec cannot encode the current wire option 19; use Message.Token for the legacy token.");
+                if (msg.Token != null && msg.Token.Length > 0)
+                    options.Add(Option.Create(LegacyOptionNumbers.Token, msg.Token));
                 Utils.InsertionSort(options, delegate(Option o1, Option o2)
                 {
                     return GetOptionNumber(o1.Type).CompareTo(GetOptionNumber(o2.Type));
@@ -782,7 +796,10 @@ namespace CoAP
                         Option opt = Option.Create(currentOptionType);
                         opt.RawValue = m_reader.ReadBytes(length);
 
-                        msg.AddOption(opt);
+                        if (currentOptionType == LegacyOptionNumbers.Token)
+                            msg.Token = opt.RawValue;
+                        else
+                            msg.AddOption(opt);
                     }
                 }
 
@@ -898,8 +915,10 @@ namespace CoAP
 
                 IEnumerable<Option> opts = msg.GetOptions();
                 IList<Option> options = opts as IList<Option> ?? new List<Option>(opts);
-                if (msg.Token != null && msg.Token.Length > 0 && !msg.HasOption(OptionType.Token))
-                    options.Add(Option.Create(OptionType.Token, msg.Token));
+                if (msg.HasOption(LegacyOptionNumbers.Token))
+                    throw new InvalidOperationException("A legacy codec cannot encode the current wire option 19; use Message.Token for the legacy token.");
+                if (msg.Token != null && msg.Token.Length > 0)
+                    options.Add(Option.Create(LegacyOptionNumbers.Token, msg.Token));
                 Utils.InsertionSort(options, delegate(Option o1, Option o2)
                 {
                     return GetOptionNumber(o1.Type).CompareTo(GetOptionNumber(o2.Type));
@@ -1108,7 +1127,10 @@ namespace CoAP
                     Option opt = Option.Create(currentOptionType);
                     opt.RawValue = m_reader.ReadBytes(length);
 
-                    msg.AddOption(opt);
+                    if (currentOptionType == LegacyOptionNumbers.Token)
+                        msg.Token = opt.RawValue;
+                    else
+                        msg.AddOption(opt);
                 }
 
                 if (msg.Token == null)
@@ -1288,7 +1310,7 @@ namespace CoAP
 
                 foreach (Option opt in options)
                 {
-                    if (opt.Type == OptionType.Token)
+                    if (opt.Type == LegacyOptionNumbers.Token)
                         continue;
                     if (opt.IsDefault)
                         continue;
@@ -1412,7 +1434,7 @@ namespace CoAP
     #endregion
 
     #region CoAP 18 & RFC7252
-#if COAPALL || COAP18 || RFC7252
+#if DRAFT
     static partial class Spec
     {
 #if COAPALL || COAP18
@@ -1421,7 +1443,7 @@ namespace CoAP
         /// </summary>
         public static readonly ISpec Draft18 = new CoAP.Draft18("draft-ietf-core-coap-18");
 #endif
-#if COAPALL || RFC7252
+#if DRAFT
         /// <summary>
         /// RFC 7252
         /// </summary>
@@ -1455,7 +1477,7 @@ namespace CoAP
                 }
             }
 #endif
-#if COAPALL || RFC7252
+#if DRAFT
             /// <summary>
             /// <see cref="IEndPoint"/> with RFC 7252.
             /// </summary>
@@ -1478,7 +1500,6 @@ namespace CoAP
         }
     }
 #endif
-#if !DRAFT || COAPALL || COAP18 || RFC7252
 #if DRAFT
     class Draft18 : ISpec
 #else
@@ -1600,9 +1621,6 @@ namespace CoAP
 
                 foreach (Option opt in options)
                 {
-                    if (opt.Type == OptionType.Token)
-                        continue;
-
                     // write 4-bit option delta
                     Int32 optNum = (Int32)opt.Type;
                     Int32 optionDelta = optNum - lastOptionNumber;
@@ -1756,29 +1774,39 @@ namespace CoAP
             }
         }
     }
-#endif
     #endregion
 
 #if DRAFT
     public static partial class Spec
     {
         /// <summary>
-        /// The default draft.
+        /// 获取现行 RFC 7252 编解码器；旧草案只能通过显式 Draft codec 选择。
         /// </summary>
-        public static readonly ISpec Default =
-#if COAPALL || RFC7252
- RFC7252;
-#elif COAP18
- Draft18;
-#elif COAP13
- Draft13;
-#elif COAP12
- Draft12;
-#elif COAP08
- Draft08;
-#elif COAP03
- Draft03;
-#endif
+        public static readonly ISpec Default = RFC7252;
+
+        /// <summary>获取默认现行协议的名称。</summary>
+        public static String Name { get { return RFC7252.Name; } }
+
+        /// <summary>获取默认现行协议的端口。</summary>
+        public static Int32 DefaultPort { get { return RFC7252.DefaultPort; } }
+
+        /// <summary>创建默认现行协议的编码器。</summary>
+        public static IMessageEncoder NewMessageEncoder() { return RFC7252.NewMessageEncoder(); }
+
+        /// <summary>创建默认现行协议的解码器。</summary>
+        /// <param name="data">要解码的 CoAP datagram。</param>
+        /// <returns>校验现行协议格式的解码器。</returns>
+        public static IMessageDecoder NewMessageDecoder(Byte[] data) { return RFC7252.NewMessageDecoder(data); }
+
+        /// <summary>按默认现行协议编码报文。</summary>
+        /// <param name="message">要编码的协议报文。</param>
+        /// <returns>现行 RFC 7252 wire 格式的字节。</returns>
+        public static Byte[] Encode(Message message) { return RFC7252.Encode(message); }
+
+        /// <summary>按默认现行协议解码报文。</summary>
+        /// <param name="data">要解码的 CoAP datagram。</param>
+        /// <returns>解码后的协议报文；未知 Code 返回空值。</returns>
+        public static Message Decode(Byte[] data) { return RFC7252.Decode(data); }
     }
 
     /// <summary>
@@ -1853,20 +1881,7 @@ namespace CoAP
         {
             private static IEndPoint GetDefaultEndPoint()
             {
-                return
-#if COAPALL || RFC7252
- RFC7252;
-#elif COAP18
- Draft18;
-#elif COAP13
- Draft13;
-#elif COAP12
- Draft12;
-#elif COAP08
- Draft08;
-#elif COAP03
- Draft03;
-#endif
+                return RFC7252;
             }
 
             public static IEndPoint CreateEndPoint(ISpec spec)
