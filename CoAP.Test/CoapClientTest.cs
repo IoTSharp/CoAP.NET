@@ -37,6 +37,7 @@ namespace CoAP
         [TestInitialize]
         public void SetupServer()
         {
+            _notifications = 0;
             CreateServer();
         }
 
@@ -49,7 +50,6 @@ namespace CoAP
         [TestMethod]
         public void TestSynchronousCall()
         {
-            _notifications = 0;
             Uri uri = new Uri("coap://localhost:" + _serverPort + "/" + TARGET);
             CoapClient client = new CoapClient(uri);
 

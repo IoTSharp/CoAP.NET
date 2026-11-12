@@ -10,6 +10,8 @@ AOT analyzer compatibility, Resource/MVC-style hosting, and optional DTLS PSK
 transport.
 
 See [ROADMAP.md](ROADMAP.md) for the CoAP route adapter and low-allocation plan.
+Current protocol gaps, upstream/fork review, and the formal RFC/IANA baseline
+are tracked in the [standards and interoperability roadmap](docs/coap-standards-roadmap.md).
 The Resource/MVC sample and migration guide are available in
 [CoAP.Example/CoAP.ResourceMvc](CoAP.Example/CoAP.ResourceMvc) and
 [docs/resource-mvc-migration.md](docs/resource-mvc-migration.md). C12 release

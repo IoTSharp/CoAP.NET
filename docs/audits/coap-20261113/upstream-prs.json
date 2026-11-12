@@ -1,0 +1,166 @@
+[
+  {
+    "number": 81,
+    "title": "Allow broadcast requests to the servers",
+    "state": "open",
+    "merged_at": null,
+    "head": "73562acb583528adc9052bbf6f2b136221c48329",
+    "source": "raspopov/CoAP.NET",
+    "body": "It allows the client to use requests of the form: \"coap://255.255.255.255/.well-known/core\" to search for primitive servers on the local area network (LAN) that do not support multicasts.\r\n\r\nIt also enables the client to reuse sockets, since the packets have a built-in mechanism for determining if the response matches the request.",
+    "url": "https://github.com/smeshlink/CoAP.NET/pull/81"
+  },
+  {
+    "number": 80,
+    "title": "Fix a bug in the test",
+    "state": "open",
+    "merged_at": null,
+    "head": "78db4c2922f90fed960279af28b7581eceb73659",
+    "source": "raspopov/CoAP.NET",
+    "body": "The variable that counted the number of responses to requests was not cleared between tests. This caused incorrect counting if the order of the tests was changed.",
+    "url": "https://github.com/smeshlink/CoAP.NET/pull/80"
+  },
+  {
+    "number": 64,
+    "title": "Correct debug output message on shutdown",
+    "state": "open",
+    "merged_at": null,
+    "head": "96818bdca520c554973bc71c3fa4d145f6936354",
+    "source": "mfalkvidd/CoAP.NET",
+    "body": "",
+    "url": "https://github.com/smeshlink/CoAP.NET/pull/64"
+  },
+  {
+    "number": 53,
+    "title": "Implement OSCOAP to get security running",
+    "state": "open",
+    "merged_at": null,
+    "head": "122eca53930b9554f8b5e03a3c7ce3db23430f60",
+    "source": "jimsch/CoAP.NET",
+    "body": "This is not really a request for doing a pull yet, it is more a case of asking for review to see if this is something that you are interested in and if you think that it is in the correct direction.\r\n\r\nThis is not a complete implementation yet.  Some of the things that I know are missing:\r\n* Observe and blockwise transfer are going to require doing a cached exchange in the OSCOAP layer.\r\n* The OSCOAP option number has not been assigned so I have chosen something arbitrary (and wrong) for testing purposes.\r\n* Need to figure out all of the builds to make sure that all of them will build correctly.  Part of this is going to be the question of how do do builds for both with and without OSCOAP in all probability  given the set of components that I am dragging in for cryptography.  Also there may be a problem as not all of the modules that I am currently using are signed and thus if this is signed then they cannot be loaded.\r\n",
+    "url": "https://github.com/smeshlink/CoAP.NET/pull/53"
+  },
+  {
+    "number": 50,
+    "title": "Fix for set URI-PORT when set URI again and there is no port value",
+    "state": "closed",
+    "merged_at": "2016-05-27T17:36:18Z",
+    "head": "59ad80c4cfd907204cbaf3a16aa6b970345a32e9",
+    "body": "It's fix for setting port when previouse some port value was set and after that new URI without port is set.\n\nExample:\n\n```\nRequest r = new Request(Method.GET, true)\nr.URI = new URI(\"coap://127.0.0.1:12345/res\") //here port is set to 12345\nr.URI = new URI(\"coap://127.0.0.1/res\") // here port option was not changed and stay 12345\n```\n",
+    "url": "https://github.com/smeshlink/CoAP.NET/pull/50"
+  },
+  {
+    "number": 45,
+    "title": "Fix for issue #44",
+    "state": "closed",
+    "merged_at": "2016-03-09T15:03:10Z",
+    "head": "43a402a26488413a542762100576c1be5ea8bedc",
+    "body": "in CoAP.Message get options ProxyUri and ProxyScheme should use valid option type\n",
+    "url": "https://github.com/smeshlink/CoAP.NET/pull/45"
+  },
+  {
+    "number": 43,
+    "title": "Fixing broken example links in README.md",
+    "state": "closed",
+    "merged_at": "2016-02-19T02:53:00Z",
+    "head": "b828d2fea65448e5efeb9412a27712efb95e320a",
+    "body": "Fixing broken client and server example links\n",
+    "url": "https://github.com/smeshlink/CoAP.NET/pull/43"
+  },
+  {
+    "number": 42,
+    "title": "Updated CoAP.NET for Visual Studio 2015",
+    "state": "closed",
+    "merged_at": null,
+    "head": "3da9bf4e92ce7fe0506934aec1c48b7d7517aba3",
+    "body": "These changes enable Visual Studio to build all example projects.\n",
+    "url": "https://github.com/smeshlink/CoAP.NET/pull/42"
+  },
+  {
+    "number": 36,
+    "title": "Feat/dnx",
+    "state": "closed",
+    "merged_at": "2015-09-25T03:11:38Z",
+    "head": "f25efe378813a681830ff310637ae99c9fdd5240",
+    "source": "kulak/CoAP.NET",
+    "body": "Added .NET DNX projects to \n- CoAP.NET project\n- CoAP.Client project\n\nHopefully this merges into master and not into feat/dnx branch.\n",
+    "url": "https://github.com/smeshlink/CoAP.NET/pull/36"
+  },
+  {
+    "number": 35,
+    "title": "Feat/dnx",
+    "state": "closed",
+    "merged_at": null,
+    "head": "f25efe378813a681830ff310637ae99c9fdd5240",
+    "source": "kulak/CoAP.NET",
+    "body": "Code compiles on Visual Studio 2015 machine.\nThe following projects have been ported to DNX:\n- CoAP.NET as CoAP.NET.DNX\n- CoAP.Client as CoAP.Client.DNX\n\nI want to push changes to master branch, but this might end up creating feat/dnx branch.  Perhaps it is better this way.\n",
+    "url": "https://github.com/smeshlink/CoAP.NET/pull/35"
+  },
+  {
+    "number": 34,
+    "title": "Update Resource.cs",
+    "state": "closed",
+    "merged_at": "2015-09-16T01:42:35Z",
+    "head": "6fcdf3dfd8b50e76063a78aea0784e8a3f027e06",
+    "source": "delmet/CoAP.NET",
+    "body": "If Parent is null still allow name change\n",
+    "url": "https://github.com/smeshlink/CoAP.NET/pull/34"
+  },
+  {
+    "number": 33,
+    "title": "Update Resource.cs",
+    "state": "closed",
+    "merged_at": "2015-09-14T01:37:35Z",
+    "head": "dd6bf3ae61f2dc1c96f26636c2a24680c523cc27",
+    "source": "delmet/CoAP.NET",
+    "body": "Changing name of resource while not attached to parent causes null exception\n",
+    "url": "https://github.com/smeshlink/CoAP.NET/pull/33"
+  },
+  {
+    "number": 24,
+    "title": "Removed 2 lines for mono compatibility",
+    "state": "closed",
+    "merged_at": null,
+    "head": "d54c92df570f2181c35913f8789a83730e827d01",
+    "source": "martindevans/CoAP.NET",
+    "body": "Running the CoAP.Example/CoAP.Client on Linux (using mono 4.0.1) crashes with an exception: \"Failed Executing Request: The Descriptor Is Not A Socket\", this is caused by the lines which I have removed (commented out).\n\nAll three example projects now run under Mono :)\n",
+    "url": "https://github.com/smeshlink/CoAP.NET/pull/24"
+  },
+  {
+    "number": 14,
+    "title": "Exposed things necessary to translate HTTP <--> CoAP",
+    "state": "closed",
+    "merged_at": "2014-12-22T02:56:28Z",
+    "head": "7739d59660cfa44a337685c0184b90a2f90eb777",
+    "source": "martindevans/CoAP.NET",
+    "body": "At the moment to translate between CoAP and HTTP seems to require hosting a HTTP server using CoAP.NET. However in my application I already have a server with HTTP requests coming in, this change allows me to internally translate those requests into CoAP requests and send them on to the appropriate CoAP device, and then translate back to HTTP for the response.\n\nSigned-off-by: Martin Evans martindevans@gmail.com\n",
+    "url": "https://github.com/smeshlink/CoAP.NET/pull/14"
+  },
+  {
+    "number": 7,
+    "title": "Removing next.SequenceKey from debug log since it is always null here",
+    "state": "closed",
+    "merged_at": "2013-09-01T02:37:13Z",
+    "head": "9976876f1fea623f89057af1d33fcdc83c12e3cd",
+    "body": "Removing next.SequenceKey from debug log since it is always null here.\nLeaving it will throw a null exception.\n",
+    "url": "https://github.com/smeshlink/CoAP.NET/pull/7"
+  },
+  {
+    "number": 4,
+    "title": "Adding CoAP.NET.iOS Project",
+    "state": "closed",
+    "merged_at": "2013-08-19T07:54:46Z",
+    "head": "33ebbdf810aee992be37f0e7a93e0a2ea2a900a6",
+    "body": "Adding linked CoAP.NET.iOS project for Xamarin/MonoTouch use\n",
+    "url": "https://github.com/smeshlink/CoAP.NET/pull/4"
+  },
+  {
+    "number": 1,
+    "title": "add LICENSE",
+    "state": "closed",
+    "merged_at": "2013-04-28T07:59:24Z",
+    "head": "0710cb90a2aaa16ae24690dba7e662b2573f022b",
+    "source": "smeshlink/CoAP.NET",
+    "body": "",
+    "url": "https://github.com/smeshlink/CoAP.NET/pull/1"
+  }
+]

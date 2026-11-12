@@ -193,7 +193,7 @@ namespace CoAP.Server
         public void Stop()
         {
             if (Log.IsEnabled(LogLevel.Debug))
-                Log.LogDebug("Starting CoAP server");
+                Log.LogDebug("Stopping CoAP server");
             _endpoints.ForEach(ep => ep.Stop());
         }
 

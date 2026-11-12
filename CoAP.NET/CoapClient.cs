@@ -391,9 +391,15 @@ namespace CoAP
 
         public void SendAsync(Request request, Action<Response> done = null, Action<FailReason> fail = null)
         {
+            Int32 cancellationReported = 0;
             request.Respond += (o, e) => Deliver(done, e);
             request.Rejected += (o, e) => Fail(fail, FailReason.Rejected);
             request.TimedOut += (o, e) => Fail(fail, FailReason.TimedOut);
+            request.Cancelled += (o, e) =>
+            {
+                if (System.Threading.Interlocked.Exchange(ref cancellationReported, 1) == 0)
+                    Fail(fail, FailReason.Cancelled);
+            };
             
             Prepare(request).Send();
         }
@@ -534,7 +540,11 @@ namespace CoAP
             /// <summary>
             /// The request has been timed out.
             /// </summary>
-            TimedOut
+            TimedOut,
+            /// <summary>
+            /// 请求已取消，包括协议层拒绝不合法的传输响应。
+            /// </summary>
+            Cancelled
         }
 
         /// <summary>

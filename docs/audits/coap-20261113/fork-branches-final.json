@@ -1,0 +1,2544 @@
+{
+  "repositories": [
+    {
+      "nameWithOwner": "robertaves/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "RohitGalgali/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "tuga1975/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "SiMet/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "weera00/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "just-fork/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "huaqiuming/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "ulfendk/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "mikkleini/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "726111e6f0ade4dc9a615ce01a49f2911eed0a37"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "Open-Day-For-CSharp/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "MgenChina/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "Johnxiaohu/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "FabienFranck/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "kouweizhong/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "simonpfeifhofer/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "t-than/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "krzysztofwl/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "jmarymee/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "apg",
+            "target": {
+              "oid": "d7b93107acfc0c3729554a34d5b6936a4e09ccd5"
+            }
+          },
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "Erguotou/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "HDJN/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "kfarr3/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "1c8cb5335955522c18a8b387167029d30d650b60"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "jimsch/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "OSCOAP",
+            "target": {
+              "oid": "122eca53930b9554f8b5e03a3c7ce3db23430f60"
+            }
+          },
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "aishenhaowe/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "digideskio/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "0xF1o/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "master",
+            "target": {
+              "oid": "726111e6f0ade4dc9a615ce01a49f2911eed0a37"
+            }
+          },
+          {
+            "name": "opentrigger",
+            "target": {
+              "oid": "46543549dcbc1106e3313160469c8d2e121a1f6e"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "sangkyunyoon/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "cedf922cb419bf111b55bb230d7c486d87da209c"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "lynnliu/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "bdbfb4a1c8ff667f9769dbd35adcc9056ab7f1f0"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "modulexcite/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "2c64435c59592c295a652496559c0cabd7b50d0e"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "4ant00ra/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "2c64435c59592c295a652496559c0cabd7b50d0e"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "sachinrk/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "434719973ad0cb80807ccd1f79267a8fc10d663a"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "49838af75bd6256f372a0343b0842937281e9033"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "vjine/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "434719973ad0cb80807ccd1f79267a8fc10d663a"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "49838af75bd6256f372a0343b0842937281e9033"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "wfvvfw/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "434719973ad0cb80807ccd1f79267a8fc10d663a"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "066c6c0c2f8ae3413c24035e64fda821487e1f9a"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "kulak/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "dev",
+            "target": {
+              "oid": "1398c3f91e0c68ad1f015baf5fb7de2451dca517"
+            }
+          },
+          {
+            "name": "feat/dnx",
+            "target": {
+              "oid": "f25efe378813a681830ff310637ae99c9fdd5240"
+            }
+          },
+          {
+            "name": "feat/dnx-logging",
+            "target": {
+              "oid": "5e788cf66228230591a2151267f4153eca08e3d0"
+            }
+          },
+          {
+            "name": "feat/dnx-save1",
+            "target": {
+              "oid": "1c1b9bc8e386734b16e04a5050480c6cad8c7d74"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "434719973ad0cb80807ccd1f79267a8fc10d663a"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "6833a30233deb00fc3a5bd66572a0e9175d99dbf"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "delmet/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "434719973ad0cb80807ccd1f79267a8fc10d663a"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "1c8f3629cc407f182265471f3b3ae85c02d12089"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "IntelliTect/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "434719973ad0cb80807ccd1f79267a8fc10d663a"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "1c8f3629cc407f182265471f3b3ae85c02d12089"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "rlusian1/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "434719973ad0cb80807ccd1f79267a8fc10d663a"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "8464c5e6fe1fcd279ca4829736451625f845898b"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "jlbnet/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "434719973ad0cb80807ccd1f79267a8fc10d663a"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "8464c5e6fe1fcd279ca4829736451625f845898b"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "bacsiden/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "434719973ad0cb80807ccd1f79267a8fc10d663a"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "8464c5e6fe1fcd279ca4829736451625f845898b"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "bola04053/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "434719973ad0cb80807ccd1f79267a8fc10d663a"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "8464c5e6fe1fcd279ca4829736451625f845898b"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "divyang4481/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "434719973ad0cb80807ccd1f79267a8fc10d663a"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "06fddabc3626a1f7d39f736b7a90191643a1e5e0"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "martindevans/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "434719973ad0cb80807ccd1f79267a8fc10d663a"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "d54c92df570f2181c35913f8789a83730e827d01"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "scheerwonders/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "434719973ad0cb80807ccd1f79267a8fc10d663a"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "efdb2af6a95b1fccd81493b9b82a0c3bccfeff62"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "examyes/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "434719973ad0cb80807ccd1f79267a8fc10d663a"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "50567e232d983b4fca4c2323c74b46a243c5f5a8"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "omarv74/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "52f1e6e37116886c2f4faaed86a605920f980377"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "b069fad2937d15e471445181043ff7f730b6f3a9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "ongec/CoAP.NET-1",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "78bb547ccc0bdeeeb543e001c489e70c1f9497e5"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "78bb547ccc0bdeeeb543e001c489e70c1f9497e5"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "raspopov/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "broadcast",
+            "target": {
+              "oid": "73562acb583528adc9052bbf6f2b136221c48329"
+            }
+          },
+          {
+            "name": "client-test",
+            "target": {
+              "oid": "78db4c2922f90fed960279af28b7581eceb73659"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "f48514ca3c3a08e36106813fad1e9dd0b7bad2da"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "andylifeLee/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "moisoiu/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "ltrujillo-schreder/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "cfqdream/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "lanicon/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "n-develop/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "chaithat/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "Frunck8206/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "xhowar/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "world-direct/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "develop",
+            "target": {
+              "oid": "e827c454c961324b343a3928ab8c21e659a31f12"
+            }
+          },
+          {
+            "name": "feature/coaps",
+            "target": {
+              "oid": "7b8a7d123e873a3f3f7d6a7d7b036e93a9e54c00"
+            }
+          },
+          {
+            "name": "feature/diagnostics",
+            "target": {
+              "oid": "8b468fb6d2ec974a49b2d5dcf7cc63927a2d0f2b"
+            }
+          },
+          {
+            "name": "feature/dtlsEval",
+            "target": {
+              "oid": "b544ee8dbbef19e5f805ad283b55f60f3e7e0c82"
+            }
+          },
+          {
+            "name": "feature/dtlsbouncy",
+            "target": {
+              "oid": "2fa75c62718ecee8c01c3a32b80c1e7d01cf5ada"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "ea0845b22bef582657b6ab8259de378f9c1c6305"
+            }
+          },
+          {
+            "name": "hotfix/block1",
+            "target": {
+              "oid": "c412b91dfbfcecf6dcb213e027ce517b946e90ff"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "4fe99ce5ccf8e8e1877701ef3393ec4871fe8c87"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "vermion/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "bjorndaniel/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "c836eee230de3d215e4fd8d33feae281c92d27d2"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "frossini/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "mfalkvidd/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "96818bdca520c554973bc71c3fa4d145f6936354"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "fancycoconut/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "feature-build",
+            "target": {
+              "oid": "d17b1ef7545164c1cc2d7880774bad47803b60a6"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "seuzht/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "rrader26/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "chuggafan/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "dystudio/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "fuxunyang/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "leedongju/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "davidrpk/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "IoTSharp/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "dependabot/nuget/Microsoft.NET.Test.Sdk-16.10.0",
+            "target": {
+              "oid": "0ce5b9c540f5b111477954f35166acd5a72f06b9"
+            }
+          },
+          {
+            "name": "dependabot/nuget/NUnit3TestAdapter-4.0.0",
+            "target": {
+              "oid": "696a915c7e53644f484a27dd8cedd4621a361d7b"
+            }
+          },
+          {
+            "name": "develop",
+            "target": {
+              "oid": "55457b414bb9ec02715828b57cf446d9a4690e71"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "1abe69a0edaf55147ad6bccaa4e012aea87a8252"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "AlexAldoshin/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "zpfcaca/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "ygqbasic/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "nameWithOwner": "Ziyad2/CoAP.NET",
+      "refs": {
+        "nodes": [
+          {
+            "name": "coap-08",
+            "target": {
+              "oid": "0710cb90a2aaa16ae24690dba7e662b2573f022b"
+            }
+          },
+          {
+            "name": "coap-13",
+            "target": {
+              "oid": "d0590e886d0e5e8db4136d8984a66081c610ad5c"
+            }
+          },
+          {
+            "name": "gh-pages",
+            "target": {
+              "oid": "763c4df54ac4a11a22b95030748fbce7571e23b1"
+            }
+          },
+          {
+            "name": "master",
+            "target": {
+              "oid": "7ffdb9420d282d6cd4c1abd0eea04b0995157ed9"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    }
+  ],
+  "errors": [
+    "Could not resolve to a Repository with the name 'liumanduo/Aurora.CoAP.NET'.",
+    "Could not resolve to a Repository with the name 'xhwyli/CoAP.NET'."
+  ]
+}

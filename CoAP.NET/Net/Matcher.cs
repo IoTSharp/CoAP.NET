@@ -90,7 +90,7 @@ namespace CoAP.Net
 
             // the MID is from the local namespace -- use blank address
             Exchange.KeyID keyID = new Exchange.KeyID(request.ID, null);
-            Exchange.KeyToken keyToken = new Exchange.KeyToken(request.Token);
+            Exchange.KeyToken keyToken = new TokenKey(request.Token, request.Multicast ? null : request.Destination);
 
             exchange.Completed += OnExchangeCompleted;
 
@@ -301,10 +301,8 @@ namespace CoAP.Net
                 // remote namespace
                 keyId = new Exchange.KeyID(response.ID, response.Source);
 
-            Exchange.KeyToken keyToken = new Exchange.KeyToken(response.Token);
-
             Exchange exchange;
-            if (_exchangesByToken.TryGetValue(keyToken, out exchange))
+            if (TryGetResponseExchange(response, out exchange))
             {
                 // There is an exchange with the given token
                 Exchange prev = _deduplicator.FindPrevious(keyId, exchange);
@@ -323,13 +321,6 @@ namespace CoAP.Net
                     _exchangesByID.Remove(keyId);
                 }
 
-                if (response.Type == MessageType.ACK && exchange.CurrentRequest.ID != response.ID)
-                {
-                    // The token matches but not the MID. This is a response for an older exchange
-                    if (Log.IsEnabled(LogLevel.Warning))
-                        Log.LogWarning("Possible MID reuse before lifetime end: " + response.TokenString + " expected MID " + exchange.CurrentRequest.ID + " but received " + response.ID);
-                }
-
                 return exchange;
             }
             else
@@ -339,7 +330,7 @@ namespace CoAP.Net
                 {
                     // only act upon separate responses
                     Exchange prev = _deduplicator.Find(keyId);
-                    if (prev != null)
+                    if (prev != null && IsResponseMatch(response, prev))
                     {
                         if (Log.IsEnabled(LogLevel.Information))
                             Log.LogInformation("Duplicate response for completed exchange: " + response);
@@ -365,6 +356,12 @@ namespace CoAP.Net
             Exchange exchange;
             if (_exchangesByID.TryGetValue(keyID, out exchange))
             {
+                System.Net.EndPoint destination = exchange.Origin == Origin.Local
+                    ? exchange.CurrentRequest.Destination
+                    : exchange.CurrentResponse.Destination;
+                if (!EndPointsEqual(destination, message.Source))
+                    return null;
+
                 if (Log.IsEnabled(LogLevel.Debug))
                     Log.LogDebug("Exchange got reply: Cleaning up " + keyID);
                 _exchangesByID.Remove(keyID);
@@ -412,7 +409,9 @@ namespace CoAP.Net
             {
                 // this endpoint created the Exchange by issuing a request
                 Exchange.KeyID keyID = new Exchange.KeyID(exchange.CurrentRequest.ID, null);
-                Exchange.KeyToken keyToken = new Exchange.KeyToken(exchange.CurrentRequest.Token);
+                Exchange.KeyToken keyToken = new TokenKey(
+                    exchange.CurrentRequest.Token,
+                    exchange.CurrentRequest.Multicast ? null : exchange.CurrentRequest.Destination);
 
                 if (Log.IsEnabled(LogLevel.Debug))
                     Log.LogDebug("Exchange completed: Cleaning up " + keyToken);
@@ -451,6 +450,107 @@ namespace CoAP.Net
                 {
                     RemoveNotificatoinsOf(relation);
                 }
+            }
+        }
+
+        private Boolean TryGetResponseExchange(Response response, out Exchange exchange)
+        {
+            exchange = null;
+
+            if (response.Token == null)
+                return false;
+
+            // A unicast response must come from the endpoint addressed by the
+            // request. The endpoint is part of the token key so that equal
+            // tokens used by different peers cannot cross-match.
+            if (response.Source != null &&
+                _exchangesByToken.TryGetValue(new TokenKey(response.Token, response.Source), out exchange))
+            {
+                if (IsResponseMatch(response, exchange))
+                    return true;
+
+                exchange = null;
+                return false;
+            }
+
+            // Multicast requests intentionally accept responses from multiple
+            // source endpoints. They are stored under a null endpoint key and
+            // still require the request/response token (and ACK MID, if any).
+            if (_exchangesByToken.TryGetValue(new TokenKey(response.Token, null), out exchange) &&
+                exchange.CurrentRequest != null && exchange.CurrentRequest.Multicast &&
+                IsResponseMatch(response, exchange))
+            {
+                return true;
+            }
+
+            exchange = null;
+            return false;
+        }
+
+        private static Boolean IsResponseMatch(Response response, Exchange exchange)
+        {
+            Request request = exchange.CurrentRequest;
+            if (request == null || exchange.Origin != Origin.Local ||
+                !ByteArrayUtils.Equals(request.Token, response.Token))
+                return false;
+
+            if (!request.Multicast && !EndPointsEqual(request.Destination, response.Source))
+                return false;
+
+            // Piggybacked responses are matched by both the request MID and
+            // token. Separate CON/NON responses use the token and endpoint;
+            // their MID is a new server-side message identifier.
+            return response.Type != MessageType.ACK || response.ID == request.ID;
+        }
+
+        private static Boolean EndPointsEqual(System.Net.EndPoint first, System.Net.EndPoint second)
+        {
+            return Object.Equals(NormalizeEndPoint(first), NormalizeEndPoint(second));
+        }
+
+        private static System.Net.EndPoint NormalizeEndPoint(System.Net.EndPoint endpoint)
+        {
+            System.Net.IPEndPoint ipEndpoint = endpoint as System.Net.IPEndPoint;
+            if (ipEndpoint != null && ipEndpoint.Address.IsIPv4MappedToIPv6)
+                return new System.Net.IPEndPoint(ipEndpoint.Address.MapToIPv4(), ipEndpoint.Port);
+
+            // Native IPv6 addresses keep their ScopeId, and custom endpoints
+            // keep their own equality semantics.
+            return endpoint;
+        }
+
+        private sealed class TokenKey : Exchange.KeyToken
+        {
+            private readonly Byte[] _token;
+            private readonly System.Net.EndPoint _endpoint;
+            private readonly Int32 _hash;
+
+            public TokenKey(Byte[] token, System.Net.EndPoint endpoint)
+                : base(token)
+            {
+                if (token == null)
+                    throw new ArgumentNullException("token");
+
+                _token = token;
+                _endpoint = NormalizeEndPoint(endpoint);
+                unchecked
+                {
+                    _hash = ByteArrayUtils.ComputeHash(token) * 31 +
+                        (_endpoint == null ? 0 : _endpoint.GetHashCode());
+                }
+            }
+
+            public override Int32 GetHashCode()
+            {
+                return _hash;
+            }
+
+            public override Boolean Equals(Object obj)
+            {
+                TokenKey other = obj as TokenKey;
+                return other != null &&
+                    Object.Equals(_endpoint, other._endpoint) &&
+                    ByteArrayUtils.Equals(_token, other._token);
             }
         }
     }
