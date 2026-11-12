@@ -437,7 +437,7 @@ namespace CoAP
         /// <returns><code>true</code> if the option is critical</returns>
         public static Boolean IsCritical(OptionType type)
         {
-            return ((Int32)type & 1) > 1;
+            return ((Int32)type & 1) != 0;
         }
 
         /// <summary>
