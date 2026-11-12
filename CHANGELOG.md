@@ -24,3 +24,5 @@
 - 发布流水线先构建并测试同版本程序集，再使用 `--no-build` 打包；分支仅验证和保留产物，tag 发布 job 只下载已通过测试的包，重复版本上传直接失败。
 
 当前正式 NuGet 版本仍为 `3.0.0`；本地构建、完整测试和打包已通过，正式发布与公开消费继续独立验证。包来源使用 GitHub 返回的规范地址 `IoTSharp/CoAP.NET`，旧 origin 地址保留为可用重定向别名。
+
+`v3.0.1` 已固定到 `1abe69a0edaf55147ad6bccaa4e012aea87a8252` 并完成 NuGet.org 发布；三个包的匿名索引、NUSPEC 仓库提交和全新 NuGet-only 消费者均已回读通过。完整回执与 CI/DLL 哈希对比见 `releases/3.0.1-20261112/publication-receipt.json`。
