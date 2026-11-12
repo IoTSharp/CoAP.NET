@@ -150,7 +150,7 @@ namespace CoAP
 
         [TestCase(StatusCode.Created)]
         [TestCase(StatusCode.Changed)]
-        public void AtomicSuccessWithoutContinue_DoesNotContinueUpload(StatusCode statusCode)
+        public void AtomicSuccessWithoutContinue_CancelsUploadWithoutReportingSuccess(StatusCode statusCode)
         {
             Request request = Request.NewPost();
             request.SetPayload(new byte[48], MediaType.ApplicationOctetStream);
@@ -168,9 +168,40 @@ namespace CoAP
             layer.ReceiveResponse(next, exchange, response);
 
             Assert.That(next.SentRequests, Is.EqualTo(1));
-            Assert.That(next.ReceivedResponses, Is.EqualTo(1));
-            Assert.That(next.LastResponse, Is.SameAs(response));
+            Assert.That(next.ReceivedResponses, Is.EqualTo(0));
+            Assert.That(request.IsCancelled, Is.True);
+            Assert.That(exchange.Complete, Is.True);
+            Assert.That(request.WaitForResponse(0), Is.Null);
             Assert.That(exchange.RequestBlockStatus, Is.Null);
+        }
+
+        [TestCase(StatusCode.Continue)]
+        [TestCase(StatusCode.Changed)]
+        public void AtomicBlock1ResponseWithBlock2_CancelsBeforeSendingAnotherRequest(StatusCode statusCode)
+        {
+            Request request = Request.NewPost();
+            request.SetPayload(new byte[48], MediaType.ApplicationOctetStream);
+            Exchange exchange = new Exchange(request, Origin.Local) { Request = request };
+            RecordingLayer next = new RecordingLayer();
+            BlockwiseLayer layer = new BlockwiseLayer(new CoapConfig
+            {
+                MaxMessageSize = 16,
+                DefaultBlockSize = 16
+            });
+            layer.SendRequest(next, exchange, request);
+            Response response = Response.CreateResponse(request, statusCode);
+            response.SetPayload("0123456789abcdef", MediaType.TextPlain);
+            response.AddOption(new BlockOption(OptionType.Block1, 0, 0, true));
+            response.AddOption(new BlockOption(OptionType.Block2, 0, 0, true));
+
+            layer.ReceiveResponse(next, exchange, response);
+
+            Assert.That(next.SentRequests, Is.EqualTo(1));
+            Assert.That(next.ReceivedResponses, Is.EqualTo(0));
+            Assert.That(request.IsCancelled, Is.True);
+            Assert.That(exchange.Complete, Is.True);
+            Assert.That(exchange.RequestBlockStatus, Is.Null);
+            Assert.That(exchange.ResponseBlockStatus, Is.Null);
         }
 
         [Test]
@@ -251,6 +282,36 @@ namespace CoAP
 
             Assert.That(next.ReceivedResponses, Is.EqualTo(1));
             Assert.That(next.LastResponse, Is.SameAs(final));
+            Assert.That(exchange.RequestBlockStatus, Is.Null);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void ContinueForFinalBlock_CancelsUploadWithoutReportingSuccess(bool more)
+        {
+            Request request = Request.NewPost();
+            request.SetPayload(new byte[32], MediaType.ApplicationOctetStream);
+            Exchange exchange = new Exchange(request, Origin.Local) { Request = request };
+            RecordingLayer next = new RecordingLayer();
+            BlockwiseLayer layer = new BlockwiseLayer(new CoapConfig
+            {
+                MaxMessageSize = 16,
+                DefaultBlockSize = 16
+            });
+            layer.SendRequest(next, exchange, request);
+            Response first = Response.CreateResponse(request, StatusCode.Continue);
+            first.AddOption(new BlockOption(OptionType.Block1, 0, 0, true));
+            layer.ReceiveResponse(next, exchange, first);
+            Response invalidFinal = Response.CreateResponse(request, StatusCode.Continue);
+            invalidFinal.AddOption(new BlockOption(OptionType.Block1, 1, 0, more));
+
+            layer.ReceiveResponse(next, exchange, invalidFinal);
+
+            Assert.That(next.SentRequests, Is.EqualTo(2));
+            Assert.That(next.ReceivedResponses, Is.EqualTo(0));
+            Assert.That(request.IsCancelled, Is.True);
+            Assert.That(exchange.Complete, Is.True);
+            Assert.That(request.WaitForResponse(0), Is.Null);
             Assert.That(exchange.RequestBlockStatus, Is.Null);
         }
 

@@ -313,11 +313,29 @@ namespace CoAP.Stack
                     return;
                 }
 
+                // A collecting server must not include Block2, and its
+                // non-final successes must be Continue. Conversely, Continue
+                // cannot be the final outcome after the last request block.
+                // Never report any of these protocol errors as upload success.
+                if (block1.M && response.HasOption(OptionType.Block2) ||
+                    status != null && Code.IsSuccess(response.Code) &&
+                    (block1.M && response.StatusCode != StatusCode.Continue ||
+                        status.Complete && response.StatusCode == StatusCode.Continue))
+                {
+                    if (Log.IsEnabled(LogLevel.Warning))
+                        Log.LogWarning("Cancelling upload after an invalid Block1 response: "
+                            + response.CodeString + " " + block1);
+                    exchange.RequestBlockStatus = null;
+                    ClearBlockCleanup(exchange);
+                    exchange.Complete = true;
+                    exchange.Request.Cancel();
+                    return;
+                }
+
                 // RFC 7959 sections 2.3 and 2.5: atomic uploads use 2.31
                 // Continue; a server acting on individual blocks may instead
                 // return another success code with its Block1 M bit cleared.
-                if (status == null || status.Complete || !Code.IsSuccess(response.Code)
-                    || (response.StatusCode != StatusCode.Continue && block1.M))
+                if (status == null || status.Complete || !Code.IsSuccess(response.Code))
                 {
                     exchange.RequestBlockStatus = null;
                     ClearBlockCleanup(exchange);
