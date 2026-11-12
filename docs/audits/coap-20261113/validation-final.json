@@ -1,0 +1,134 @@
+{
+  "date": "2026-11-13",
+  "timezone": "Asia/Shanghai",
+  "baseline": "1abe69a0edaf55147ad6bccaa4e012aea87a8252",
+  "mergeParents": [
+    "58d29ea",
+    "258f9e987dd31955bb4a21305ea599d097996a9f"
+  ],
+  "gates": {
+    "tests": {
+      "status": "PASS",
+      "passed": 219,
+      "failed": 0,
+      "skipped": 0,
+      "trx": "TestResults/Integration/integration-final-20261113.trx",
+      "command": "dotnet test CoAP.Test/CoAP.Test.csproj -c Release --no-restore -m:1 -nodeReuse:false -p:UseSharedCompilation=false --logger trx;LogFileName=integration-final-20261113.trx --results-directory TestResults/Integration"
+    },
+    "format": {
+      "status": "PASS",
+      "exit": 0,
+      "command": "dotnet format CoAP.Test/CoAP.Test.csproj --verify-no-changes --no-restore --severity warn --include CoAP.NET/CoapClient.cs CoAP.NET/Codec/DatagramReader.cs CoAP.NET/Codec/MessageDecoder.cs CoAP.NET/Net/CoAPEndPoint.cs CoAP.NET/Net/Matcher.cs CoAP.NET/Server/CoapServer.cs CoAP.NET/Spec.cs CoAP.NET/Stack/BlockwiseLayer.cs CoAP.Test/BlockwiseProtocolRegressionTest.cs CoAP.Test/CoapClientTest.cs CoAP.Test/CoapClientProtocolFailureTest.cs CoAP.Test/DecoderFailureStateTest.cs CoAP.Test/MalformedDatagramTest.cs CoAP.Test/MatcherProtocolTest.cs CoAP.NET/Option.cs CoAP.Test/CriticalOptionClassificationTest.cs"
+    },
+    "peerInterop": {
+      "status": "NOT_RUN",
+      "issue": 26
+    },
+    "nativeAotRun": {
+      "status": "NOT_RUN"
+    },
+    "packagePublication": {
+      "status": "NOT_RUN"
+    },
+    "deviceFieldSoak": {
+      "status": "NOT_RUN"
+    }
+  },
+  "baselineFailures": [
+    {
+      "slice": "critical classification",
+      "failed": 6,
+      "passed": 6,
+      "status": "FAIL_EXPECTED"
+    }
+  ],
+  "historicalGateFailure": {
+    "commit": "58d29ea",
+    "gate": "git diff --cached --check",
+    "exit": 2,
+    "cause": "new blank line at EOF in new CoapClientProtocolFailureTest.cs",
+    "action": "kept local history, removed owned extra newline and reran final gates; no remote push preceded correction"
+  },
+  "sourceFiles": [
+    {
+      "path": "CoAP.NET/CoapClient.cs",
+      "sha256": "d091feca4adc7d6d0069f9ecd74c4dfd14dcc331160fb7c710b9b4aa8dab2b3d",
+      "bytes": 19360
+    },
+    {
+      "path": "CoAP.NET/Codec/DatagramReader.cs",
+      "sha256": "a37a21745272b4c8d96b7bae9e649a5b104136de6c84c4d4442021420529bcb1",
+      "bytes": 4740
+    },
+    {
+      "path": "CoAP.NET/Codec/MessageDecoder.cs",
+      "sha256": "1db0581c529f2ee593a307a5a2372a71ff389a93eccd2bb7d8e68a9957d94c50",
+      "bytes": 5408
+    },
+    {
+      "path": "CoAP.NET/Net/CoAPEndPoint.cs",
+      "sha256": "679a30aadbda8d9d70967b124f8ecf1e26d4808b13fb493087b6ef4ab7ce73c7",
+      "bytes": 16148
+    },
+    {
+      "path": "CoAP.NET/Net/Matcher.cs",
+      "sha256": "b872903b610c26c03278731a5ad0bb628b0e53ffd7e16524083ca98eb2ddb07c",
+      "bytes": 21920
+    },
+    {
+      "path": "CoAP.NET/Server/CoapServer.cs",
+      "sha256": "592c3e10cd6a627bc59903b45e0a4360bea66b63d0faaf0d5d741f09887f35c8",
+      "bytes": 6447
+    },
+    {
+      "path": "CoAP.NET/Spec.cs",
+      "sha256": "855e5eae1e20ab91e06414eda180cc4c590e332d8f63e53c90b7ea530925c88c",
+      "bytes": 67095
+    },
+    {
+      "path": "CoAP.NET/Stack/BlockwiseLayer.cs",
+      "sha256": "e76a07188404f53cbcff550a87db5e28ed2defe014d51021e1e2bd35c07d0fcf",
+      "bytes": 30571
+    },
+    {
+      "path": "CoAP.Test/BlockwiseProtocolRegressionTest.cs",
+      "sha256": "e77b8780a613fd452d76464fe3db3a0e3213d5468dffdeae8ab253b54e6a1f0d",
+      "bytes": 19433
+    },
+    {
+      "path": "CoAP.Test/CoapClientTest.cs",
+      "sha256": "475466f7b291ae78033752e8e77a36ede3a744caee1ed73d1beb9ba5f39aa53a",
+      "bytes": 8637
+    },
+    {
+      "path": "CoAP.Test/CoapClientProtocolFailureTest.cs",
+      "sha256": "2bef36fb1a3f814dc4aaa0766d957234ea26fbc913d4f2888ddb0a29d71e45d8",
+      "bytes": 6377
+    },
+    {
+      "path": "CoAP.Test/DecoderFailureStateTest.cs",
+      "sha256": "d4924c1846a119e3c7cc75714e876bfdad450eee90420f4ec8ad354f9b667d9d",
+      "bytes": 1538
+    },
+    {
+      "path": "CoAP.Test/MalformedDatagramTest.cs",
+      "sha256": "4f54dd1c3ee8472437659262a3026ad358030ff392a3606f45ea1d102e9a6ef8",
+      "bytes": 10333
+    },
+    {
+      "path": "CoAP.Test/MatcherProtocolTest.cs",
+      "sha256": "40d0173ab9184727ee80b383236fd6bd2fa6855d667486dda2eaccc2d02706e3",
+      "bytes": 10512
+    },
+    {
+      "path": "CoAP.NET/Option.cs",
+      "sha256": "230321c7ea2d867f0f3292df68bd2994d1c0eb28c2d12e624f02609443e232fb",
+      "bytes": 20259
+    },
+    {
+      "path": "CoAP.Test/CriticalOptionClassificationTest.cs",
+      "sha256": "8bee4e3aa709c7d4b95a107a1eb1b985af672c05c6b63190dd3ad17b4318a1c6",
+      "bytes": 922
+    }
+  ]
+}
