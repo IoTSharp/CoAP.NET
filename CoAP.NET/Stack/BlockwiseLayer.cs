@@ -118,7 +118,7 @@ namespace CoAP.Stack
                         Response error = Response.CreateResponse(request, StatusCode.RequestEntityIncomplete);
                         error.AddOption(new BlockOption(OptionType.Block1, block1.NUM, block1.SZX, block1.M));
                         error.SetPayload("Changed Content-Format");
-                        
+
                         exchange.CurrentResponse = error;
                         base.SendResponse(nextLayer, exchange, error);
                         return;
@@ -226,7 +226,7 @@ namespace CoAP.Stack
                 BlockwiseStatus status = FindResponseBlockStatus(exchange, response);
 
                 Response block = GetNextResponseBlock(response, status);
-                
+
                 if (block1 != null) // in case we still have to ack the last block1
                     block.SetOption(block1);
                 if (block.Token == null)
@@ -289,38 +289,64 @@ namespace CoAP.Stack
             BlockOption block1 = response.Block1;
             if (block1 != null)
             {
-                // TODO: What if request has not been sent blockwise (server error)
                 if (Log.IsEnabled(LogLevel.Debug))
                     Log.LogDebug("Response acknowledges block " + block1);
 
                 BlockwiseStatus status = exchange.RequestBlockStatus;
-                if (!status.Complete)
+                if (status != null && block1.SZX == 7)
                 {
-                    // TODO: the response code should be CONTINUE. Otherwise deliver
+                    // SZX 7 is reserved for the UDP blockwise protocol. Ignore
+                    // this invalid acknowledgement without advancing upload.
+                    if (Log.IsEnabled(LogLevel.Warning))
+                        Log.LogWarning("Ignoring Block1 response with reserved SZX 7.");
+                    return;
+                }
+
+                // Match the acknowledgement even when the final request block
+                // has been sent: an earlier Continue must not finish that upload.
+                if (status != null && Code.IsSuccess(response.Code)
+                    && block1.NUM != status.CurrentNUM)
+                {
+                    if (Log.IsEnabled(LogLevel.Warning))
+                        Log.LogWarning("Ignoring Block1 response for block " + block1.NUM
+                            + "; expected " + status.CurrentNUM + ".");
+                    return;
+                }
+
+                // RFC 7959 sections 2.3 and 2.5: atomic uploads use 2.31
+                // Continue; a server acting on individual blocks may instead
+                // return another success code with its Block1 M bit cleared.
+                if (status == null || status.Complete || !Code.IsSuccess(response.Code)
+                    || (response.StatusCode != StatusCode.Continue && block1.M))
+                {
+                    exchange.RequestBlockStatus = null;
+                    ClearBlockCleanup(exchange);
+                    if (!response.HasOption(OptionType.Block2))
+                    {
+                        exchange.Response = response;
+                        base.ReceiveResponse(nextLayer, exchange, response);
+                        return;
+                    }
+                    // A final response can combine a Block1 acknowledgement
+                    // with a Block2 response body. Continue reassembly below.
+                }
+                else
+                {
                     // Send next block
                     Int32 currentSize = 1 << (4 + status.CurrentSZX);
-                    Int32 nextNum = status.CurrentNUM + currentSize / block1.Size;
+                    Int32 nextSZX = Math.Min(status.CurrentSZX, block1.SZX);
+                    Int32 nextSize = 1 << (4 + nextSZX);
+                    Int32 nextNum = (status.CurrentNUM + 1) * currentSize / nextSize;
                     if (Log.IsEnabled(LogLevel.Debug))
                         Log.LogDebug("Send next block num = " + nextNum);
                     status.CurrentNUM = nextNum;
-                    status.CurrentSZX = block1.SZX;
+                    status.CurrentSZX = nextSZX;
                     Request nextBlock = GetNextRequestBlock(exchange.Request, status);
                     if (nextBlock.Token == null)
                         nextBlock.Token = response.Token; // reuse same token
                     exchange.CurrentRequest = nextBlock;
                     base.SendRequest(nextLayer, exchange, nextBlock);
                     // do not deliver response
-                }
-                else if (!response.HasOption(OptionType.Block2))
-                {
-                    // All request block have been acknowledged and we receive a piggy-backed
-                    // response that needs no blockwise transfer. Thus, deliver it.
-                    base.ReceiveResponse(nextLayer, exchange, response);
-                }
-                else
-                {
-                    if (Log.IsEnabled(LogLevel.Debug))
-                        Log.LogDebug("Response has Block2 option and is therefore sent blockwise");
                 }
             }
 
