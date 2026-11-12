@@ -8,6 +8,8 @@
 
 本轮不是“全 GitHub 已穷尽”的声明。GitHub fork API 返回 75 个可见条目；GraphQL 能读取其中 73 个仓库的 301 个分支引用，去重后 47 个 head；两个历史仓库无法解析，保留 UNKNOWN。18 个 head 已是基线祖先。对 23 个有价值的非祖先候选做了比较；旧草案、站点和两条 2021 年 Dependabot 分支不作为现代功能候选。大型 compare 的文件列表最多返回 300 项，提交摘要最多读取 30 项，不能把这些视作大分支逐文件审计完成。
 
+补充检索以 `topic:coap archived:false`、star 降序读取最多 100 个候选，覆盖 21 种明确标注的语言（另有未标注项）。[候选元数据](audits/coap-20261113/topic-survey.json)包含协议栈、codec、LwM2M、平台、测试工具和应用；它们不是 100 套独立协议实现，topic 检索也会漏掉没有标注 topic 的 libcoap 等项目。采纳判断以规范、源码和测试合同为依据，不以 star 数排名。
+
 上游全部 82 个 issue API 条目中有 65 个普通 issue、17 个 PR，已逐条按原始标题/正文摘要分流。完整来源及判断见 [issue 清单](audits/coap-20261113/issue-decisions.json)、[PR 清单](audits/coap-20261113/upstream-prs.json)、[fork 引用](audits/coap-20261113/fork-branches-final.json)与 [fork 候选比较](audits/coap-20261113/fork-review.json)。
 
 ## 最新正式标准与常见能力
@@ -61,6 +63,22 @@
 | coap-rs / CoAPthon3 | Rust / Python | 精简 codec、异步状态与已有缺口表达 | 辅助代表，不以仓库数量或 star 决定采纳 |
 
 源码采纳必须保留许可与署名。CoAP.NET 的 LICENSE 是带三条条件的 BSD 风格文本；GitHub 显示 NOASSERTION 仅说明检测未识别。不能据此说没有许可，也不能从一个 SDK 的许可推断整个项目许可。
+
+### 受限设备、codec 与测试生态补充
+
+| 实现 | 可核对机制 | 采纳与边界 |
+| --- | --- | --- |
+| [Zephyr CoAP](https://github.com/zephyrproject-rtos/zephyr/blob/main/include/zephyr/net/coap.h) | packet/pending/observer API、相关 RFC option 定义、[OSCORE context 池](https://github.com/zephyrproject-rtos/zephyr/blob/main/subsys/net/lib/coap/coap_oscore.c)、`tests/net/lib/coap` | 学习显式内存上限与上下文数量。Apache-2.0。option/API 存在不能证明所有 transport/安全 profile 均已运行验收；EDHOC 本轮 UNKNOWN。 |
+| [Contiki-NG](https://github.com/contiki-ng/contiki-ng/tree/develop/os/net/app-layer/coap) | 固定事务/observer 池、CON 初始随机超时与指数退避、超限释放事务并回调失败 | 学习受限资源与失败回收。相关 CoAP 源码是 BSD 三条款；配置默认值可覆盖。测试/DTLS 运行 NOT_RUN。 |
+| [RIOT gcoap/nanocoap](https://github.com/RIOT-OS/RIOT/tree/master/sys/net/application_layer) | nanocoap 是 codec 工具箱；gcoap 才包含线程、UDP 事件、Observe/Blockwise helper；[bounds 测试](https://github.com/RIOT-OS/RIOT/blob/master/tests/unittests/tests-nanocoap/tests-nanocoap.c) | 学习 PDU/option/URI/待响应数量预算与空闲 DTLS 会话淘汰。相关源码 LGPL-2.1-only，不能直接复制并继续只标现有 BSD 许可。 |
+| [NZSmartie/CoAP.Net](https://github.com/NZSmartie/CoAP.Net) | 显式 [OptionFactory](https://github.com/NZSmartie/CoAP.Net/blob/master/src/CoAPNet/Options/OptionFactory.cs) 区分 unknown critical 与 opaque elective，允许自定义注册 | Apache-2.0。README 与 DTLS/Observe 项目状态不同步；不能据此宣布完整支持。反射/Activator 注册不能照搬到本库 AOT 路径，可用显式 factory。 |
+| [coap-lite](https://github.com/martindisch/coap-lite) | Rust `Unknown(u16)`/原始重复 option 保真、checked-add、明确错误类型与输出尺寸限制 | 是 codec，不是完整协议栈；MIT OR Apache-2.0，manifest 标注 passively-maintained。本轮静态看到尾部 marker 被接受为空 payload，因此也不能作为无需验证的正确性 oracle；运行 NOT_RUN。 |
+| [coap-rs](https://github.com/Covertness/coap-rs) | 基于 coap-lite/Tokio 的 client/server，Observe 注册失败清映射、每通知独立续块模板、取消保留 query、有界重试 | MIT。README/Cargo/源码能对应 DTLS feature 与可选 EDHOC，但本轮并未运行。学习状态隔离与恢复测试，不照搬 Rust unsafe 到本库。 |
+| [Leshan](https://github.com/eclipse-leshan/leshan) | [LockStep 报文/ACK 故障脚本](https://github.com/eclipse-leshan/leshan/blob/master/leshan-integration-tests/src/test/java/org/eclipse/leshan/integration/tests/lockstep/LockStepTest.java)、不同 transport provider 的 PSK 参数化测试 | EPL-2.0 OR BSD-3-Clause 双许可。LwM2M 是 CoAP 上层，不把 Bootstrap/设备对象模型强加为本库合规门禁。 |
+| [Anjay/avs_coap](https://github.com/AVSystem/Anjay) | [可重放的 API 调用序列 fuzz 输入](https://github.com/AVSystem/Anjay/blob/master/deps/avs_coap/doc/sphinx/source/Fuzzing.rst)、重传/离线/分块场景 | 当前 root 与 avs_coap LICENSE 都是 Non-Commercial License，README 说明 v3.10.0 起商用须商业许可。当前版本不作为可直接吸收的 BSD 开源代码；只独立实现测试思想，历史版本许可未核定。 |
+| [xk6-coap](https://github.com/golioth/xk6-coap) | 有界 VU/时长、PSK/ECDSA、timeout、Observe 到期取消；源码使用 dtls.Dial | Apache-2.0。复用 go-coap/pion，是负载工具，不是新的独立 peer。分别计量新握手与复用会话，并补 RTT/错误/通知量指标。 |
+
+这些补充为只读文档/源码证据。固定资源默认值、维护时间和 feature 状态都绑定读取的分支快照，不能替代本库实测；也不把“有 OSCORE 源码”扩大为完整 EDHOC 或生产安全证明。
 
 ## 逐项实现队列
 

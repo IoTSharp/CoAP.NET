@@ -6,8 +6,10 @@
 
 - 按 RFC 7252 严格拒绝截断头、Token、option、无 payload 的 marker 和非法 Empty/type/code 组合；修复版本自比较，格式失败后的 decoder 保持失败状态。可辨识的畸形 CON 使用匹配 MID 的 RST，ACK/RST、未知版本和短头不反射回复。
 - 单播响应同时匹配完整 Token 和远端地址/端口，piggybacked ACK 另外校验 MID；空 ACK/RST 也绑定远端。保留组播的显式例外，不宣称完整组播实现。
+- 端点键与比较统一规范化 IPv4-mapped IPv6，保留端口、原生 IPv6 ScopeId 与自定义 EndPoint 语义；避免有效响应/空 ACK/RST 因地址表示不同被丢弃。
 - 修复 Option.IsCritical() 永远返回 false 的位掩码比较，奇数 option 为 critical、偶数为 elective；已知 option 长度和未知 critical 的 endpoint 策略仍由 #28 单独验收。
 - 修复 Block1 无状态空引用、错误后继续上传、重复/乱序确认及中途降低块大小的偏移计算。保留 RFC 7959 的合法逐块 2.xx/M=0 模式；矛盾的原子响应、非法 Block2 组合和最后块 Continue 取消传输，不报告部分上传成功。
+- 中间逐块响应附带 Block2 时只推进上传，不并发启动另一次取回或报告最终成功；已匹配的非法 NUM/SZX 明确取消并通知调用方，真正旧 MID/duplicate 保留忽略。无状态的非最终 Block1 成功被拒绝，手工 Block1 与合法 4.13 大小提示保持可用。
 - CoapClient.SendAsync 将取消通知给失败回调与 Error 事件，追加 FailReason.Cancelled=2，保留 Rejected=0、TimedOut=1；同一请求的重复取消只通知一次。
 - 吸纳上游 PR64 的停止日志修正和 PR80 的测试计数隔离思路，保留现有 ILogger 与测试框架。
 

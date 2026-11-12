@@ -359,7 +359,7 @@ namespace CoAP.Net
                 System.Net.EndPoint destination = exchange.Origin == Origin.Local
                     ? exchange.CurrentRequest.Destination
                     : exchange.CurrentResponse.Destination;
-                if (!Object.Equals(destination, message.Source))
+                if (!EndPointsEqual(destination, message.Source))
                     return null;
 
                 if (Log.IsEnabled(LogLevel.Debug))
@@ -494,13 +494,29 @@ namespace CoAP.Net
                 !ByteArrayUtils.Equals(request.Token, response.Token))
                 return false;
 
-            if (!request.Multicast && !Object.Equals(request.Destination, response.Source))
+            if (!request.Multicast && !EndPointsEqual(request.Destination, response.Source))
                 return false;
 
             // Piggybacked responses are matched by both the request MID and
             // token. Separate CON/NON responses use the token and endpoint;
             // their MID is a new server-side message identifier.
             return response.Type != MessageType.ACK || response.ID == request.ID;
+        }
+
+        private static Boolean EndPointsEqual(System.Net.EndPoint first, System.Net.EndPoint second)
+        {
+            return Object.Equals(NormalizeEndPoint(first), NormalizeEndPoint(second));
+        }
+
+        private static System.Net.EndPoint NormalizeEndPoint(System.Net.EndPoint endpoint)
+        {
+            System.Net.IPEndPoint ipEndpoint = endpoint as System.Net.IPEndPoint;
+            if (ipEndpoint != null && ipEndpoint.Address.IsIPv4MappedToIPv6)
+                return new System.Net.IPEndPoint(ipEndpoint.Address.MapToIPv4(), ipEndpoint.Port);
+
+            // Native IPv6 addresses keep their ScopeId, and custom endpoints
+            // keep their own equality semantics.
+            return endpoint;
         }
 
         private sealed class TokenKey : Exchange.KeyToken
@@ -516,11 +532,11 @@ namespace CoAP.Net
                     throw new ArgumentNullException("token");
 
                 _token = token;
-                _endpoint = endpoint;
+                _endpoint = NormalizeEndPoint(endpoint);
                 unchecked
                 {
                     _hash = ByteArrayUtils.ComputeHash(token) * 31 +
-                        (endpoint == null ? 0 : endpoint.GetHashCode());
+                        (_endpoint == null ? 0 : _endpoint.GetHashCode());
                 }
             }
 

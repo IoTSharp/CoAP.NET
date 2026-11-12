@@ -111,6 +111,181 @@ namespace CoAP
             }
         }
 
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void PerBlockResponseWithBlock2_ContinuesUploadBeforeFinalDelivery(Boolean moreResponseBlocks)
+        {
+            RecordingChannel channel = new RecordingChannel();
+            CoapConfig config = CreateConfig();
+            using (CoAPEndPoint endpoint = new CoAPEndPoint(channel, config) { Executor = Executors.NoThreading })
+            {
+                endpoint.Start();
+                CoapClient client = new CoapClient(new Uri("coap://127.0.0.1:5683/upload"), config) { EndPoint = endpoint };
+                Request request = Request.NewPost();
+                request.SetPayload(Enumerable.Range(0, 48).Select(value => (Byte)value).ToArray(), MediaType.ApplicationOctetStream);
+                List<Response> responses = new List<Response>();
+                client.SendAsync(request, response => responses.Add(response), reason => Assert.Fail(reason.ToString()));
+
+                Request first = (Request)Spec.Decode(channel.Sent[0]);
+                Response partial = CreateAck(first, StatusCode.Changed);
+                partial.SetBlock1(0, false, 0);
+                partial.SetBlock2(0, moreResponseBlocks, 0);
+                partial.SetPayload(new Byte[moreResponseBlocks ? 16 : 1], MediaType.ApplicationOctetStream);
+                channel.Emit(Spec.Encode(partial), Peer);
+
+                Assert.That(responses, Is.Empty, "A per-block response is not completion of the entire upload.");
+                Assert.That(channel.Sent.Count, Is.EqualTo(2), "Only one next request may be outstanding.");
+                Request second = (Request)Spec.Decode(channel.Sent[1]);
+                Assert.That(second.Block1.NUM, Is.EqualTo(1));
+                Assert.That(second.Block2, Is.Null, "The upload must not fork into a response-body download.");
+                Response continued = CreateAck(second, StatusCode.Continue);
+                continued.SetBlock1(0, true, 1);
+                channel.Emit(Spec.Encode(continued), Peer);
+                Assert.That(channel.Sent.Count, Is.EqualTo(3));
+                Request last = (Request)Spec.Decode(channel.Sent[2]);
+                Assert.That(last.Block1.NUM, Is.EqualTo(2));
+                Assert.That(last.Block1.M, Is.False);
+                Response finished = CreateAck(last, StatusCode.Changed);
+                finished.SetBlock1(0, false, 2);
+                finished.SetPayload("done", MediaType.TextPlain);
+                channel.Emit(Spec.Encode(finished), Peer);
+
+                Assert.That(responses.Count, Is.EqualTo(1));
+                Assert.That(responses[0].PayloadString, Is.EqualTo("done"));
+                Assert.That(request.IsCancelled, Is.False);
+            }
+        }
+
+        [TestCase(7, 0, false)]
+        [TestCase(0, 1, false)]
+        [TestCase(0, 0, true)]
+        public void InvalidCurrentBlock1Acknowledgement_NotifiesFailure(Int32 szx, Int32 number, Boolean advanceFirst)
+        {
+            RecordingChannel channel = new RecordingChannel();
+            CoapConfig config = CreateConfig();
+            using (CoAPEndPoint endpoint = new CoAPEndPoint(channel, config) { Executor = Executors.NoThreading })
+            {
+                endpoint.Start();
+                CoapClient client = new CoapClient(new Uri("coap://127.0.0.1:5683/upload"), config) { EndPoint = endpoint };
+                Request request = Request.NewPost();
+                request.SetPayload(new Byte[48], MediaType.ApplicationOctetStream);
+                List<Response> responses = new List<Response>();
+                List<CoapClient.FailReason> failures = new List<CoapClient.FailReason>();
+                client.SendAsync(request, response => responses.Add(response), reason => failures.Add(reason));
+                Request current = (Request)Spec.Decode(channel.Sent[0]);
+                if (advanceFirst)
+                {
+                    Response firstAck = CreateAck(current, StatusCode.Continue);
+                    firstAck.SetBlock1(0, true, 0);
+                    channel.Emit(Spec.Encode(firstAck), Peer);
+                    current = (Request)Spec.Decode(channel.Sent[1]);
+                }
+                Int32 sentBeforeInvalid = channel.Sent.Count;
+                Response invalid = CreateAck(current, StatusCode.Continue);
+                invalid.SetBlock1(szx, true, number);
+                channel.Emit(Spec.Encode(invalid), Peer);
+
+                Assert.That(request.IsCancelled, Is.True);
+                Assert.That(request.WaitForResponse(0), Is.Null);
+                Assert.That(failures, Is.EqualTo(new[] { CoapClient.FailReason.Cancelled }));
+                Assert.That(responses, Is.Empty);
+                Assert.That(channel.Sent.Count, Is.EqualTo(sentBeforeInvalid));
+            }
+        }
+
+        [Test]
+        public void DuplicateOldAcknowledgement_DoesNotCancelCurrentUpload()
+        {
+            RecordingChannel channel = new RecordingChannel();
+            CoapConfig config = CreateConfig();
+            using (CoAPEndPoint endpoint = new CoAPEndPoint(channel, config) { Executor = Executors.NoThreading })
+            {
+                endpoint.Start();
+                CoapClient client = new CoapClient(new Uri("coap://127.0.0.1:5683/upload"), config) { EndPoint = endpoint };
+                Request request = Request.NewPost();
+                request.SetPayload(new Byte[48], MediaType.ApplicationOctetStream);
+                List<CoapClient.FailReason> failures = new List<CoapClient.FailReason>();
+                client.SendAsync(request, fail: reason => failures.Add(reason));
+                Request first = (Request)Spec.Decode(channel.Sent[0]);
+                Response firstAck = CreateAck(first, StatusCode.Continue);
+                firstAck.SetBlock1(0, true, 0);
+                channel.Emit(Spec.Encode(firstAck), Peer);
+                Assert.That(channel.Sent.Count, Is.EqualTo(2));
+                channel.Emit(Spec.Encode(firstAck), Peer);
+                Assert.That(channel.Sent.Count, Is.EqualTo(2));
+                Assert.That(request.IsCancelled, Is.False);
+                Assert.That(failures, Is.Empty);
+
+                Request second = (Request)Spec.Decode(channel.Sent[1]);
+                Response secondAck = CreateAck(second, StatusCode.Continue);
+                secondAck.SetBlock1(0, true, 1);
+                channel.Emit(Spec.Encode(secondAck), Peer);
+                Assert.That(channel.Sent.Count, Is.EqualTo(3));
+                request.Cancel();
+            }
+        }
+
+        [Test]
+        public void UnsolicitedBlock1ContinueToGet_IsProtocolFailure()
+        {
+            RecordingChannel channel = new RecordingChannel();
+            CoapConfig config = CreateConfig();
+            using (CoAPEndPoint endpoint = new CoAPEndPoint(channel, config) { Executor = Executors.NoThreading })
+            {
+                endpoint.Start();
+                CoapClient client = new CoapClient(new Uri("coap://127.0.0.1:5683/value"), config) { EndPoint = endpoint };
+                Request request = Request.NewGet();
+                List<Response> responses = new List<Response>();
+                List<CoapClient.FailReason> failures = new List<CoapClient.FailReason>();
+                client.SendAsync(request, response => responses.Add(response), reason => failures.Add(reason));
+                Request sent = (Request)Spec.Decode(channel.Sent[0]);
+                Response invalid = CreateAck(sent, StatusCode.Continue);
+                invalid.SetBlock1(0, true, 0);
+                channel.Emit(Spec.Encode(invalid), Peer);
+
+                Assert.That(request.IsCancelled, Is.True);
+                Assert.That(responses, Is.Empty);
+                Assert.That(failures, Is.EqualTo(new[] { CoapClient.FailReason.Cancelled }));
+            }
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void ManualBlock1AndEntityTooLargeHint_AreDelivered(Boolean manualBlock1)
+        {
+            RecordingChannel channel = new RecordingChannel();
+            CoapConfig config = CreateConfig();
+            using (CoAPEndPoint endpoint = new CoAPEndPoint(channel, config) { Executor = Executors.NoThreading })
+            {
+                endpoint.Start();
+                CoapClient client = new CoapClient(new Uri("coap://127.0.0.1:5683/upload"), config) { EndPoint = endpoint };
+                Request request = Request.NewPost();
+                request.SetPayload(new Byte[manualBlock1 ? 16 : 8], MediaType.ApplicationOctetStream);
+                if (manualBlock1)
+                    request.SetBlock1(0, true, 0);
+                List<Response> responses = new List<Response>();
+                client.SendAsync(request, response => responses.Add(response), reason => Assert.Fail(reason.ToString()));
+                Request sent = (Request)Spec.Decode(channel.Sent[0]);
+                Response reply = CreateAck(sent, manualBlock1 ? StatusCode.Continue : StatusCode.RequestEntityTooLarge);
+                reply.SetBlock1(0, manualBlock1, 0);
+                channel.Emit(Spec.Encode(reply), Peer);
+
+                Assert.That(request.IsCancelled, Is.False);
+                Assert.That(responses.Count, Is.EqualTo(1));
+                Assert.That(responses[0].StatusCode, Is.EqualTo(reply.StatusCode));
+                Assert.That(channel.Sent.Count, Is.EqualTo(1));
+            }
+        }
+
+        private static Response CreateAck(Request request, StatusCode code)
+        {
+            Response response = Response.CreateResponse(request, code);
+            response.Type = MessageType.ACK;
+            response.ID = request.ID;
+            return response;
+        }
+
         private static CoapConfig CreateConfig()
         {
             return new CoapConfig { MaxMessageSize = 16, DefaultBlockSize = 16 };

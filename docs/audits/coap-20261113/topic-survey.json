@@ -1,0 +1,707 @@
+{
+  "date": "2026-11-13",
+  "query": "gh search repos --topic coap --archived=false --sort stars --order desc --limit 100",
+  "boundary": "Candidate metadata, not 100 independent protocol stacks or complete GitHub coverage. Public source visibility does not establish an open-source license.",
+  "repositories": [
+    {
+      "description": "The most scalable and reliable MQTT broker for AI, IoT, IIoT and connected vehicles",
+      "fullName": "emqx/emqx",
+      "language": "Erlang",
+      "stargazersCount": 16907,
+      "url": "https://github.com/emqx/emqx"
+    },
+    {
+      "description": ":honeybee: IoT Technical Guide --- 从零搭建高性能物联网平台及物联网解决方案和Thingsboard源码分析 :sparkles: :sparkles: :sparkles: (IoT Platform, SaaS, MQTT, CoAP, HTTP, Modbus, OPC, WebSocket, 物模型，Protobuf, PostgreSQL, MongoDB, Spring Security, OAuth2, RuleEngine, Kafka, Docker)",
+      "fullName": "IoT-Technology/IoT-Technical-Guide",
+      "language": "Java",
+      "stargazersCount": 4564,
+      "url": "https://github.com/IoT-Technology/IoT-Technical-Guide"
+    },
+    {
+      "description": "IoT Platform Framework",
+      "fullName": "absmach/magistrala",
+      "language": "Go",
+      "stargazersCount": 2662,
+      "url": "https://github.com/absmach/magistrala"
+    },
+    {
+      "description": "教你设计物联网系统。构建自己的Internet of Things 。",
+      "fullName": "phodal/designiot",
+      "language": "HTML",
+      "stargazersCount": 2227,
+      "url": "https://github.com/phodal/designiot"
+    },
+    {
+      "description": "xTools: Qt-SerialPort-HID-BLE-UDP-TCP-WebSocket-Modbus-CANBus-MQTT-CoAP-TFTP-mDNS debugging tool, which support custom lua, javascript, chart view and data  transmitting...",
+      "fullName": "x-tools-author/x-tools",
+      "language": "C++",
+      "stargazersCount": 1099,
+      "url": "https://github.com/x-tools-author/x-tools"
+    },
+    {
+      "description": "CoAP/DTLS Java Implementation ",
+      "fullName": "eclipse-californium/californium",
+      "language": "Java",
+      "stargazersCount": 781,
+      "url": "https://github.com/eclipse-californium/californium"
+    },
+    {
+      "description": "Java Library for LWM2M",
+      "fullName": "eclipse-leshan/leshan",
+      "language": "Java",
+      "stargazersCount": 695,
+      "url": "https://github.com/eclipse-leshan/leshan"
+    },
+    {
+      "description": "开源物联网平台 - 物联网解决方案的设备管理，数据收集，处理",
+      "fullName": "IoT-Technology/Groza",
+      "language": "Java",
+      "stargazersCount": 598,
+      "url": "https://github.com/IoT-Technology/Groza"
+    },
+    {
+      "description": "JetLinks Core",
+      "fullName": "jetlinks/jetlinks",
+      "language": "",
+      "stargazersCount": 525,
+      "url": "https://github.com/jetlinks/jetlinks"
+    },
+    {
+      "description": "Implementation of CoAP Server & Client in Go",
+      "fullName": "plgd-dev/go-coap",
+      "language": "Go",
+      "stargazersCount": 523,
+      "url": "https://github.com/plgd-dev/go-coap"
+    },
+    {
+      "description": "The Python CoAP library",
+      "fullName": "chrysn/aiocoap",
+      "language": "Python",
+      "stargazersCount": 293,
+      "url": "https://github.com/chrysn/aiocoap"
+    },
+    {
+      "description": "Toolkit is a IoT protocol client CLI for IoT developer and learners. CoAP、MQTT And NB-IoT protocol are currently supported. It supports colors, autocompletion, internationalization(chinese, english and german…) and multi-platforms",
+      "fullName": "IoT-Technology/IoT-Toolkit",
+      "language": "Java",
+      "stargazersCount": 260,
+      "url": "https://github.com/IoT-Technology/IoT-Toolkit"
+    },
+    {
+      "description": "A Constrained Application Protocol(CoAP) library implemented in Rust.",
+      "fullName": "Covertness/coap-rs",
+      "language": "Rust",
+      "stargazersCount": 239,
+      "url": "https://github.com/Covertness/coap-rs"
+    },
+    {
+      "description": "High-performance scalable message broker for modern event-driven applications",
+      "fullName": "absmach/fluxmq",
+      "language": "Go",
+      "stargazersCount": 235,
+      "url": "https://github.com/absmach/fluxmq"
+    },
+    {
+      "description": "PENIOT: Penetration Testing Tool for IoT",
+      "fullName": "yakuza8/peniot",
+      "language": "Python",
+      "stargazersCount": 233,
+      "url": "https://github.com/yakuza8/peniot"
+    },
+    {
+      "description": "C implementation of the client-side OMA LwM2M protocol",
+      "fullName": "AVSystem/Anjay",
+      "language": "C",
+      "stargazersCount": 220,
+      "url": "https://github.com/AVSystem/Anjay"
+    },
+    {
+      "description": "A fast and extensible framework to connect any device with your browser and backend applications",
+      "fullName": "eclipse-thingweb/node-wot",
+      "language": "TypeScript",
+      "stargazersCount": 196,
+      "url": "https://github.com/eclipse-thingweb/node-wot"
+    },
+    {
+      "description": "How can you communicate to your ikea tradfri gateway/hub through coap-client",
+      "fullName": "glenndehaan/ikea-tradfri-coap-docs",
+      "language": "Shell",
+      "stargazersCount": 194,
+      "url": "https://github.com/glenndehaan/ikea-tradfri-coap-docs"
+    },
+    {
+      "description": "Integrate your Shelly devices into ioBroker via MQTT or CoIoT",
+      "fullName": "iobroker-community-adapters/ioBroker.shelly",
+      "language": "TypeScript",
+      "stargazersCount": 189,
+      "url": "https://github.com/iobroker-community-adapters/ioBroker.shelly"
+    },
+    {
+      "description": "Bring ThingsBoard to the edge. Filter, aggregate, and compute locally to cut bandwidth costs and reduce latency, pushing intelligence to the field while keeping the cloud in sync.",
+      "fullName": "thingsboard/thingsboard-edge",
+      "language": "Java",
+      "stargazersCount": 180,
+      "url": "https://github.com/thingsboard/thingsboard-edge"
+    },
+    {
+      "description": "Secure and Interoperable Internet of Things",
+      "fullName": "plgd-dev/hub",
+      "language": "Go",
+      "stargazersCount": 175,
+      "url": "https://github.com/plgd-dev/hub"
+    },
+    {
+      "description": "To contribute code to the project, please visit",
+      "fullName": "iotivity/iotivity-lite",
+      "language": "C",
+      "stargazersCount": 145,
+      "url": "https://github.com/iotivity/iotivity-lite"
+    },
+    {
+      "description": "CoAP Implementation in C",
+      "fullName": "lobaro/lobaro-coap",
+      "language": "C",
+      "stargazersCount": 131,
+      "url": "https://github.com/lobaro/lobaro-coap"
+    },
+    {
+      "description": "Firmware SDK enabling any IoT device to connect to Golioth - the Universal Connector for IoT",
+      "fullName": "golioth/golioth-firmware-sdk",
+      "language": "C",
+      "stargazersCount": 118,
+      "url": "https://github.com/golioth/golioth-firmware-sdk"
+    },
+    {
+      "description": "Awa LWM2M is an implementation of the OMA Lightweight M2M protocol in C.",
+      "fullName": "ConnectivityFoundry/AwaLWM2M",
+      "language": "C",
+      "stargazersCount": 110,
+      "url": "https://github.com/ConnectivityFoundry/AwaLWM2M"
+    },
+    {
+      "description": "Generic Erlang CoAP Client/Server",
+      "fullName": "gotthardp/gen_coap",
+      "language": "Erlang",
+      "stargazersCount": 108,
+      "url": "https://github.com/gotthardp/gen_coap"
+    },
+    {
+      "description": "Apache Mynewt Sensor Network Application for STM32 Blue Pill and nRF52 with Visual Rust, NB-IoT, GPS, iBeacon, NimBLE, ESP8266 (WiFi Geolocation) and nRF24L01",
+      "fullName": "lupyuen/stm32bluepill-mynewt-sensor",
+      "language": "C",
+      "stargazersCount": 106,
+      "url": "https://github.com/lupyuen/stm32bluepill-mynewt-sensor"
+    },
+    {
+      "description": "This repository contains sample applications illustrating how to use the IOWA SDK as well as the Evaluation IOWA SDK. The IOWA SDK is the most compact C implementation OMA LwM2M protocol.",
+      "fullName": "IOTEROP/IOWA",
+      "language": "C",
+      "stargazersCount": 89,
+      "url": "https://github.com/IOTEROP/IOWA"
+    },
+    {
+      "description": "MQTT Bridge for IKEA TRÅDFRI Light Gateway",
+      "fullName": "hardillb/TRADFRI2MQTT",
+      "language": "Java",
+      "stargazersCount": 85,
+      "url": "https://github.com/hardillb/TRADFRI2MQTT"
+    },
+    {
+      "description": "A command line interface for CoAP built on node-coap",
+      "fullName": "coapjs/coap-cli",
+      "language": "JavaScript",
+      "stargazersCount": 81,
+      "url": "https://github.com/coapjs/coap-cli"
+    },
+    {
+      "description": "Swift Server/Client Implementation of CoAP - RFC 7252",
+      "fullName": "stuffrabbit/SwiftCoAP",
+      "language": "Objective-C",
+      "stargazersCount": 78,
+      "url": "https://github.com/stuffrabbit/SwiftCoAP"
+    },
+    {
+      "description": "UpdateHub Community Edition",
+      "fullName": "UpdateHub/updatehub-ce",
+      "language": "Go",
+      "stargazersCount": 77,
+      "url": "https://github.com/UpdateHub/updatehub-ce"
+    },
+    {
+      "description": "CoAP Java library",
+      "fullName": "PelionIoT/java-coap",
+      "language": "Java",
+      "stargazersCount": 75,
+      "url": "https://github.com/PelionIoT/java-coap"
+    },
+    {
+      "description": "CoAPnet is a high performance .NET library for CoAP based communication. It provides a CoAP client and a CoAP server. It also has DTLS support out of the box.",
+      "fullName": "chkr1011/CoAPnet",
+      "language": "C#",
+      "stargazersCount": 74,
+      "url": "https://github.com/chkr1011/CoAPnet"
+    },
+    {
+      "description": "A mini client/server implementation of CoAP (Constrained Application Protocol) into MicroPython",
+      "fullName": "insighio/microCoAPy",
+      "language": "Python",
+      "stargazersCount": 67,
+      "url": "https://github.com/insighio/microCoAPy"
+    },
+    {
+      "description": "Flogo Contribution repo. Contains activities, triggers, models and actions.",
+      "fullName": "TIBCOSoftware/flogo-contrib",
+      "language": "Go",
+      "stargazersCount": 63,
+      "url": "https://github.com/TIBCOSoftware/flogo-contrib"
+    },
+    {
+      "description": "EMQX CoAP Gateway",
+      "fullName": "emqxarchive/emqx-coap",
+      "language": "Erlang",
+      "stargazersCount": 62,
+      "url": "https://github.com/emqxarchive/emqx-coap"
+    },
+    {
+      "description": "Constrained Application Protocol (CoAP) Interactive Shell",
+      "fullName": "tzolov/coap-shell",
+      "language": "Java",
+      "stargazersCount": 56,
+      "url": "https://github.com/tzolov/coap-shell"
+    },
+    {
+      "description": "《IoT开发实战:CoAP卷》",
+      "fullName": "xukai871105/the_beginning_of_coap",
+      "language": "C",
+      "stargazersCount": 49,
+      "url": "https://github.com/xukai871105/the_beginning_of_coap"
+    },
+    {
+      "description": "Network server and manager for lightweight M2M (LWM2M).",
+      "fullName": "PeterEB/coap-shepherd",
+      "language": "JavaScript",
+      "stargazersCount": 42,
+      "url": "https://github.com/PeterEB/coap-shepherd"
+    },
+    {
+      "description": "CoAP / DTLS 1.2 CID client for Zephyr - Reliable - Efficient - Encrypted",
+      "fullName": "boaks/zephyr-coaps-client",
+      "language": "C",
+      "stargazersCount": 42,
+      "url": "https://github.com/boaks/zephyr-coaps-client"
+    },
+    {
+      "description": "Air quality modules with Nordic nRF52840. Thread network (OpenThread). TheThingsIO. Sensirion. SPEC Sensors. ST Microelectronics.",
+      "fullName": "cellabox/cellabox",
+      "language": "C",
+      "stargazersCount": 37,
+      "url": "https://github.com/cellabox/cellabox"
+    },
+    {
+      "description": "A lightweight CoAP message manipulation crate, ideal for embedded environments",
+      "fullName": "martindisch/coap-lite",
+      "language": "Rust",
+      "stargazersCount": 36,
+      "url": "https://github.com/martindisch/coap-lite"
+    },
+    {
+      "description": "Constrained Applciaiton Protocol (CoAP) [RFC7252] for .Net Standard",
+      "fullName": "NZSmartie/CoAP.Net",
+      "language": "C#",
+      "stargazersCount": 35,
+      "url": "https://github.com/NZSmartie/CoAP.Net"
+    },
+    {
+      "description": "Experimental Zig-based CoAP node for the HiFive1 RISC-V board",
+      "fullName": "nmeum/zig-riscv-embedded",
+      "language": "Zig",
+      "stargazersCount": 34,
+      "url": "https://github.com/nmeum/zig-riscv-embedded"
+    },
+    {
+      "description": "CoAP Java library",
+      "fullName": "open-coap/java-coap",
+      "language": "Java",
+      "stargazersCount": 34,
+      "url": "https://github.com/open-coap/java-coap"
+    },
+    {
+      "description": "Client node of lightweight M2M (LWM2M).",
+      "fullName": "PeterEB/coap-node",
+      "language": "JavaScript",
+      "stargazersCount": 32,
+      "url": "https://github.com/PeterEB/coap-node"
+    },
+    {
+      "description": "A set of Python services to interact and transport data from IoT devices",
+      "fullName": "pyaiot/pyaiot",
+      "language": "Python",
+      "stargazersCount": 30,
+      "url": "https://github.com/pyaiot/pyaiot"
+    },
+    {
+      "description": "Open source FreeRTOS SDK for ESP8266 WiFi Module",
+      "fullName": "jollen/rtos-wot",
+      "language": "C",
+      "stargazersCount": 29,
+      "url": "https://github.com/jollen/rtos-wot"
+    },
+    {
+      "description": "Kotlin CoAP encoder/decoder.",
+      "fullName": "JuulLabs/koap",
+      "language": "Kotlin",
+      "stargazersCount": 28,
+      "url": "https://github.com/JuulLabs/koap"
+    },
+    {
+      "description": "",
+      "fullName": "CreatorDev/DeviceServer",
+      "language": "C#",
+      "stargazersCount": 27,
+      "url": "https://github.com/CreatorDev/DeviceServer"
+    },
+    {
+      "description": "A C implementation of the Static Context Header Compression",
+      "fullName": "imec-idlab/libschc",
+      "language": "C",
+      "stargazersCount": 25,
+      "url": "https://github.com/imec-idlab/libschc"
+    },
+    {
+      "description": "EDHOC (RFC 9528): Lightweight authenticated key exchange in C for constrained IoT devices, post-quantum ready",
+      "fullName": "kamil-kielbasa/libedhoc",
+      "language": "C",
+      "stargazersCount": 25,
+      "url": "https://github.com/kamil-kielbasa/libedhoc"
+    },
+    {
+      "description": "响应式的MQTT Broker项目，计划支持MQTT，WebSocket，CoAP，XMPP等常用的物联网协议。",
+      "fullName": "wuzguo/reactor-mqtt-server",
+      "language": "Java",
+      "stargazersCount": 25,
+      "url": "https://github.com/wuzguo/reactor-mqtt-server"
+    },
+    {
+      "description": "Golang implementation of  EMQX, the most scalable and reliable MQTT broker for AI, IoT, IIoT and connected vehicles",
+      "fullName": "turtacn/emqx-go",
+      "language": "Go",
+      "stargazersCount": 24,
+      "url": "https://github.com/turtacn/emqx-go"
+    },
+    {
+      "description": "1NCE FreeRTOS BluePrint release integrates 1NCE SDK to benefit from different 1NCE OS tools including device Authentication and Energy Saver, with the addition of a static library for CoAP Protocol (Lobaro CoAP) and LwM2M (Wakaama).",
+      "fullName": "1NCE-GmbH/blueprint-freertos",
+      "language": "C",
+      "stargazersCount": 24,
+      "url": "https://github.com/1NCE-GmbH/blueprint-freertos"
+    },
+    {
+      "description": "CoAP JMeter Plugin",
+      "fullName": "emqx/coap-jmeter",
+      "language": "Java",
+      "stargazersCount": 23,
+      "url": "https://github.com/emqx/coap-jmeter"
+    },
+    {
+      "description": "Nabto Edge Embedded SDK. Secure, direct connections to your IoT devices.",
+      "fullName": "nabto/nabto-embedded-sdk",
+      "language": "C",
+      "stargazersCount": 23,
+      "url": "https://github.com/nabto/nabto-embedded-sdk"
+    },
+    {
+      "description": "14 IoT and industrial communication libraries for Delphi 12: MQTT, AMQP 1.0, CoAP, Modbus, STOMP, WebSocket, mDNS/DNS-SD, NMEA, InfluxDB, Prometheus, CBOR, MessagePack, JSON, Serial — 694 tests, no external dependencies beyond Indy",
+      "fullName": "gustavoeenriquez/delphi-iot",
+      "language": "Pascal",
+      "stargazersCount": 22,
+      "url": "https://github.com/gustavoeenriquez/delphi-iot"
+    },
+    {
+      "description": " Proposing security measures and security analysis in the Fiware IoT environment. ",
+      "fullName": "m4n3dw0lf/SecureFiware",
+      "language": "Shell",
+      "stargazersCount": 22,
+      "url": "https://github.com/m4n3dw0lf/SecureFiware"
+    },
+    {
+      "description": "Lobaro CoAP for GoLang - server and client applications",
+      "fullName": "lobaro/coap-go",
+      "language": "C",
+      "stargazersCount": 21,
+      "url": "https://github.com/lobaro/coap-go"
+    },
+    {
+      "description": "Migration of the original project [Waterius](https://github.com/dontsovcmc/waterius) to ESP32",
+      "fullName": "OloloevReal/Waterius32",
+      "language": "C",
+      "stargazersCount": 20,
+      "url": "https://github.com/OloloevReal/Waterius32"
+    },
+    {
+      "description": "",
+      "fullName": "freebirdjs/freebird",
+      "language": "JavaScript",
+      "stargazersCount": 20,
+      "url": "https://github.com/freebirdjs/freebird"
+    },
+    {
+      "description": "Robust, ergonomic CoAP server in Rust",
+      "fullName": "jasta/coap-server-rs",
+      "language": "Rust",
+      "stargazersCount": 18,
+      "url": "https://github.com/jasta/coap-server-rs"
+    },
+    {
+      "description": "ZestDB",
+      "fullName": "me-box/zestdb",
+      "language": "OCaml",
+      "stargazersCount": 18,
+      "url": "https://github.com/me-box/zestdb"
+    },
+    {
+      "description": "Thing.CoAP",
+      "fullName": "Alv3s/Thing.CoAP",
+      "language": "C++",
+      "stargazersCount": 17,
+      "url": "https://github.com/Alv3s/Thing.CoAP"
+    },
+    {
+      "description": "A k6 extension for CoAP.",
+      "fullName": "golioth/xk6-coap",
+      "language": "Go",
+      "stargazersCount": 17,
+      "url": "https://github.com/golioth/xk6-coap"
+    },
+    {
+      "description": "Basic support for CoAP for AWS IoT - In Development",
+      "fullName": "AndrewFarley/coap-for-aws-iot",
+      "language": "Python",
+      "stargazersCount": 16,
+      "url": "https://github.com/AndrewFarley/coap-for-aws-iot"
+    },
+    {
+      "description": "A (soon to be) cross-platform tool for exploring CoAP protocol.",
+      "fullName": "NZSmartie/CoAPExplorer",
+      "language": "C#",
+      "stargazersCount": 16,
+      "url": "https://github.com/NZSmartie/CoAPExplorer"
+    },
+    {
+      "description": "Framework to build Web of Things applications in Dart and Flutter.",
+      "fullName": "eclipse-thingweb/dart_wot",
+      "language": "Dart",
+      "stargazersCount": 16,
+      "url": "https://github.com/eclipse-thingweb/dart_wot"
+    },
+    {
+      "description": "Parse Networking PDU , *.pcap *.pcapng file And Networing knowledge.",
+      "fullName": "linianhui/networking",
+      "language": "C#",
+      "stargazersCount": 15,
+      "url": "https://github.com/linianhui/networking"
+    },
+    {
+      "description": "OpenCSMP: Opensource CSMP-Agent Library (CSMP-Agent-Lib)",
+      "fullName": "CiscoDevNet/csmp-agent-lib",
+      "language": "C",
+      "stargazersCount": 15,
+      "url": "https://github.com/CiscoDevNet/csmp-agent-lib"
+    },
+    {
+      "description": "Anjay Lite is AVSystem’s ultra-lightweight implementation of the OMA SpecWorks LwM2M protocol, purpose-built for the most resource-constrained IoT devices.",
+      "fullName": "AVSystem/Anjay-lite",
+      "language": "C",
+      "stargazersCount": 15,
+      "url": "https://github.com/AVSystem/Anjay-lite"
+    },
+    {
+      "description": "coap编解码器",
+      "fullName": "jetlinks/coap-codec",
+      "language": "Java",
+      "stargazersCount": 13,
+      "url": "https://github.com/jetlinks/coap-codec"
+    },
+    {
+      "description": "CoAP protocol in Elixir",
+      "fullName": "lucastorri/coapex",
+      "language": "Elixir",
+      "stargazersCount": 13,
+      "url": "https://github.com/lucastorri/coapex"
+    },
+    {
+      "description": "FuzzCoAP - Fuzzing for Robustness and Security Testing of CoAP Servers",
+      "fullName": "bsmelo/fuzzcoap",
+      "language": "Python",
+      "stargazersCount": 13,
+      "url": "https://github.com/bsmelo/fuzzcoap"
+    },
+    {
+      "description": "Constrained Application Protocol (RFC 7252) implementation for OCaml.",
+      "fullName": "hyper-systems/ocaml-coap",
+      "language": "OCaml",
+      "stargazersCount": 12,
+      "url": "https://github.com/hyper-systems/ocaml-coap"
+    },
+    {
+      "description": "Embedded IoT Platform for IoT projects based in Arduino and PlatformIO",
+      "fullName": "gotoiot/embed-iot-core",
+      "language": "C++",
+      "stargazersCount": 12,
+      "url": "https://github.com/gotoiot/embed-iot-core"
+    },
+    {
+      "description": "Code examples, errata and additional tips and references to interesting projects for the book \"Building Wireless Sensor Networks with OpenThread: Developing CoAP Applications for Thread Networks with Zephyr\"",
+      "fullName": "koenvervloesem/openthread-applications",
+      "language": "C",
+      "stargazersCount": 12,
+      "url": "https://github.com/koenvervloesem/openthread-applications"
+    },
+    {
+      "description": "Thread <=> MQTT gateway for my own custom CoAP node control protocol",
+      "fullName": "vke/thread2mqtt",
+      "language": "JavaScript",
+      "stargazersCount": 11,
+      "url": "https://github.com/vke/thread2mqtt"
+    },
+    {
+      "description": "An open-source, edge-native IoT platform built in 100% Rust. Combining Cloudflare Workers performance with self-hosted data sovereignty.",
+      "fullName": "justins-engineering/pidgeiot",
+      "language": "Rust",
+      "stargazersCount": 11,
+      "url": "https://github.com/justins-engineering/pidgeiot"
+    },
+    {
+      "description": ":bug: C implemenation of LWM2M protocol with low memory footprint",
+      "fullName": "moonglow/ulwm2m",
+      "language": "C",
+      "stargazersCount": 11,
+      "url": "https://github.com/moonglow/ulwm2m"
+    },
+    {
+      "description": "Swift package for the Thread 1.4 external commissioner flow (ePSKc), using async/await to discover Thread Border Routers and retrieve the active dataset over DTLS",
+      "fullName": "phil-margetson/ThreadCommissionerKit",
+      "language": "C",
+      "stargazersCount": 10,
+      "url": "https://github.com/phil-margetson/ThreadCommissionerKit"
+    },
+    {
+      "description": "TLV parsing/formatting library",
+      "fullName": "marcinbor85/microtlv",
+      "language": "C",
+      "stargazersCount": 10,
+      "url": "https://github.com/marcinbor85/microtlv"
+    },
+    {
+      "description": "A WiP CoAP implementation for bare-metal constrained devices in Zig",
+      "fullName": "nmeum/zoap",
+      "language": "Zig",
+      "stargazersCount": 10,
+      "url": "https://github.com/nmeum/zoap"
+    },
+    {
+      "description": "tinydtls-based reverse proxy server",
+      "fullName": "julznc/dtlsproxy",
+      "language": "C",
+      "stargazersCount": 10,
+      "url": "https://github.com/julznc/dtlsproxy"
+    },
+    {
+      "description": "Formally verified implementation of the CoAP protocol in SPARK/Ada",
+      "fullName": "mgrojo/coap_spark",
+      "language": "Ada",
+      "stargazersCount": 9,
+      "url": "https://github.com/mgrojo/coap_spark"
+    },
+    {
+      "description": "TaNoClo is a self-hosted replacement backend for the Tado smart heating ecosystem.",
+      "fullName": "tanoclo/tanoclo",
+      "language": "JavaScript",
+      "stargazersCount": 9,
+      "url": "https://github.com/tanoclo/tanoclo"
+    },
+    {
+      "description": "Presentations of project results at end of hackathon",
+      "fullName": "IETF-Hackathon/ietf103-project-presentations",
+      "language": "",
+      "stargazersCount": 9,
+      "url": "https://github.com/IETF-Hackathon/ietf103-project-presentations"
+    },
+    {
+      "description": "The world's most comprehensive OMA LwM2M (IoT) expert skill for Claude -- all versions v1.0-v2.0, full protocol stack, security, and ecosystem",
+      "fullName": "svdwalt007/Best-LwM2M-Agentic-Skills",
+      "language": "JavaScript",
+      "stargazersCount": 9,
+      "url": "https://github.com/svdwalt007/Best-LwM2M-Agentic-Skills"
+    },
+    {
+      "description": "A CoAP Implementation for Rust using Tokio",
+      "fullName": "azdle/tokio-coap",
+      "language": "Rust",
+      "stargazersCount": 9,
+      "url": "https://github.com/azdle/tokio-coap"
+    },
+    {
+      "description": "CoAP runtime that is heap allocation and operating-system optional",
+      "fullName": "toad-lib/toad",
+      "language": "Rust",
+      "stargazersCount": 9,
+      "url": "https://github.com/toad-lib/toad"
+    },
+    {
+      "description": "The 1NCE Zephyr Blueprint is a reference application that showcases how to integrate and use various 1NCE OS features with Zephyr RTOS",
+      "fullName": "1NCE-GmbH/blueprint-zephyr",
+      "language": "C",
+      "stargazersCount": 9,
+      "url": "https://github.com/1NCE-GmbH/blueprint-zephyr"
+    },
+    {
+      "description": "One-stop iot solution  (In development) ",
+      "fullName": "DearJingSoftware/iotpack",
+      "language": "Java",
+      "stargazersCount": 8,
+      "url": "https://github.com/DearJingSoftware/iotpack"
+    },
+    {
+      "description": "Core Framework Project - White Label Digital Twin",
+      "fullName": "wldt/wldt-core-0.1-deprecated",
+      "language": "Java",
+      "stargazersCount": 8,
+      "url": "https://github.com/wldt/wldt-core-0.1-deprecated"
+    },
+    {
+      "description": "CoAP messaging GUI tool",
+      "fullName": "kb2ma/cotel",
+      "language": "Nim",
+      "stargazersCount": 8,
+      "url": "https://github.com/kb2ma/cotel"
+    },
+    {
+      "description": "Authentication and Authorization module of HTTP/MQTT/CoAP Brokers based on NodeJS for IoT or Internet of Things.",
+      "fullName": "authbroker/authbroker",
+      "language": "JavaScript",
+      "stargazersCount": 8,
+      "url": "https://github.com/authbroker/authbroker"
+    },
+    {
+      "description": "An(other) Async Rust CoAP Client",
+      "fullName": "ryankurte/rust-coap-client",
+      "language": "Rust",
+      "stargazersCount": 7,
+      "url": "https://github.com/ryankurte/rust-coap-client"
+    },
+    {
+      "description": "CoAP web applications on JavaCard",
+      "fullName": "OpenJavaCard/openjavacard-coap",
+      "language": "Java",
+      "stargazersCount": 7,
+      "url": "https://github.com/OpenJavaCard/openjavacard-coap"
+    },
+    {
+      "description": "FastCoAP is a modern, high-performance Python framework for building CoAP applications and IoT APIs.",
+      "fullName": "darixsamani/fastcoap",
+      "language": "Python",
+      "stargazersCount": 7,
+      "url": "https://github.com/darixsamani/fastcoap"
+    }
+  ]
+}

@@ -1,0 +1,156 @@
+{
+  "date": "2026-11-13",
+  "timezone": "Asia/Shanghai",
+  "baseline": "937e32cc7112584eec884ecd70b7ad6d5e5db8a5",
+  "review": "https://github.com/IoTSharp/CoAP.NET/pull/32",
+  "integratedCommits": [
+    "41ac813a1e5355eb30ba2a9d867ca7af5ce8385e",
+    "6152facbd9603ef33fb9331da5aeb7168509b9a3"
+  ],
+  "findings": [
+    {
+      "comment": 4554524710,
+      "behavior": "Serialize Block1 continuation before optional intermediate Block2",
+      "status": "FIXED_WITH_REGRESSION"
+    },
+    {
+      "comment": 4554524782,
+      "behavior": "Canonicalize IPv4-mapped IPv6 endpoints, preserving ports/native scope",
+      "status": "FIXED_WITH_REGRESSION"
+    },
+    {
+      "comment": 4554524830,
+      "behavior": "Cancel invalid current Block1 ACK after reliability consumed it",
+      "status": "FIXED_WITH_REGRESSION"
+    },
+    {
+      "comment": 4554524879,
+      "behavior": "Reject unsolicited non-final Block1 success; preserve manual Block1 and 4.13 hint",
+      "status": "FIXED_WITH_REGRESSION"
+    }
+  ],
+  "baselineEvidence": {
+    "endpoint": {
+      "failed": 6,
+      "passed": 7,
+      "total": 13
+    },
+    "mappedMatcher": {
+      "failed": 18,
+      "passed": 14,
+      "total": 32
+    },
+    "blockwise": {
+      "targetedFailed": 7,
+      "supplementaryNoStateFailed": 3,
+      "note": "supplementary cases overlap; do not add failure counts"
+    }
+  },
+  "gates": {
+    "releaseTests": {
+      "status": "PASS",
+      "passed": 258,
+      "failed": 0,
+      "skipped": 0,
+      "trx": "TestResults/Integration/pr32-review-20261113.trx"
+    },
+    "endpointCombination": {
+      "status": "PASS",
+      "passed": 13,
+      "failed": 0
+    },
+    "ownedSourceFormat": {
+      "status": "PASS",
+      "exit": 0
+    }
+  },
+  "sourceFiles": [
+    {
+      "path": "CoAP.NET/CoapClient.cs",
+      "sha256": "d091feca4adc7d6d0069f9ecd74c4dfd14dcc331160fb7c710b9b4aa8dab2b3d",
+      "bytes": 19360
+    },
+    {
+      "path": "CoAP.NET/Codec/DatagramReader.cs",
+      "sha256": "a37a21745272b4c8d96b7bae9e649a5b104136de6c84c4d4442021420529bcb1",
+      "bytes": 4740
+    },
+    {
+      "path": "CoAP.NET/Codec/MessageDecoder.cs",
+      "sha256": "1db0581c529f2ee593a307a5a2372a71ff389a93eccd2bb7d8e68a9957d94c50",
+      "bytes": 5408
+    },
+    {
+      "path": "CoAP.NET/Net/CoAPEndPoint.cs",
+      "sha256": "679a30aadbda8d9d70967b124f8ecf1e26d4808b13fb493087b6ef4ab7ce73c7",
+      "bytes": 16148
+    },
+    {
+      "path": "CoAP.NET/Net/Matcher.cs",
+      "sha256": "ae0d3bcd69abefd33055d3db5950c8057ed633a2280a0b28dbfc91baa7141d9e",
+      "bytes": 22680
+    },
+    {
+      "path": "CoAP.NET/Server/CoapServer.cs",
+      "sha256": "592c3e10cd6a627bc59903b45e0a4360bea66b63d0faaf0d5d741f09887f35c8",
+      "bytes": 6447
+    },
+    {
+      "path": "CoAP.NET/Spec.cs",
+      "sha256": "855e5eae1e20ab91e06414eda180cc4c590e332d8f63e53c90b7ea530925c88c",
+      "bytes": 67095
+    },
+    {
+      "path": "CoAP.NET/Stack/BlockwiseLayer.cs",
+      "sha256": "a50b8fc1c34c332343fdde5109e2d82d1b3ee2b0af7a167a84609799817a7b6f",
+      "bytes": 31990
+    },
+    {
+      "path": "CoAP.Test/BlockwiseProtocolRegressionTest.cs",
+      "sha256": "9301a53bdd2bc92c4ab63c90a3a9f20cc23852feda8fb522d2213f37ade0e69e",
+      "bytes": 23125
+    },
+    {
+      "path": "CoAP.Test/CoapClientTest.cs",
+      "sha256": "475466f7b291ae78033752e8e77a36ede3a744caee1ed73d1beb9ba5f39aa53a",
+      "bytes": 8637
+    },
+    {
+      "path": "CoAP.Test/CoapClientProtocolFailureTest.cs",
+      "sha256": "2a275dd31b3f659dc58598a978ccf6578c11498078103ee5d37ec2b63bdeb37f",
+      "bytes": 16063
+    },
+    {
+      "path": "CoAP.Test/DecoderFailureStateTest.cs",
+      "sha256": "d4924c1846a119e3c7cc75714e876bfdad450eee90420f4ec8ad354f9b667d9d",
+      "bytes": 1538
+    },
+    {
+      "path": "CoAP.Test/MalformedDatagramTest.cs",
+      "sha256": "4f54dd1c3ee8472437659262a3026ad358030ff392a3606f45ea1d102e9a6ef8",
+      "bytes": 10333
+    },
+    {
+      "path": "CoAP.Test/MatcherProtocolTest.cs",
+      "sha256": "f0ec02886b79b9164822eee1b9f3512c1078668cd8d83598a90b40fba23635d2",
+      "bytes": 20074
+    },
+    {
+      "path": "CoAP.NET/Option.cs",
+      "sha256": "230321c7ea2d867f0f3292df68bd2994d1c0eb28c2d12e624f02609443e232fb",
+      "bytes": 20259
+    },
+    {
+      "path": "CoAP.Test/CriticalOptionClassificationTest.cs",
+      "sha256": "8bee4e3aa709c7d4b95a107a1eb1b985af672c05c6b63190dd3ad17b4318a1c6",
+      "bytes": 922
+    }
+  ],
+  "independentGates": {
+    "peerInterop": "NOT_RUN",
+    "nativeAotExecution": "NOT_RUN",
+    "packagePublicationConsumption": "NOT_RUN",
+    "deviceFieldSoak": "NOT_RUN"
+  },
+  "pendingCompatibility": "Issue23 option19 default/legacy behavior remains undecided by the user. It is not changed by this candidate."
+}
