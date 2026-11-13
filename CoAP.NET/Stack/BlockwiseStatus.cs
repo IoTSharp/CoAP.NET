@@ -29,6 +29,11 @@ namespace CoAP.Stack
         private Int32 _observe = NoObserve;
         private List<Byte[]> _blocks = new List<Byte[]>();
 
+        // RFC 7959 section 4 permits a size estimate on the first block only.
+        // Keep just the latest scalar indication, never allocate from it.
+        internal UInt32? Size1 { get; set; }
+        internal UInt32? Size2 { get; set; }
+
         /// <summary>
         /// Instantiates a new blockwise status.
         /// </summary>

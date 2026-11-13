@@ -158,6 +158,8 @@ namespace CoAP.Stack
                             if (IsTerminated(exchange) || !Object.ReferenceEquals(status, exchange.RequestBlockStatus))
                                 return;
                             status.AddBlock(request.Payload);
+                            if (request.HasOption(OptionType.Size1))
+                                status.Size1 = request.Size1Unsigned;
                         }
                     }
                     else
@@ -466,6 +468,8 @@ namespace CoAP.Stack
                         if (IsTerminated(exchange) || !Object.ReferenceEquals(status, exchange.ResponseBlockStatus))
                             return;
                         status.AddBlock(response.Payload);
+                        if (response.HasOption(OptionType.Size2))
+                            status.Size2 = response.Size2Unsigned;
                         Int32? obs = response.Observe;
                         if (obs.HasValue)
                             status.Observe = obs.Value;
@@ -844,6 +848,14 @@ namespace CoAP.Stack
             message.Token = last.Token;
             message.Type = last.Type;
             message.SetOptions(last.GetOptions());
+
+            // An unchanged size indication may be omitted after the first block
+            // (RFC 7959 section 4). It remains metadata, not an allocation limit
+            // or an alternative to the Block option's M bit.
+            if (message is Request && !message.HasOption(OptionType.Size1))
+                message.Size1Unsigned = status.Size1;
+            if (message is Response && !message.HasOption(OptionType.Size2))
+                message.Size2Unsigned = status.Size2;
 
             Int32 length = 0;
             foreach (Byte[] block in status.Blocks)

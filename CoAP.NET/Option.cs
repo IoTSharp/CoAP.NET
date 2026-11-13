@@ -93,10 +93,16 @@ namespace CoAP
         /// <summary>
         /// Gets or sets int value of the option.
         /// </summary>
+        /// <remarks>
+        /// Four-byte values retain the legacy signed bit pattern. Use
+        /// <see cref="UIntValue"/> for unsigned CoAP integers up to UInt32.MaxValue.
+        /// </remarks>
+        /// <exception cref="OverflowException">The raw value exceeds the integer or option width.</exception>
         public Int32 IntValue
         {
             get
             {
+                ValidateIntegerLength(sizeof(Int32), Length);
                 return (Int32)int32Convertor.Decode(this._valueBytes);
             }
             set
@@ -108,16 +114,69 @@ namespace CoAP
         /// <summary>
         /// Gets or sets long value of the option.
         /// </summary>
+        /// <remarks>
+        /// Known integer options enforce their wire length. Other options retain
+        /// the legacy signed eight-byte bit pattern.
+        /// </remarks>
+        /// <exception cref="OverflowException">The raw value exceeds the integer or option width.</exception>
         public Int64 LongValue
         {
             get
             {
+                ValidateIntegerLength(sizeof(Int64), Length);
                 return (Int64)int64Convertor.Decode(_valueBytes);
             }
             set
             {
                 _valueBytes = int64Convertor.Encode(value);
             }
+        }
+
+        /// <summary>
+        /// Gets or sets an unsigned integer in the range 0..UInt32.MaxValue.
+        /// Zero is encoded as an empty value; legal leading zero bytes are accepted.
+        /// </summary>
+        /// <exception cref="OverflowException">The value exceeds the integer or option width.</exception>
+        public UInt32 UIntValue
+        {
+            get
+            {
+                ValidateIntegerLength(sizeof(UInt32), Length);
+                return unchecked((UInt32)int32Convertor.Decode(_valueBytes));
+            }
+            set
+            {
+                Byte[] bytes = int64Convertor.Encode(value);
+                ValidateIntegerLength(sizeof(UInt32), bytes.Length);
+                _valueBytes = bytes;
+            }
+        }
+
+        private void ValidateIntegerLength(Int32 width, Int32 length)
+        {
+            switch (_type)
+            {
+                case OptionType.ContentFormat:
+                case OptionType.Accept:
+                case OptionType.UriPort:
+                    width = Math.Min(width, 2);
+                    break;
+                case OptionType.Observe:
+                case OptionType.Block1:
+                case OptionType.Block2:
+                case OptionType.QBlock1:
+                case OptionType.QBlock2:
+                    width = Math.Min(width, 3);
+                    break;
+                case OptionType.MaxAge:
+                case OptionType.Size1:
+                case OptionType.Size2:
+                    width = Math.Min(width, 4);
+                    break;
+            }
+
+            if (length > width)
+                throw new OverflowException(Name + " integer value exceeds " + width + " bytes.");
         }
 
         /// <summary>
@@ -128,6 +187,8 @@ namespace CoAP
             get
             {
                 IConvertor convertor = GetConvertor(this._type);
+                if (GetFormatByType(_type) == OptionFormat.Integer)
+                    ValidateIntegerLength(sizeof(Int32), Length);
                 return null == convertor ? null : convertor.Decode(this._valueBytes);
             }
         }
@@ -143,7 +204,7 @@ namespace CoAP
                 switch (this._type)
                 {
                     case OptionType.MaxAge:
-                        return IntValue == CoapConstants.DefaultMaxAge;
+                        return UIntValue == CoapConstants.DefaultMaxAge;
                     default:
                         return false;
                 }
@@ -157,7 +218,7 @@ namespace CoAP
                 case OptionFormat.Integer:
                     return (_type == OptionType.Accept || _type == OptionType.ContentFormat) ?
                         ("\"" + MediaType.ToString(IntValue) + "\"") :
-                        IntValue.ToString();
+                        UIntValue.ToString();
                 case OptionFormat.String:
                     return "\"" + StringValue + "\"";
                 default:
@@ -271,6 +332,19 @@ namespace CoAP
         {
             Option opt = Create(type);
             opt.LongValue = val;
+            return opt;
+        }
+
+        /// <summary>
+        /// Creates an option from an unsigned integer without narrowing its value.
+        /// </summary>
+        /// <param name="type">The type of the option</param>
+        /// <param name="val">The unsigned value of the option</param>
+        /// <returns>The new option</returns>
+        public static Option Create(OptionType type, UInt32 val)
+        {
+            Option opt = Create(type);
+            opt.UIntValue = val;
             return opt;
         }
 
