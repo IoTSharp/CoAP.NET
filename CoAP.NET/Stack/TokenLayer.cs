@@ -10,25 +10,25 @@
  */
 
 using System;
+using System.Security.Cryptography;
 using CoAP.Net;
 
 namespace CoAP.Stack
 {
     /// <summary>
-    /// Doesn't do much yet except for setting a simple token. Notice that empty
-    /// tokens must be represented as byte array of length 0 (not null).
+    /// Assigns cryptographically random eight-byte tokens when the caller has
+    /// not supplied one. Empty tokens are byte arrays of length zero, not null.
+    /// Transport security context binding is not provided by this layer.
     /// </summary>
     public class TokenLayer : AbstractLayer
     {
-        private Int32 _counter;
-
         /// <summary>
         /// Constructs a new token layer.
         /// </summary>
         public TokenLayer(ICoapConfig config)
         {
-            if (config.UseRandomTokenStart)
-                _counter = new Random().Next();
+            // Keep the constructor and configuration surface compatible. The old
+            // UseRandomTokenStart setting must not disable fresh randomness.
         }
 
         /// <inheritdoc/>
@@ -67,12 +67,11 @@ namespace CoAP.Stack
 
         private Byte[] NewToken()
         {
-            UInt32 token = (UInt32)System.Threading.Interlocked.Increment(ref _counter);
-            return new Byte[]
-            { 
-                (Byte)(token >> 24), (Byte)(token >> 16),
-                (Byte)(token >> 8), (Byte)token
-            };
+            // RFC 7252 section 5.3.1 recommends nontrivial randomized tokens
+            // without transport security. There is no wrapping counter or token
+            // history here. IChannel currently exposes no DTLS session/key
+            // identity: randomness alone does not establish RFC 9175 binding.
+            return RandomNumberGenerator.GetBytes(8);
         }
     }
 }
