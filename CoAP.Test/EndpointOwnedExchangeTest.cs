@@ -102,7 +102,7 @@ namespace CoAP
         public void ObserveRefreshReleasesBothProtocolContextsOnClear()
         {
             RecordingChannel channel = new RecordingChannel();
-            using (CoAPEndPoint endpoint = Endpoint(channel))
+            using (CoAPEndPoint endpoint = Endpoint(channel, notificationBackoff: 1))
             {
                 endpoint.Start();
                 Request request = Request.NewGet().MarkObserve();
@@ -113,10 +113,12 @@ namespace CoAP
                 response.Type = MessageType.ACK;
                 response.ID = sent.ID;
                 response.Observe = 1;
-                response.MaxAge = 60;
+                response.MaxAge = 0;
+                channel.SentSignal.Reset();
                 channel.Emit(Spec.Encode(response));
                 Object reregistration = exchange.Get("ReregistrationContext");
-                InvokeTimer(reregistration);
+                Assert.That(channel.SentSignal.Wait(TimeSpan.FromSeconds(2)), Is.True,
+                    "The zero-Max-Age re-registration should send within the bounded test window.");
                 Object transmission = exchange.Get("TransmissionContext");
                 Assert.That(reregistration, Is.Not.Null);
                 Assert.That(transmission, Is.Not.Null);
@@ -220,9 +222,9 @@ namespace CoAP
             public void DeliverResponse(Exchange exchange, Response response) { }
         }
 
-        private static CoAPEndPoint Endpoint(RecordingChannel channel)
+        private static CoAPEndPoint Endpoint(RecordingChannel channel, int notificationBackoff = 10000)
         {
-            return new CoAPEndPoint(channel, new CoapConfig { AckTimeout = 10000, NotificationReregistrationBackoff = 10000 })
+            return new CoAPEndPoint(channel, new CoapConfig { AckTimeout = 10000, NotificationReregistrationBackoff = notificationBackoff })
             { Executor = Executors.NoThreading };
         }
 
@@ -243,11 +245,16 @@ namespace CoAP
         {
             public event EventHandler<DataReceivedEventArgs> DataReceived;
             public List<Byte[]> Sent { get; } = new List<Byte[]>();
+            public ManualResetEventSlim SentSignal { get; } = new ManualResetEventSlim(false);
             public System.Net.EndPoint LocalEndPoint { get; } = new IPEndPoint(IPAddress.Loopback, 10000);
             public void Start() { }
             public void Stop() { }
-            public void Dispose() { }
-            public void Send(Byte[] data, System.Net.EndPoint endpoint) { Sent.Add(data.ToArray()); }
+            public void Dispose() { SentSignal.Dispose(); }
+            public void Send(Byte[] data, System.Net.EndPoint endpoint)
+            {
+                Sent.Add(data.ToArray());
+                SentSignal.Set();
+            }
             public void Emit(Byte[] data) { DataReceived?.Invoke(this, new DataReceivedEventArgs(data, Peer)); }
         }
     }
