@@ -1,0 +1,141 @@
+{
+  "date": "2026-11-13",
+  "timezone": "Asia/Shanghai",
+  "branch": "codex/coap-next-batch-20261113",
+  "implementationCommits": [
+    "52671194476bdb979c87bec341e95ad9167423d3",
+    "6bf1dad1f2434dd52e2a7d65a33f522f987d0ec9",
+    "ae312b2f5d2c4eedcd6f01922f9552d847371070"
+  ],
+  "executionReceipt": "next-batch-execution.json",
+  "baseline": {
+    "commit": "3565f49d89d51d71511fbfec70633681b4f86d4d",
+    "tree": "83c3d2546e22d934989a286d594ad2b34546528f"
+  },
+  "slices": {
+    "token": {
+      "issue": 33,
+      "status": "PARTIAL_OPEN",
+      "implementation": "Auto-generated tokens use RandomNumberGenerator.GetBytes(8); explicit tokens, retransmission identity, Block1/Block2 and Observe token reuse remain unchanged.",
+      "unknown": "Actual DTLS session/key/rekey identity is not exposed by IChannel/Exchange; RFC9175 secure-context non-reuse and explicit-token safety remain UNKNOWN.",
+      "baseline": "work/token/receipt.json",
+      "tests": "20/20 focused token/regression cases PASS"
+    },
+    "unsigned": {
+      "issue": 34,
+      "status": "IMPLEMENTED_CANDIDATE",
+      "implementation": "Option.UIntValue, Message.Size1Unsigned/Size2Unsigned, bounded raw integer getters, reflection/generated uint binders, and first-block Size hint retention without allocation.",
+      "compatibility": "Legacy Int32/Size1/Size2 signed bit-pattern and public signatures retained; overlong typed raw values now throw OverflowException; uint source callers select the new overload.",
+      "baseline": "work/unsigned/baseline-evidence.json",
+      "tests": "UnsignedOptionTest 21/21; host + blockwise focused paths PASS"
+    },
+    "observe": {
+      "issue": 35,
+      "status": "IMPLEMENTED_CANDIDATE",
+      "implementation": "Monotonic TimeProvider deadline with one ITimer and Int32.MaxValue millisecond slices; later notifications restart the deadline; terminal/Dispose paths detach and dispose.",
+      "baseline": "work/observe/baseline-receipt.json",
+      "tests": "ObserveLongDeadlineTest 26/26 plus EndpointOwnedExchangeTest 9/9 PASS"
+    }
+  },
+  "gates": {
+    "focused": {
+      "status": "PASS",
+      "passed": 86,
+      "failed": 0,
+      "command": "dotnet test CoAP.Test/CoAP.Test.csproj -c Release -p:TreatWarningsAsErrors=true --filter TokenGenerationTest|UnsignedOptionTest|UnsignedOptionHostingTest|UnsignedBlockwiseSizeTest|ObserveLongDeadlineTest|EndpointOwnedExchangeTest",
+      "evidence": "work/supervisor/focused.trx"
+    },
+    "windowsDefaultFull": {
+      "status": "PASS",
+      "passed": 481,
+      "failed": 0,
+      "skipped": 0,
+      "evidence": "work/supervisor/windows-final.trx"
+    },
+    "coapall": {
+      "status": "PASS",
+      "passed": 491,
+      "failed": 0,
+      "skipped": 0,
+      "evidence": "work/supervisor/COAPALL-final.trx"
+    },
+    "legacy": {
+      "status": "PASS",
+      "symbols": {
+        "COAP03": 101,
+        "COAP08": 101,
+        "COAP12": 101,
+        "COAP13": 101
+      },
+      "evidence": "work/supervisor/COAP03.trx; COAP08.trx; COAP12.trx; COAP13.trx"
+    },
+    "ownedFormat": {
+      "status": "PASS",
+      "exitCode": 0,
+      "evidence": "work/supervisor"
+    },
+    "resourceMvcBuild": {
+      "status": "PASS",
+      "warnings": 0,
+      "errors": 0,
+      "evidence": "work/supervisor/sample-artifacts"
+    },
+    "stagedWhitespace": {
+      "status": "PASS",
+      "command": "git -c core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol diff --cached --check"
+    },
+    "githubCi": {
+      "status": "PENDING_PUSH"
+    },
+    "peerInterop": {
+      "status": "NOT_RUN",
+      "reason": "No coap-client/coap-server/mvn commands in PATH; Docker 29.8 available but libcoap:4.3.5 and eclipsecalifornium/californium:3.13.0 images absent; bounded WSL probe unsupported by local executor.",
+      "pinnedPeers": {
+        "libcoap": {
+          "tag": "v4.3.5",
+          "commit": "7cf7465b784baded4de183290c547d582becfd28"
+        },
+        "californium": {
+          "tag": "3.13.0",
+          "commit": "ab46e3951bf7cba048d38cf64ac55e91e2c9cd57"
+        }
+      },
+      "issue": 26
+    },
+    "nativeAotExecution": "NOT_RUN",
+    "packagePublication": "NOT_RUN",
+    "deviceFieldSoak": "NOT_RUN"
+  },
+  "originalFailures": [
+    {
+      "scope": "#34 unsigned option raw/Size getter",
+      "failed": 14,
+      "passed": 2,
+      "evidence": "work/unsigned/baseline-evidence.json"
+    },
+    {
+      "scope": "#35 Observe large Max-Age timer",
+      "failed": 3,
+      "passed": 1,
+      "evidence": "work/observe/baseline-receipt.json"
+    },
+    {
+      "scope": "Blockwise assembled first-block Size hint",
+      "status": "FAIL 8/9 before fix",
+      "evidence": "work/supervisor/unsigned-blockwise-baseline.json"
+    },
+    {
+      "scope": "COAPALL old Content-Format string fixture",
+      "status": "FAIL 1/491 before fixture correction",
+      "details": "MessageTest used a string for integer Content-Format; fixture now uses MediaType.TextPlain."
+    }
+  ],
+  "resourceEvidence": {
+    "persistentServicesStarted": false,
+    "toolsInstalled": false,
+    "allTaskProcessesCleanupComplete": true,
+    "now": {
+      "current_time": "2026-11-13 05:17:45 UTC"
+    }
+  }
+}

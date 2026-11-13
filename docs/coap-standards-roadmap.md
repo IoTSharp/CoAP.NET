@@ -84,6 +84,17 @@
 
 ## 逐项实现队列
 
+### 2026-11-13 下一批实现状态
+
+分支 `codex/coap-next-batch-20261113` 从 `master@3565f49d89d51d71511fbfec70633681b4f86d4d` 开始。各片保留原始 FAIL 后修复：
+
+- [#33](https://github.com/IoTSharp/CoAP.NET/issues/33)：`PARTIAL / OPEN`。自动 Token 使用八字节 CSPRNG，显式 Token、重传、Blockwise 和 Observe 身份保持不变。真实 DTLS context/re-key identity 未由 channel/exchange 暴露，secure non-reuse 仍 `UNKNOWN`。
+- [#34](https://github.com/IoTSharp/CoAP.NET/issues/34)：`IMPLEMENTED CANDIDATE`。unsigned Size/getter、旧 signed API 兼容边界、raw overlong 范围错误、Resource/MVC `uint` 绑定及首块 Size hint 保留均有回归。Size option 不参与分配或 M 位完成判断。
+- [#35](https://github.com/IoTSharp/CoAP.NET/issues/35)：`IMPLEMENTED CANDIDATE`。monotonic deadline、单 timer、有界分片、通知更新 deadline 和终态释放 timer 均有回归。
+- [#26](https://github.com/IoTSharp/CoAP.NET/issues/26)：`NOT_RUN`。固定 peer 为 libcoap `v4.3.5` (`7cf7465b784baded4de183290c547d582becfd28`) 与 Californium `3.13.0` (`ab46e3951bf7cba048d38cf64ac55e91e2c9cd57`)；本机没有 peer/`mvn` 命令，Docker 可用但相应镜像不存在。未执行完整矩阵，未据此声称不存在可安装的工具。
+
+完整门禁、复现与未运行边界见 [next-batch-validation.json](audits/coap-20261113/next-batch-validation.json)。
+
 - [#20](https://github.com/IoTSharp/CoAP.NET/issues/20)：格式错误报文与解码失败隔离。
 - [#21](https://github.com/IoTSharp/CoAP.NET/issues/21)：endpoint + MID + 完整 Token 匹配。
 - [#22](https://github.com/IoTSharp/CoAP.NET/issues/22)：Block1 状态、错误、重复/乱序、SZX 与组合响应。

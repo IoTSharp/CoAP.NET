@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Token、unsigned option 与 Observe deadline — 2026-11-13
+
+- #33 的自动请求 Token 改为平台 CSPRNG 生成八字节，保留显式 Token、重传、Blockwise 与 Observe 身份。当前 channel/exchange 没有真实 DTLS session/traffic-key/re-key identity，RFC 9175 secure-context non-reuse 仍 UNKNOWN，issue 保持开放。
+- #34 新增 `Option.UIntValue`、`Message.Size1Unsigned` / `Size2Unsigned`，覆盖完整 UInt32 范围；旧 signed API 和签名保留，typed raw getter 对过长值抛 `OverflowException`。Resource/MVC 反射与生成绑定支持 `uint` / `uint?`；组装保留只在首块出现的 Size 提示，不以提示预分配或替代 M 位。
+- #35 的 Observe 重注册采用 monotonic deadline、单一 `ITimer` 和最长 `Int32.MaxValue` 毫秒分片，支持 `UInt32.MaxValue` Max-Age。通知更新 deadline，取消、终态、Clear、Stop、Dispose 释放 timer。
+- [本批审计](docs/audits/coap-20261113/next-batch-validation.json)记录原始 FAIL 与本地回归；真实 peer、NativeAOT 实物、公开包与现场验收保持独立，#26 双实现矩阵为 NOT_RUN。
+
 ### Modern option semantics and lifecycle — 2026-11-13
 
 - 按用户批准的兼容选择，默认 AddOption/codec 不再把 wire number 19 转成消息头 Token；旧 Token 名称保留并弃用，迁移到 Message.Token。QBlock1/2 仅登记现行名称/格式，默认未启用其处理器。

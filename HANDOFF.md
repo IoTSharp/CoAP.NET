@@ -1,5 +1,17 @@
 # CoAP.NET engineering handoff
 
+## 2026-11-13 (Asia/Shanghai): Token / unsigned option / Observe deadline next batch
+
+- Repository: ordinary clone `C:/Users/mysti/.codex/coap-repos/integration`; clean baseline master/origin/master `3565f49d89d51d71511fbfec70633681b4f86d4d`, tree `83c3d2546e22d934989a286d594ad2b34546528f`. Branch `codex/coap-next-batch-20261113`. The unusable managed worktrees and original SonnetDB source are outside this batch.
+- Three disjoint implementation agents own TokenLayer, Option/Message getters, and ObserveLayer. Primary integrates host uint binding and scalar first-block Size hints; RFC7959 section4 allows later blocks to omit unchanged estimates. Size hints do not allocate memory or determine transfer completion.
+- #33 is PARTIAL/OPEN: auto tokens use RandomNumberGenerator.GetBytes(8), explicit/empty tokens and existing retransmission/Blockwise/Observe identities remain. Actual DTLS session/key/re-key identity is unavailable to TokenLayer, so secure binding remains UNKNOWN. UseRandomTokenStart is retained but no longer makes auto tokens deterministic.
+- #34 candidate adds Option.UIntValue/Create(UInt32), Message.Size1Unsigned/Size2Unsigned, raw range checks, and uint/uint? reflection/generated host binding. Legacy signed bit patterns and signatures remain; overlong typed raw getters now throw OverflowException. #35 candidate uses one ITimer with monotonic deadline and bounded slices; later notifications update deadline and terminal paths dispose/detach.
+- Local gates: focused86/86; Windows default Release481/481; COAPALL491/491; COAP03/08/12/13 targeted101 each; Resource/MVC sample0 warnings/errors; owned format exit0. All builds/tests use TreatWarningsAsErrors=true. Original Token/unsigned/Observe FAIL receipts and Blockwise first-hint8FAIL are retained. COAPALL initially490/491 because an old fixture used string Content-Format; the fixture now uses MediaType.TextPlain.
+- Independent review corrected the host fixture to use full-range Size1 with Block1 and request Size2=0, as RFC7959 requires; full-range Size2 is exercised on response Block2. Review found no remaining actionable unsigned/hint source issue. Audit: docs/audits/coap-20261113/next-batch-validation.json. Final staged whitespace/CI/review/merge need exact-head remote readback before claiming delivery.
+- #26 NOT_RUN: pinned libcoap v4.3.5 and Californium3.13.0 refs were verified; peer commands/mvn absent, Docker available but no peer images, WSL probe unsupported by the execution runtime. AOT execution, new package publication/consumption, field/soak also NOT_RUN.
+- No persistent services or installs. Cordonix owns bounded invocation process trees and reports cleanup complete; necessary work/ evidence and isolated build outputs are retained. No tag, NuGet publication, deployment or production change is authorized.
+- Next: commit only owned paths in separate slices, push, create PR, inspect exact-head CI/review, merge only after passing gates, independently read master/issues/worktree. Keep #23/#33/#26 open; close #34/#35 only after code/CI/merge evidence.
+
 ## 2026-11-13 (Asia/Shanghai): approved modern option semantics and lifecycle
 
 - Baseline master@557b31a89ce803cbde8b3bef7a1d3754c206ba03. User explicitly selected A: modern option19 semantics by default, deprecated old Token name retained, header Token via Message.Token, legacy only by explicit codec. Commit/push/PR/merge authorization continues; no tag, new package publication or deployment is authorized.
