@@ -4,6 +4,8 @@
 
 独立协议库的当前标准与互操作顺序见 [CoAP 标准路线](docs/coap-standards-roadmap.md)。本文件保留 Resource/MVC 与性能工作的内部依赖，宿主应用的产品路线由各宿主自行维护。
 
+2026-11-13 下一批从 `master@3565f49d` 实现 #34 unsigned option/宿主绑定/Size hint 保留与 #35 Observe monotonic 长 deadline；#33 先修自动 Token CSPRNG，真实 DTLS context non-reuse 仍 UNKNOWN。Windows Release 481/481、COAPALL 491/491、四种 legacy 定向各 101/101、sample 与 owned format 已通过；#26 固定 peer 门禁 NOT_RUN。源码、CI 合并、真实互操作、AOT、包和现场分别验收，详见 [本批审计](docs/audits/coap-20261113/next-batch-validation.json)。
+
 宿主应用只声明业务端点和调用业务服务。路由注册、路由匹配、请求分发、结果执行、资源发现和框架约定应沉淀在 CoAP.NET 内部，最终达到类似 REST API controller 的开发体验。
 
 ## 目标边界

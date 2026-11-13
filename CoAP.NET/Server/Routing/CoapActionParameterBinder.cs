@@ -422,6 +422,11 @@ namespace CoAP.Server.Routing
                 return option.LongValue;
             }
 
+            if (targetType == typeof(uint))
+            {
+                return option.UIntValue;
+            }
+
             if (targetType == typeof(bool))
             {
                 return true;

@@ -915,7 +915,7 @@ namespace CoAP
             get
             {
                 Option opt = GetFirstOption(OptionType.MaxAge);
-                return (null == opt) ? CoapConstants.DefaultMaxAge : opt.LongValue;
+                return (null == opt) ? CoapConstants.DefaultMaxAge : (Int64)opt.UIntValue;
             }
             set
             {
@@ -1006,6 +1006,11 @@ namespace CoAP
         /// <summary>
         /// Gets or sets the Size1 option. Be <code>null</code> if not set.
         /// </summary>
+        /// <remarks>
+        /// Retains the legacy signed four-byte mapping, so 0x80000000..0xffffffff
+        /// read as negative values. Use <see cref="Size1Unsigned"/> for the full range.
+        /// </remarks>
+        /// <exception cref="OverflowException">The raw value is longer than four bytes.</exception>
         public Int32? Size1
         {
             get
@@ -1025,12 +1030,57 @@ namespace CoAP
         /// <summary>
         /// Gets or sets the Size2 option. Be <code>null</code> if not set.
         /// </summary>
+        /// <remarks>
+        /// Retains the legacy signed four-byte mapping, so 0x80000000..0xffffffff
+        /// read as negative values. Use <see cref="Size2Unsigned"/> for the full range.
+        /// </remarks>
+        /// <exception cref="OverflowException">The raw value is longer than four bytes.</exception>
         public Int32? Size2
         {
             get
             {
                 Option opt = GetFirstOption(OptionType.Size2);
                 return opt == null ? default(Int32?) : opt.IntValue;
+            }
+            set
+            {
+                if (value.HasValue)
+                    SetOption(Option.Create(OptionType.Size2, value.Value));
+                else
+                    RemoveOptions(OptionType.Size2);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets Size1 in the full RFC 7959 unsigned range. Null means absent.
+        /// </summary>
+        /// <exception cref="OverflowException">The raw value is longer than four bytes.</exception>
+        public UInt32? Size1Unsigned
+        {
+            get
+            {
+                Option opt = GetFirstOption(OptionType.Size1);
+                return opt == null ? default(UInt32?) : opt.UIntValue;
+            }
+            set
+            {
+                if (value.HasValue)
+                    SetOption(Option.Create(OptionType.Size1, value.Value));
+                else
+                    RemoveOptions(OptionType.Size1);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets Size2 in the full RFC 7959 unsigned range. Null means absent.
+        /// </summary>
+        /// <exception cref="OverflowException">The raw value is longer than four bytes.</exception>
+        public UInt32? Size2Unsigned
+        {
+            get
+            {
+                Option opt = GetFirstOption(OptionType.Size2);
+                return opt == null ? default(UInt32?) : opt.UIntValue;
             }
             set
             {

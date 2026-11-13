@@ -98,7 +98,7 @@ namespace CoAP.Codec
 
             msg.ID = 12345;
             msg.Payload = System.Text.Encoding.UTF8.GetBytes("payload");
-            msg.AddOption(Option.Create(OptionType.ContentType, "text/plain"));
+            msg.AddOption(Option.Create(OptionType.ContentType, MediaType.TextPlain));
             msg.AddOption(Option.Create(OptionType.MaxAge, 30));
 
             Byte[] data = Spec.Encode(msg);

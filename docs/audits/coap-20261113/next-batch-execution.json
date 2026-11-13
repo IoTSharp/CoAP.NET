@@ -1,0 +1,462 @@
+{
+  "date": "2026-11-13",
+  "baseline": "3565f49d89d51d71511fbfec70633681b4f86d4d",
+  "sourceFiles": [
+    {
+      "path": "CoAP.NET/Message.cs",
+      "sha256": "600da9449802c8bc44b32920078a49e0c353a2849963e9ec67c301c88c5e3d26",
+      "bytes": 40383
+    },
+    {
+      "path": "CoAP.NET/Option.cs",
+      "sha256": "f43ee68471148db15853f434434ac5a40bdf23c69de53813bd294834228a3137",
+      "bytes": 23415
+    },
+    {
+      "path": "CoAP.NET/Server/Routing/CoapActionParameterBinder.cs",
+      "sha256": "387b8b99691b8eb1dce03416460330558cee1863711f7c813ec9a12fae98ce3d",
+      "bytes": 28135
+    },
+    {
+      "path": "CoAP.NET/Server/Routing/CoapGeneratedEndpointHelpers.cs",
+      "sha256": "56ca45649d146999d77012fd80220b0b73e985ed44d6a7b0c71e8eafeb3555b2",
+      "bytes": 27105
+    },
+    {
+      "path": "CoAP.NET/Stack/BlockwiseLayer.cs",
+      "sha256": "e6877dd10a03120eb765f1744bd26f27d05aef38337de67682ffb9d2f29518af",
+      "bytes": 48396
+    },
+    {
+      "path": "CoAP.NET/Stack/BlockwiseStatus.cs",
+      "sha256": "1fd755922dca8bde769348212931e77640764078bd3bd6147d921813fbfa69b9",
+      "bytes": 3796
+    },
+    {
+      "path": "CoAP.NET/Stack/ObserveLayer.cs",
+      "sha256": "23e6ecf5489f62155c0bb8ad3ad4b056c4fffeb35781768eee194e4143936b1b",
+      "bytes": 18029
+    },
+    {
+      "path": "CoAP.NET/Stack/TokenLayer.cs",
+      "sha256": "757ccc7238e055cd18c44b474185aa3fa52eed7551d0406b2e0ceba6905f7477",
+      "bytes": 3012
+    },
+    {
+      "path": "CoAP.Test/EndpointOwnedExchangeTest.cs",
+      "sha256": "42155721fe1c0ccf4109c4f274108fa44c9eb1fd74bf4f7128ba4f8d73abf175",
+      "bytes": 11619
+    },
+    {
+      "path": "CoAP.Test/ObserveLongDeadlineTest.cs",
+      "sha256": "aed81637c22025b9a78800e9c7c206b62c9f604732196c3ae98809530d871f97",
+      "bytes": 16571
+    },
+    {
+      "path": "CoAP.Test/TokenGenerationTest.cs",
+      "sha256": "6235d557929edab0b4d4872ce83dbd999e6565a6c2fd5795d813bd877f8541e2",
+      "bytes": 6581
+    },
+    {
+      "path": "CoAP.Test/UnsignedBlockwiseSizeTest.cs",
+      "sha256": "59c4d0821ec08064fed70c0442bf3bb6aa41f959b04ebab073abf1629808df0e",
+      "bytes": 4910
+    },
+    {
+      "path": "CoAP.Test/UnsignedOptionHostingTest.cs",
+      "sha256": "604bf49625f0fdcb5720682c4d183c7607b9f80508cfc5db6af801d03ed59a0d",
+      "bytes": 3374
+    },
+    {
+      "path": "CoAP.Test/UnsignedOptionTest.cs",
+      "sha256": "72a2f266a00b742adcaba40f2e0e3b22da16a693778887af6e0462c3c919e14a",
+      "bytes": 5307
+    },
+    {
+      "path": "CoAP.Test/Codec/MessageTest.cs",
+      "sha256": "8e3700f56fdf87f31445f59a896d08b568526c67fbc11dbc47cb864a16358b0e",
+      "bytes": 7195
+    }
+  ],
+  "gates": {
+    "focused": {
+      "start": {
+        "current_time": "2026-11-13 05:00:28 UTC"
+      },
+      "program": "C:\\Program Files\\dotnet\\dotnet.exe",
+      "args": [
+        "test",
+        "CoAP.Test\\CoAP.Test.csproj",
+        "-c",
+        "Release",
+        "--filter",
+        "FullyQualifiedName~UnsignedBlockwiseSizeTest|FullyQualifiedName~TokenGenerationTest|FullyQualifiedName~UnsignedOptionTest|FullyQualifiedName~UnsignedOptionHostingTest|FullyQualifiedName~ObserveLongDeadlineTest|FullyQualifiedName~EndpointOwnedExchangeTest",
+        "-p:TreatWarningsAsErrors=true",
+        "--artifacts-path",
+        "C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts",
+        "--logger",
+        "trx;LogFileName=focused.trx",
+        "--results-directory",
+        "C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor"
+      ],
+      "cwd": "C:\\Users\\mysti\\.codex\\coap-repos\\integration",
+      "timeout_ms": 180000,
+      "status": "completed",
+      "process_status": "completed",
+      "exit_code": 0,
+      "pid": 74960,
+      "cleanup_complete": true,
+      "active_processes_before_cleanup": 2,
+      "active_processes_after_cleanup": 0,
+      "stdout": "  正在确定要还原的项目…\r\n  所有项目均是最新的，无法还原。\r\n  CoAP.NET -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts\\bin\\CoAP.NET\\release\\CoAP.NET.dll\r\n  CoAP.NET.AspNetCore -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts\\bin\\CoAP.NET.AspNetCore\\release\\CoAP.NET.AspNetCore.dll\r\n  CoAP.NET.SourceGeneration -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts\\bin\\CoAP.NET.SourceGeneration\\release\\CoAP.NET.SourceGeneration.dll\r\n  CoAP.Test -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts\\bin\\CoAP.Test\\release\\CoAP.Test.dll\r\nC:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts\\bin\\CoAP.Test\\release\\CoAP.Test.dll (.NETCoreApp,Version=v10.0)的测试运行\r\n总共 1 个测试文件与指定模式相匹配。\r\n结果文件: C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\focused.trx\r\n\r\n已通过! - 失败:     0，通过:    86，已跳过:     0，总计:    86，持续时间: 249 ms - CoAP.Test.dll (net10.0)\r\n",
+      "stderr": "",
+      "output_truncated": false,
+      "elapsed_ms": 11422,
+      "output_encoding": "utf-8",
+      "win32_error": 0
+    },
+    "COAP03": {
+      "start": {
+        "current_time": "2026-11-13 05:05:29 UTC"
+      },
+      "program": "C:\\Program Files\\dotnet\\dotnet.exe",
+      "args": [
+        "test",
+        "CoAP.Test\\CoAP.Test.csproj",
+        "-c",
+        "Release",
+        "--filter",
+        "FullyQualifiedName~RegistryOptionTest|FullyQualifiedName~LegacyCodecOptionTest|FullyQualifiedName~LegacyEndpointIsolationTest|FullyQualifiedName~UnsignedBlockwiseSizeTest|FullyQualifiedName~UnsignedOptionTest|FullyQualifiedName~UnsignedOptionHostingTest|FullyQualifiedName~ObserveLongDeadlineTest|FullyQualifiedName~TokenGenerationTest|FullyQualifiedName~EndpointOwnedExchangeTest",
+        "-p:TreatWarningsAsErrors=true",
+        "-p:DefineConstants=COAP03",
+        "--artifacts-path",
+        "C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP03",
+        "--logger",
+        "trx;LogFileName=COAP03.trx",
+        "--results-directory",
+        "C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor"
+      ],
+      "cwd": "C:\\Users\\mysti\\.codex\\coap-repos\\integration",
+      "timeout_ms": 180000,
+      "status": "completed",
+      "process_status": "completed",
+      "exit_code": 0,
+      "pid": 52880,
+      "cleanup_complete": true,
+      "active_processes_before_cleanup": 2,
+      "active_processes_after_cleanup": 0,
+      "stdout": "  正在确定要还原的项目…\r\n  已还原 C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET\\CoAP.NET.csproj (用时 249 毫秒)。\r\n  已还原 C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET.SourceGeneration\\CoAP.NET.SourceGeneration.csproj (用时 249 毫秒)。\r\n  已还原 C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET.AspNetCore\\CoAP.NET.AspNetCore.csproj (用时 248 毫秒)。\r\n  已还原 C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.Test\\CoAP.Test.csproj (用时 284 毫秒)。\r\n  CoAP.NET -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP03\\bin\\CoAP.NET\\release\\CoAP.NET.dll\r\n  CoAP.NET.AspNetCore -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP03\\bin\\CoAP.NET.AspNetCore\\release\\CoAP.NET.AspNetCore.dll\r\n  CoAP.NET.SourceGeneration -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP03\\bin\\CoAP.NET.SourceGeneration\\release\\CoAP.NET.SourceGeneration.dll\r\n  CoAP.Test -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP03\\bin\\CoAP.Test\\release\\CoAP.Test.dll\r\nC:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP03\\bin\\CoAP.Test\\release\\CoAP.Test.dll (.NETCoreApp,Version=v10.0)的测试运行\r\n总共 1 个测试文件与指定模式相匹配。\r\n结果文件: C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\COAP03.trx\r\n\r\n已通过! - 失败:     0，通过:   101，已跳过:     0，总计:   101，持续时间: 276 ms - CoAP.Test.dll (net10.0)\r\n",
+      "stderr": "",
+      "output_truncated": false,
+      "elapsed_ms": 12922,
+      "output_encoding": "utf-8",
+      "win32_error": 0
+    },
+    "COAP08": {
+      "start": {
+        "current_time": "2026-11-13 05:05:29 UTC"
+      },
+      "program": "C:\\Program Files\\dotnet\\dotnet.exe",
+      "args": [
+        "test",
+        "CoAP.Test\\CoAP.Test.csproj",
+        "-c",
+        "Release",
+        "--filter",
+        "FullyQualifiedName~RegistryOptionTest|FullyQualifiedName~LegacyCodecOptionTest|FullyQualifiedName~LegacyEndpointIsolationTest|FullyQualifiedName~UnsignedBlockwiseSizeTest|FullyQualifiedName~UnsignedOptionTest|FullyQualifiedName~UnsignedOptionHostingTest|FullyQualifiedName~ObserveLongDeadlineTest|FullyQualifiedName~TokenGenerationTest|FullyQualifiedName~EndpointOwnedExchangeTest",
+        "-p:TreatWarningsAsErrors=true",
+        "-p:DefineConstants=COAP08",
+        "--artifacts-path",
+        "C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP08",
+        "--logger",
+        "trx;LogFileName=COAP08.trx",
+        "--results-directory",
+        "C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor"
+      ],
+      "cwd": "C:\\Users\\mysti\\.codex\\coap-repos\\integration",
+      "timeout_ms": 180000,
+      "status": "completed",
+      "process_status": "completed",
+      "exit_code": 0,
+      "pid": 78980,
+      "cleanup_complete": true,
+      "active_processes_before_cleanup": 2,
+      "active_processes_after_cleanup": 0,
+      "stdout": "  正在确定要还原的项目…\r\n  已还原 C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET\\CoAP.NET.csproj (用时 260 毫秒)。\r\n  已还原 C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET.SourceGeneration\\CoAP.NET.SourceGeneration.csproj (用时 260 毫秒)。\r\n  已还原 C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET.AspNetCore\\CoAP.NET.AspNetCore.csproj (用时 260 毫秒)。\r\n  已还原 C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.Test\\CoAP.Test.csproj (用时 288 毫秒)。\r\n  CoAP.NET -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP08\\bin\\CoAP.NET\\release\\CoAP.NET.dll\r\n  CoAP.NET.AspNetCore -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP08\\bin\\CoAP.NET.AspNetCore\\release\\CoAP.NET.AspNetCore.dll\r\n  CoAP.NET.SourceGeneration -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP08\\bin\\CoAP.NET.SourceGeneration\\release\\CoAP.NET.SourceGeneration.dll\r\n  CoAP.Test -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP08\\bin\\CoAP.Test\\release\\CoAP.Test.dll\r\nC:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP08\\bin\\CoAP.Test\\release\\CoAP.Test.dll (.NETCoreApp,Version=v10.0)的测试运行\r\n总共 1 个测试文件与指定模式相匹配。\r\n结果文件: C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\COAP08.trx\r\n\r\n已通过! - 失败:     0，通过:   101，已跳过:     0，总计:   101，持续时间: 295 ms - CoAP.Test.dll (net10.0)\r\n",
+      "stderr": "",
+      "output_truncated": false,
+      "elapsed_ms": 14125,
+      "output_encoding": "utf-8",
+      "win32_error": 0
+    },
+    "COAP12": {
+      "start": {
+        "current_time": "2026-11-13 05:08:09 UTC"
+      },
+      "program": "C:\\Program Files\\dotnet\\dotnet.exe",
+      "args": [
+        "test",
+        "CoAP.Test\\CoAP.Test.csproj",
+        "-c",
+        "Release",
+        "--filter",
+        "FullyQualifiedName~RegistryOptionTest|FullyQualifiedName~LegacyCodecOptionTest|FullyQualifiedName~LegacyEndpointIsolationTest|FullyQualifiedName~UnsignedBlockwiseSizeTest|FullyQualifiedName~UnsignedOptionTest|FullyQualifiedName~UnsignedOptionHostingTest|FullyQualifiedName~ObserveLongDeadlineTest|FullyQualifiedName~TokenGenerationTest|FullyQualifiedName~EndpointOwnedExchangeTest",
+        "-p:TreatWarningsAsErrors=true",
+        "-p:DefineConstants=COAP12",
+        "--artifacts-path",
+        "C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP12",
+        "--logger",
+        "trx;LogFileName=COAP12.trx",
+        "--results-directory",
+        "C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor"
+      ],
+      "cwd": "C:\\Users\\mysti\\.codex\\coap-repos\\integration",
+      "timeout_ms": 180000,
+      "status": "completed",
+      "process_status": "completed",
+      "exit_code": 0,
+      "pid": 65724,
+      "cleanup_complete": true,
+      "active_processes_before_cleanup": 2,
+      "active_processes_after_cleanup": 0,
+      "stdout": "  正在确定要还原的项目…\r\n  已还原 C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET.AspNetCore\\CoAP.NET.AspNetCore.csproj (用时 238 毫秒)。\r\n  已还原 C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET\\CoAP.NET.csproj (用时 239 毫秒)。\r\n  已还原 C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET.SourceGeneration\\CoAP.NET.SourceGeneration.csproj (用时 238 毫秒)。\r\n  已还原 C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.Test\\CoAP.Test.csproj (用时 266 毫秒)。\r\n  CoAP.NET -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP12\\bin\\CoAP.NET\\release\\CoAP.NET.dll\r\n  CoAP.NET.AspNetCore -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP12\\bin\\CoAP.NET.AspNetCore\\release\\CoAP.NET.AspNetCore.dll\r\n  CoAP.NET.SourceGeneration -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP12\\bin\\CoAP.NET.SourceGeneration\\release\\CoAP.NET.SourceGeneration.dll\r\n  CoAP.Test -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP12\\bin\\CoAP.Test\\release\\CoAP.Test.dll\r\nC:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP12\\bin\\CoAP.Test\\release\\CoAP.Test.dll (.NETCoreApp,Version=v10.0)的测试运行\r\n总共 1 个测试文件与指定模式相匹配。\r\n结果文件: C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\COAP12.trx\r\n\r\n已通过! - 失败:     0，通过:   101，已跳过:     0，总计:   101，持续时间: 252 ms - CoAP.Test.dll (net10.0)\r\n",
+      "stderr": "",
+      "output_truncated": false,
+      "elapsed_ms": 11578,
+      "output_encoding": "utf-8",
+      "win32_error": 0
+    },
+    "COAP13": {
+      "start": {
+        "current_time": "2026-11-13 05:08:09 UTC"
+      },
+      "program": "C:\\Program Files\\dotnet\\dotnet.exe",
+      "args": [
+        "test",
+        "CoAP.Test\\CoAP.Test.csproj",
+        "-c",
+        "Release",
+        "--filter",
+        "FullyQualifiedName~RegistryOptionTest|FullyQualifiedName~LegacyCodecOptionTest|FullyQualifiedName~LegacyEndpointIsolationTest|FullyQualifiedName~UnsignedBlockwiseSizeTest|FullyQualifiedName~UnsignedOptionTest|FullyQualifiedName~UnsignedOptionHostingTest|FullyQualifiedName~ObserveLongDeadlineTest|FullyQualifiedName~TokenGenerationTest|FullyQualifiedName~EndpointOwnedExchangeTest",
+        "-p:TreatWarningsAsErrors=true",
+        "-p:DefineConstants=COAP13",
+        "--artifacts-path",
+        "C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP13",
+        "--logger",
+        "trx;LogFileName=COAP13.trx",
+        "--results-directory",
+        "C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor"
+      ],
+      "cwd": "C:\\Users\\mysti\\.codex\\coap-repos\\integration",
+      "timeout_ms": 180000,
+      "status": "completed",
+      "process_status": "completed",
+      "exit_code": 0,
+      "pid": 15892,
+      "cleanup_complete": true,
+      "active_processes_before_cleanup": 2,
+      "active_processes_after_cleanup": 0,
+      "stdout": "  正在确定要还原的项目…\r\n  已还原 C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET.AspNetCore\\CoAP.NET.AspNetCore.csproj (用时 240 毫秒)。\r\n  已还原 C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET\\CoAP.NET.csproj (用时 242 毫秒)。\r\n  已还原 C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET.SourceGeneration\\CoAP.NET.SourceGeneration.csproj (用时 242 毫秒)。\r\n  已还原 C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.Test\\CoAP.Test.csproj (用时 264 毫秒)。\r\n  CoAP.NET -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP13\\bin\\CoAP.NET\\release\\CoAP.NET.dll\r\n  CoAP.NET.AspNetCore -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP13\\bin\\CoAP.NET.AspNetCore\\release\\CoAP.NET.AspNetCore.dll\r\n  CoAP.NET.SourceGeneration -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP13\\bin\\CoAP.NET.SourceGeneration\\release\\CoAP.NET.SourceGeneration.dll\r\n  CoAP.Test -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP13\\bin\\CoAP.Test\\release\\CoAP.Test.dll\r\nC:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAP13\\bin\\CoAP.Test\\release\\CoAP.Test.dll (.NETCoreApp,Version=v10.0)的测试运行\r\n总共 1 个测试文件与指定模式相匹配。\r\n结果文件: C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\COAP13.trx\r\n\r\n已通过! - 失败:     0，通过:   101，已跳过:     0，总计:   101，持续时间: 268 ms - CoAP.Test.dll (net10.0)\r\n",
+      "stderr": "",
+      "output_truncated": false,
+      "elapsed_ms": 11859,
+      "output_encoding": "utf-8",
+      "win32_error": 0
+    },
+    "COAPALL": {
+      "start": {
+        "current_time": "2026-11-13 05:09:40 UTC"
+      },
+      "program": "C:\\Program Files\\dotnet\\dotnet.exe",
+      "args": [
+        "test",
+        "CoAP.Test\\CoAP.Test.csproj",
+        "-c",
+        "Release",
+        "-p:TreatWarningsAsErrors=true",
+        "-p:DefineConstants=COAPALL",
+        "--artifacts-path",
+        "C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAPALL",
+        "--logger",
+        "trx;LogFileName=COAPALL.trx",
+        "--results-directory",
+        "C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor"
+      ],
+      "cwd": "C:\\Users\\mysti\\.codex\\coap-repos\\integration",
+      "timeout_ms": 180000,
+      "status": "failed",
+      "process_status": "failed",
+      "exit_code": 1,
+      "pid": 79056,
+      "cleanup_complete": true,
+      "active_processes_before_cleanup": 2,
+      "active_processes_after_cleanup": 0,
+      "stdout": "  正在确定要还原的项目…\r\n  已还原 C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET\\CoAP.NET.csproj (用时 284 毫秒)。\r\n  已还原 C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET.SourceGeneration\\CoAP.NET.SourceGeneration.csproj (用时 284 毫秒)。\r\n  已还原 C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.Test\\CoAP.Test.csproj (用时 304 毫秒)。\r\n  已还原 C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET.AspNetCore\\CoAP.NET.AspNetCore.csproj (用时 284 毫秒)。\r\n  CoAP.NET -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAPALL\\bin\\CoAP.NET\\release\\CoAP.NET.dll\r\n  CoAP.NET.AspNetCore -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAPALL\\bin\\CoAP.NET.AspNetCore\\release\\CoAP.NET.AspNetCore.dll\r\n  CoAP.NET.SourceGeneration -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAPALL\\bin\\CoAP.NET.SourceGeneration\\release\\CoAP.NET.SourceGeneration.dll\r\n  CoAP.Test -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAPALL\\bin\\CoAP.Test\\release\\CoAP.Test.dll\r\nC:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAPALL\\bin\\CoAP.Test\\release\\CoAP.Test.dll (.NETCoreApp,Version=v10.0)的测试运行\r\n总共 1 个测试文件与指定模式相匹配。\r\n  失败 TestDraft03 [5 ms]\r\n  错误消息:\r\n   System.OverflowException : Content-Format integer value exceeds 2 bytes.\r\n  堆栈跟踪:\r\n     at CoAP.Option.ValidateIntegerLength(Int32 width, Int32 length) in C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET\\Option.cs:line 179\r\n   at CoAP.Option.get_IntValue() in C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET\\Option.cs:line 105\r\n   at CoAP.Draft03.MessageEncoder03.Serialize(DatagramWriter writer, Message msg, Int32 code) in C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET\\Spec.cs:line 319\r\n   at CoAP.Codec.MessageEncoder.Encode(Request request) in C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET\\Codec\\MessageEncoder.cs:line 25\r\n   at CoAP.Codec.MessageEncoder.Encode(Message message) in C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET\\Codec\\MessageEncoder.cs:line 49\r\n   at CoAP.Draft03.Encode(Message msg) in C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET\\Spec.cs:line 101\r\n   at CoAP.Codec.MessageTest.TestMessageWithOptions(ISpec Spec) in C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.Test\\Codec\\MessageTest.cs:line 104\r\n   at CoAP.Codec.MessageTest.TestDraft03() in C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.Test\\Codec\\MessageTest.cs:line 21\r\n   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)\r\n   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)\n\r\n结果文件: C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\COAPALL.trx\r\n\r\n失败!  - 失败:     1，通过:   490，已跳过:     0，总计:   491，持续时间: 10 s - CoAP.Test.dll (net10.0)\r\n",
+      "stderr": "",
+      "output_truncated": false,
+      "elapsed_ms": 22375,
+      "output_encoding": "utf-8",
+      "win32_error": 0
+    },
+    "COAPALL-final": {
+      "start": {
+        "current_time": "2026-11-13 05:11:24 UTC"
+      },
+      "program": "C:\\Program Files\\dotnet\\dotnet.exe",
+      "args": [
+        "test",
+        "CoAP.Test\\CoAP.Test.csproj",
+        "-c",
+        "Release",
+        "-p:TreatWarningsAsErrors=true",
+        "-p:DefineConstants=COAPALL",
+        "--artifacts-path",
+        "C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAPALL",
+        "--logger",
+        "trx;LogFileName=COAPALL-final.trx",
+        "--results-directory",
+        "C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor"
+      ],
+      "cwd": "C:\\Users\\mysti\\.codex\\coap-repos\\integration",
+      "timeout_ms": 180000,
+      "status": "completed",
+      "process_status": "completed",
+      "exit_code": 0,
+      "pid": 81180,
+      "cleanup_complete": true,
+      "active_processes_before_cleanup": 2,
+      "active_processes_after_cleanup": 0,
+      "stdout": "  正在确定要还原的项目…\r\n  所有项目均是最新的，无法还原。\r\n  CoAP.NET -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAPALL\\bin\\CoAP.NET\\release\\CoAP.NET.dll\r\n  CoAP.NET.AspNetCore -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAPALL\\bin\\CoAP.NET.AspNetCore\\release\\CoAP.NET.AspNetCore.dll\r\n  CoAP.NET.SourceGeneration -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAPALL\\bin\\CoAP.NET.SourceGeneration\\release\\CoAP.NET.SourceGeneration.dll\r\n  CoAP.Test -> C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAPALL\\bin\\CoAP.Test\\release\\CoAP.Test.dll\r\nC:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\artifacts-COAPALL\\bin\\CoAP.Test\\release\\CoAP.Test.dll (.NETCoreApp,Version=v10.0)的测试运行\r\n总共 1 个测试文件与指定模式相匹配。\r\n结果文件: C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\COAPALL-final.trx\r\n\r\n已通过! - 失败:     0，通过:   491，已跳过:     0，总计:   491，持续时间: 12 s - CoAP.Test.dll (net10.0)\r\n",
+      "stderr": "",
+      "output_truncated": false,
+      "elapsed_ms": 38375,
+      "output_encoding": "utf-8",
+      "win32_error": 0
+    },
+    "windows-final": {
+      "start": {
+        "current_time": "2026-11-13 05:23:45 UTC"
+      },
+      "program": "C:\\Program Files\\dotnet\\dotnet.exe",
+      "args": [
+        "test",
+        "CoAP.Test\\CoAP.Test.csproj",
+        "-c",
+        "Release",
+        "-p:TreatWarningsAsErrors=true",
+        "--logger",
+        "trx;LogFileName=windows-final.trx",
+        "--results-directory",
+        "C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor"
+      ],
+      "cwd": "C:\\Users\\mysti\\.codex\\coap-repos\\integration",
+      "timeout_ms": 180000,
+      "status": "completed",
+      "process_status": "completed",
+      "exit_code": 0,
+      "pid": 36048,
+      "cleanup_complete": true,
+      "active_processes_before_cleanup": 2,
+      "active_processes_after_cleanup": 0,
+      "stdout": "  正在确定要还原的项目…\r\n  所有项目均是最新的，无法还原。\r\n  CoAP.NET -> C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET\\bin\\Release\\net10.0\\CoAP.NET.dll\r\n  CoAP.NET.AspNetCore -> C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET.AspNetCore\\bin\\Release\\net10.0\\CoAP.NET.AspNetCore.dll\r\n  CoAP.NET.SourceGeneration -> C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET.SourceGeneration\\bin\\Release\\netstandard2.0\\CoAP.NET.SourceGeneration.dll\r\n  CoAP.Test -> C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.Test\\bin\\Release\\net10.0\\CoAP.Test.dll\r\nC:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.Test\\bin\\Release\\net10.0\\CoAP.Test.dll (.NETCoreApp,Version=v10.0)的测试运行\r\n总共 1 个测试文件与指定模式相匹配。\r\n结果文件: C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\windows-final.trx\r\n\r\n已通过! - 失败:     0，通过:   481，已跳过:     0，总计:   481，持续时间: 10 s - CoAP.Test.dll (net10.0)\r\n",
+      "stderr": "",
+      "output_truncated": false,
+      "elapsed_ms": 20265,
+      "output_encoding": "utf-8",
+      "win32_error": 0
+    },
+    "format-final": {
+      "start": {
+        "current_time": "2026-11-13 05:23:45 UTC"
+      },
+      "program": "C:\\Program Files\\dotnet\\dotnet.exe",
+      "args": [
+        "format",
+        "CoAP.Test\\CoAP.Test.csproj",
+        "--verify-no-changes",
+        "--no-restore",
+        "--severity",
+        "warn",
+        "--include",
+        "CoAP.NET/Message.cs",
+        "CoAP.NET/Option.cs",
+        "CoAP.NET/Server/Routing/CoapActionParameterBinder.cs",
+        "CoAP.NET/Server/Routing/CoapGeneratedEndpointHelpers.cs",
+        "CoAP.NET/Stack/BlockwiseLayer.cs",
+        "CoAP.NET/Stack/BlockwiseStatus.cs",
+        "CoAP.NET/Stack/ObserveLayer.cs",
+        "CoAP.NET/Stack/TokenLayer.cs",
+        "CoAP.Test/EndpointOwnedExchangeTest.cs",
+        "CoAP.Test/ObserveLongDeadlineTest.cs",
+        "CoAP.Test/TokenGenerationTest.cs",
+        "CoAP.Test/UnsignedBlockwiseSizeTest.cs",
+        "CoAP.Test/UnsignedOptionHostingTest.cs",
+        "CoAP.Test/UnsignedOptionTest.cs",
+        "CoAP.Test/Codec/MessageTest.cs"
+      ],
+      "cwd": "C:\\Users\\mysti\\.codex\\coap-repos\\integration",
+      "timeout_ms": 180000,
+      "status": "completed",
+      "process_status": "completed",
+      "exit_code": 0,
+      "pid": 58172,
+      "cleanup_complete": true,
+      "active_processes_before_cleanup": 0,
+      "active_processes_after_cleanup": 0,
+      "stdout": "",
+      "stderr": "",
+      "output_truncated": false,
+      "elapsed_ms": 10297,
+      "output_encoding": "utf-8",
+      "win32_error": 0
+    },
+    "sample-final": {
+      "status": "completed",
+      "process_status": "completed",
+      "exit_code": 0,
+      "pid": 61296,
+      "cleanup_complete": true,
+      "active_processes_before_cleanup": 0,
+      "active_processes_after_cleanup": 0,
+      "stdout": "  正在确定要还原的项目…\r\n  已还原 C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.Example\\CoAP.ResourceMvc\\CoAP.ResourceMvc.csproj (用时 369 毫秒)。\r\n  2 个项目(共 3 个)是最新的，无法还原。\r\n  CoAP.NET -> C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET\\bin\\Release\\net10.0\\CoAP.NET.dll\r\n  CoAP.NET.SourceGeneration -> C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.NET.SourceGeneration\\bin\\Release\\netstandard2.0\\CoAP.NET.SourceGeneration.dll\r\n  CoAP.ResourceMvc -> C:\\Users\\mysti\\.codex\\coap-repos\\integration\\CoAP.Example\\CoAP.ResourceMvc\\bin\\Release\\net10.0\\CoAP.ResourceMvc.dll\r\n\r\n已成功生成。\r\n    0 个警告\r\n    0 个错误\r\n\r\n已用时间 00:00:05.74\r\n",
+      "stderr": "",
+      "output_truncated": false,
+      "elapsed_ms": 6109,
+      "output_encoding": "utf-8",
+      "win32_error": 0
+    }
+  },
+  "counters": {
+    "status": "completed",
+    "process_status": "completed",
+    "exit_code": 0,
+    "pid": 58288,
+    "cleanup_complete": true,
+    "active_processes_before_cleanup": 1,
+    "active_processes_after_cleanup": 0,
+    "stdout": "C:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\COAPALL-final.trx:2981:    <Counters total=\"491\" executed=\"491\" passed=\"491\" failed=\"0\" error=\"0\" timeout=\"0\" aborted=\"0\" inconclusive=\"0\" passedButRunAborted=\"0\" notRunnable=\"0\" notExecuted=\"0\" disconnected=\"0\" warning=\"0\" completed=\"0\" inProgress=\"0\" pending=\"0\" />\r\nC:\\Users\\mysti\\Documents\\Codex\\2026-11-13\\coap-next-batch-20261113\\work\\supervisor\\windows-final.trx:2937:    <Counters total=\"481\" executed=\"481\" passed=\"481\" failed=\"0\" error=\"0\" timeout=\"0\" aborted=\"0\" inconclusive=\"0\" passedButRunAborted=\"0\" notRunnable=\"0\" notExecuted=\"0\" disconnected=\"0\" warning=\"0\" completed=\"0\" inProgress=\"0\" pending=\"0\" />\r\n",
+    "stderr": "",
+    "output_truncated": false,
+    "elapsed_ms": 46,
+    "output_encoding": "utf-8",
+    "win32_error": 0
+  },
+  "independentReview": {
+    "status": "PASS",
+    "agent": "token",
+    "remainingActionableSourceFindings": 0,
+    "correction": "Host request Size2 is now zero; unsigned response Size2 is tested in Block2 path."
+  },
+  "limits": {
+    "maxParallelRequests": 4,
+    "hashDeadlineMs": 60000,
+    "maxHashFiles": 16,
+    "processOwnership": "Cordonix Windows Job; remaining task descendants reaped at root exit; no persistent service",
+    "sessionMcpParentPid": 31584,
+    "processCreationTimeField": "Not exposed by execute_program; start UTC + PID + argv + Job cleanup retained",
+    "noInstallation": true,
+    "noTag": true,
+    "noPublication": true,
+    "noDeployment": true
+  }
+}

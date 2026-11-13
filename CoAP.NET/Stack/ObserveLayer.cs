@@ -10,6 +10,7 @@
  */
 
 using System;
+using System.Threading;
 using System.Timers;
 using Microsoft.Extensions.Logging;
 using CoAP.Net;
@@ -25,14 +26,23 @@ namespace CoAP.Stack
         /// <summary>
         /// Additional time to wait until re-registration
         /// </summary>
-        private Int32 _backoff;
+        private readonly Int32 _backoff;
+        private readonly TimeProvider _timeProvider;
 
         /// <summary>
         /// Constructs a new observe layer.
         /// </summary>
-        public ObserveLayer(ICoapConfig config)
+        public ObserveLayer(ICoapConfig config) : this(config, TimeProvider.System)
+        {
+        }
+
+        /// <summary>
+        /// Constructs an observe layer using the supplied monotonic clock and timer provider.
+        /// </summary>
+        public ObserveLayer(ICoapConfig config, TimeProvider timeProvider)
         {
             _backoff = config.NotificationReregistrationBackoff;
+            _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
         }
 
         /// <inheritdoc/>
@@ -146,6 +156,7 @@ namespace CoAP.Stack
             else
             {
                 // No observe option in response => always deliver
+                ReleaseExchange(exchange);
                 base.ReceiveResponse(nextLayer, exchange, response);
             }
         }
@@ -243,14 +254,14 @@ namespace CoAP.Stack
                 if (CoAPEndPoint.IsExchangeRetired(exchange) || exchange.Complete ||
                     exchange.Request.IsCancelled || exchange.Request.IsTimedOut || exchange.Request.IsRejected)
                     return;
-                Int64 timeout = response.MaxAge * 1000 + _backoff;
+                Int64 timeout = Math.Max(0, response.MaxAge * 1000 + _backoff);
                 ReregistrationContext ctx = exchange.GetOrAdd<ReregistrationContext>(
-                    ReregistrationContextKey, _ => new ReregistrationContext(exchange, timeout, reregister));
+                    ReregistrationContextKey, _ => new ReregistrationContext(exchange, _timeProvider, reregister));
 
                 if (Log.IsEnabled(LogLevel.Debug))
                     Log.LogDebug("Scheduling re-registration in " + timeout + "ms for " + exchange.Request);
 
-                ctx.Restart();
+                ctx.Restart(timeout);
             }
         }
 
@@ -264,78 +275,159 @@ namespace CoAP.Stack
 
         class ReregistrationContext : IDisposable
         {
-            private Exchange _exchange;
-            private Action<Request> _reregister;
-            private System.Timers.Timer _timer;
-            private Int32 _disposed;
+            private readonly Exchange _exchange;
+            private readonly Request _request;
+            private readonly Action<Request> _reregister;
+            private readonly TimeProvider _timeProvider;
+            private ITimer _timer;
+            private Int64 _started;
+            private TimeSpan _timeout;
+            private Int64 _generation;
+            private Boolean _armed;
+            private Boolean _disposed;
 
-            public ReregistrationContext(Exchange exchange, Int64 timeout, Action<Request> reregister)
+            public ReregistrationContext(Exchange exchange, TimeProvider timeProvider, Action<Request> reregister)
             {
                 _exchange = exchange;
+                _request = exchange.Request;
                 _reregister = reregister;
-                _timer = new System.Timers.Timer(timeout);
-                _timer.AutoReset = false;
-                _timer.Elapsed += timer_Elapsed;
+                _timeProvider = timeProvider;
+                _timer = timeProvider.CreateTimer(OnTimer, null,
+                    Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+                _request.Cancelled += Terminated;
+                _request.TimedOut += Terminated;
+                _request.Rejected += Terminated;
+                exchange.Completed += Terminated;
             }
 
-            public void Start()
+            public void Restart(Int64 timeout)
             {
-                Restart();
+                lock (_exchange)
+                {
+                    if (_disposed)
+                        return;
+                    _started = _timeProvider.GetTimestamp();
+                    _timeout = TimeSpan.FromMilliseconds(timeout);
+                    _generation++;
+                    _armed = true;
+                    Schedule(_timeout);
+                }
             }
 
-            public void Restart()
+            private void Schedule(TimeSpan remaining)
             {
-                System.Timers.Timer timer = _timer;
-                if (timer == null || System.Threading.Volatile.Read(ref _disposed) != 0)
-                    return;
-                try { timer.Stop(); timer.Start(); }
-                catch (ObjectDisposedException) { }
+                // A legal UInt32 Max-Age can exceed the platform timer range by
+                // centuries. Keep one timer and recheck the monotonic deadline
+                // after each bounded slice, without shortening the total wait.
+                TimeSpan slice = TimeSpan.FromMilliseconds(Int32.MaxValue);
+                _timer.Change(remaining < slice ? remaining : slice, Timeout.InfiniteTimeSpan);
             }
 
-            public void Cancel()
+            private void Terminated(Object sender, EventArgs args) => Dispose();
+
+            private void OnTimer(Object state)
             {
-                Dispose();
+                try
+                {
+                    timer_Elapsed(null, null);
+                }
+                catch (Exception error)
+                {
+                    // Thread-pool timer callbacks have no synchronous caller.
+                    // Report user/lower-layer failures without terminating it.
+                    Dispose();
+                    Log.LogError(error, "Observe re-registration failed");
+                }
             }
 
             public void Dispose()
             {
-                System.Threading.Interlocked.Exchange(ref _disposed, 1);
-                System.Timers.Timer timer = System.Threading.Interlocked.Exchange(ref _timer, null);
-                if (timer != null)
+                ITimer timer;
+                lock (_exchange)
                 {
-                    timer.Stop();
-                    timer.Dispose();
+                    if (_disposed)
+                        return;
+                    _disposed = true;
+                    _armed = false;
+                    _generation++;
+                    timer = _timer;
+                    _timer = null;
+                    _request.Cancelled -= Terminated;
+                    _request.TimedOut -= Terminated;
+                    _request.Rejected -= Terminated;
+                    _exchange.Completed -= Terminated;
+                    if (ReferenceEquals(_exchange.Get(ReregistrationContextKey), this))
+                        _exchange.Remove(ReregistrationContextKey);
                 }
+                timer?.Dispose();
             }
 
             void timer_Elapsed(Object sender, ElapsedEventArgs e)
             {
-                Request request = _exchange.Request;
-                if (System.Threading.Volatile.Read(ref _disposed) == 0 &&
-                    !CoAPEndPoint.IsExchangeRetired(_exchange) && !_exchange.Complete &&
-                    !request.IsCancelled && !request.IsTimedOut && !request.IsRejected)
+                Request request;
+                Int64 generation;
+                lock (_exchange)
                 {
-                    Request refresh = Request.NewGet();
-                    refresh.SetOptions(request.GetOptions());
-                    // make sure Observe is set and zero
-                    refresh.MarkObserve();
-                    // use same Token
-                    refresh.Token = request.Token;
-                    refresh.Destination = request.Destination;
-                    refresh.CopyEventHandler(request);
-                    if (Log.IsEnabled(LogLevel.Debug))
-                        Log.LogDebug("Re-registering for " + request);
+                    if (_disposed || !_armed)
+                        return;
+                    request = _exchange.Request;
+                    if (IsTerminated(request))
+                    {
+                        Dispose();
+                        return;
+                    }
+                    TimeSpan remaining = _timeout - _timeProvider.GetElapsedTime(_started);
+                    if (remaining > TimeSpan.Zero)
+                    {
+                        Schedule(remaining);
+                        return;
+                    }
+                    _armed = false;
+                    generation = _generation;
+                }
+
+                Request refresh = Request.NewGet();
+                refresh.SetOptions(request.GetOptions());
+                refresh.MarkObserve();
+                refresh.Token = request.Token;
+                refresh.Destination = request.Destination;
+                refresh.CopyEventHandler(request);
+                // The context owns the original subscription. Do not duplicate
+                // its cleanup handlers onto each refresh request.
+                refresh.Cancelled -= Terminated;
+                refresh.TimedOut -= Terminated;
+                refresh.Rejected -= Terminated;
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("Re-registering for " + request);
+                try
+                {
                     request.FireReregister(refresh);
-                    if (System.Threading.Volatile.Read(ref _disposed) == 0 &&
-                        !CoAPEndPoint.IsExchangeRetired(_exchange) && !_exchange.Complete &&
-                        !request.IsCancelled && !request.IsTimedOut && !request.IsRejected)
-                        _reregister(refresh);
                 }
-                else
+                catch
                 {
-                    if (Log.IsEnabled(LogLevel.Debug))
-                        Log.LogDebug("Dropping re-registration for canceled " + request);
+                    Dispose();
+                    throw;
                 }
+                lock (_exchange)
+                {
+                    if (_disposed || generation != _generation || IsTerminated(request))
+                        return;
+                }
+                try
+                {
+                    _reregister(refresh);
+                }
+                catch
+                {
+                    Dispose();
+                    throw;
+                }
+            }
+
+            private Boolean IsTerminated(Request request)
+            {
+                return CoAPEndPoint.IsExchangeRetired(_exchange) || _exchange.Complete ||
+                    request.IsCancelled || request.IsTimedOut || request.IsRejected;
             }
         }
     }

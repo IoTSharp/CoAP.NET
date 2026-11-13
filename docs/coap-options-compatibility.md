@@ -66,8 +66,10 @@ Cancelled、TimedOut、Rejected 与 Exchange.Completed 会按原注册顺序通�
 
 ## 明确保留的后续项
 
-- [#33](https://github.com/IoTSharp/CoAP.NET/issues/33)：header Token 随机性、secure context 不安全复用、重传/Observe/Blockwise 的绑定。这与 option19 修复不同；本批没有改 TokenLayer 的生成策略。
-- [#34](https://github.com/IoTSharp/CoAP.NET/issues/34)：Size1/Size2 与 raw typed getter 的完整无符号范围兼容扩展。入站合法 raw UInt32 保真不等于旧 Int32 getter 已修复。
-- [#35](https://github.com/IoTSharp/CoAP.NET/issues/35)：合法大 Max-Age 的 Observe 长 deadline。入站长度正确不代表其 Timer 消费路径已验收。
+- [#33](https://github.com/IoTSharp/CoAP.NET/issues/33)：自动 Token 已改为八字节平台 CSPRNG，显式 Token 和已有 exchange 身份保持不变。`UseRandomTokenStart` API 保留，但不再使自动 Token 确定化。当前 `IChannel` / `Exchange` 不提供真实 DTLS session、traffic-key 或 re-key identity，因此 secure-context non-reuse 仍 UNKNOWN；不以 URI 推断绑定，也没有增加无界历史集合。
+- [#34](https://github.com/IoTSharp/CoAP.NET/issues/34)：新增 `Option.UIntValue`、`Option.Create(OptionType, UInt32)` 与 `Message.Size1Unsigned` / `Size2Unsigned`，保留 `0..0xffffffff`；旧 `Int32` getters 继续返回四字节 signed bit pattern。已知整数 option 的 overlong raw getter 现在抛 `OverflowException`，而不是截断。未知 option 的 `IntValue` / `LongValue` 分别最多四/八字节。Resource/MVC 反射和生成路径支持 `uint` / `uint?`；Blockwise 首块 Size hint 在组装时保留，不用于预分配或替代 M 位。
+- [#35](https://github.com/IoTSharp/CoAP.NET/issues/35)：Observe 使用 `TimeProvider` 的 monotonic deadline 与单一有界 timer 分片，后续通知刷新 deadline；取消、终态、Clear、Stop、Dispose 解绑并释放 timer。原构造函数保留，新增 clock/provider 重载。`UInt32.MaxValue` 通过确定性 fake-time 测试，未等待真实墙钟。
 - [#37](https://github.com/IoTSharp/CoAP.NET/issues/37)：有界多播收集、两个端点及每端分块状态；当前首个普通响应结束匹配的既有缺口保持开放。
 - [#24](https://github.com/IoTSharp/CoAP.NET/issues/24)、[#25](https://github.com/IoTSharp/CoAP.NET/issues/25)、[#26](https://github.com/IoTSharp/CoAP.NET/issues/26)：常用扩展与双实现互操作矩阵。
+
+本批原始失败、修复后 focused/完整/legacy 结果和 #26 peer 条件见 `docs/audits/coap-20261113/next-batch-validation.json`。这些代码回归不等同于真实 DTLS peer、NativeAOT 实物、公开包或现场长稳验收。
